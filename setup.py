@@ -10,7 +10,7 @@ from slmigrate import __version__
 
 
 def read(fname):
-    return open(Path(__file__).parent / 'docs' / 'README.md').read()
+    return open(Path(__file__).parent / 'README.md').read()
 
 
 def read_requirements(filename):

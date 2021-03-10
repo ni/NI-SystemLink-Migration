@@ -7,7 +7,7 @@ import slmigrate.constants as constants
 import slmigrate.mongohandler as mongohandler
 import slmigrate.arghandler as arghandler
 import slmigrate.filehandler as filehandler
-import systemlinkmigrate
+from .context import systemlinkmigrate
 from test import test_constants
 
 

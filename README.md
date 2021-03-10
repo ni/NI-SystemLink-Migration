@@ -83,10 +83,11 @@ The `systemlinkmigrate.py` utility can be extended to migrate services whose dat
 
 ## Getting started for development
 Like SystemLink this tool is designed to be developed, tested, and run on Windows. 
-- Install Python3, pip, and Make
-- Run `make install`
+- Install Python3, pip, and tox
+- Run `tox --devenv {venv}` where {venv} is the desired virtual environment name
+- Run `{venv}\Scripts\activate.ps1`
 - Run `test/dlmongo.ps1`
-- Run `make tests`
+- Run `tox` to execute tests
 
 If these steps execute/pass you are ready for development
 
