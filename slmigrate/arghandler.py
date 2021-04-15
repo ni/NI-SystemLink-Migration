@@ -14,7 +14,7 @@ def parse_arguments():
     parent_parser.add_argument("--" + constants.testmonitor.arg, "--test", "--tests", "--testmonitor", help="Migrate Test Monitor data", action="store_true")
     parent_parser.add_argument("--" + constants.asset.arg, "--assets", help="Migrate asset utilitization and calibration data", action="store_true")
     parent_parser.add_argument("--" + constants.repository.arg, "--repo", help="Migrate packages and feeds", action="store_true")
-    parent_parser.add_argument("--" + constants.alarmrule.arg, "--alarms", "--alarm", help="Migrate Tag alarm rules", action="store_true")
+    parent_parser.add_argument("--" + constants.alarmrule.arg, "--alarms", "--alarm", help="Migrate Tag alarm_rules", action="store_true")
     parent_parser.add_argument("--" + constants.userdata.arg, "--ud", help="Migrate user data", action="store_true")
     parent_parser.add_argument("--" + constants.notification.arg, "--notifications", help="Migrate notifications strategies, templates, and groups", action="store_true")
     parent_parser.add_argument("--" + constants.states.arg, "--state", help="Migrate system states", action="store_true")

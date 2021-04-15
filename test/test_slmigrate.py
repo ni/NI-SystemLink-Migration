@@ -92,8 +92,8 @@ def check_migration_dir():
 def test_capture_migrate_dir():
     test = test_constants.test_service
     constants.migration_dir = test_constants.migration_dir
-    if os.path.isdir(test.migration_dir):
-        shutil.rmtree(test.migration_dir)
+    if os.path.isdir(test.MIGRATION_DIR):
+        shutil.rmtree(test.MIGRATION_DIR)
     if os.path.isdir(test.source_dir):
         shutil.rmtree(test.source_dir)
     os.mkdir(test.source_dir)
@@ -117,7 +117,7 @@ def test_capture_migrate_singlefile():
     test_file = open(os.path.join(test.singlefile_source_dir, "demofile2.txt"), "a")
     test_file.close()
     filehandler.migrate_singlefile(test, constants.capture_arg)
-    assert os.path.isfile(os.path.join(test.migration_dir, "demofile2.txt"))
+    assert os.path.isfile(os.path.join(test.MIGRATION_DIR, "demofile2.txt"))
     shutil.rmtree(test.source_dir)
     shutil.rmtree(constants.migration_dir)
 
