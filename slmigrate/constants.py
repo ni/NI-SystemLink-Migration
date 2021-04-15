@@ -1,10 +1,12 @@
+"""Application constants."""
+
 import os
 from types import SimpleNamespace
 
 # Global Path Constants
 migration_dir = os.path.join(os.path.abspath(os.sep), "migration")
 mongo_migration_dir = os.path.join(migration_dir, "mongo-dump")
-migration_arg = "dir"
+MIGRATION_ARG = "dir"
 program_file_dir = os.environ.get("ProgramW6432")
 program_data_dir = os.environ.get("ProgramData")
 
@@ -56,7 +58,7 @@ service_config_dir = config_file = os.path.join(
 )
 
 # Global constants for argparse
-subparser_storage_attr = "action"
+SUBPARSER_STORAGE_ATTR = "action"
 
 # Service Dictionaries
 tag_dict = {
@@ -186,7 +188,7 @@ thdbbug_dict = {
 thdbbug = SimpleNamespace(**thdbbug_dict)
 
 # Argument constants
-capture_arg = "capture"
-restore_arg = "restore"
-source_db_arg = "source_db"
-source_db = "admin"
+CAPTURE_ARG = "capture"
+RESTORE_ARG = "restore"
+SOURCE_DB_ARG = "source_db"
+SOURCE_DB = "admin"

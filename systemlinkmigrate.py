@@ -22,7 +22,7 @@ def restore_error_check(argparser, service, action):
     :param action:
     :return:
     """
-    if action == constants.restore_arg:
+    if action == constants.RESTORE_ARG:
         if not filehandler.migration_dir_exists(constants.migration_dir):
             argparser.error(constants.migration_dir + " does not exist")
         if not filehandler.service_restore_singlefile_exists(service):
@@ -55,9 +55,7 @@ def main():
     arghandler.determine_migration_dir(arguments)
     services_to_migrate = arghandler.determine_migrate_action(arguments)
     for service_to_migrate in services_to_migrate:
-        restore_error_check(
-            argparser, service_to_migrate.SERVICE, service_to_migrate.action
-        )
+        restore_error_check(argparser, service_to_migrate.SERVICE, service_to_migrate.action)
     arghandler.determine_source_db(arguments)
     servicemgrhandler.stop_all_sl_services()
     mongo_proc = mongohandler.start_mongo(constants.mongod_exe, constants.mongo_config)
