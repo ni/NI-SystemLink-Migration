@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 import pytest
 
-import slmigrate.arghandler as arghandler
+import slmigrate.arghandler as arg_handler
 import slmigrate.constants as constants
-import slmigrate.filehandler as filehandler
-import slmigrate.mongohandler as mongohandler
+import slmigrate.filehandler as file_handler
+import slmigrate.mongohandler as mongo_handler
 from test import test_constants
 from .context import systemlinkmigrate
 
@@ -20,7 +20,7 @@ def test_parse_arguments():
 
     :return:
     """
-    parser = arghandler.parse_arguments()
+    parser = arg_handler.parse_arguments()
     assert parser.parse_args(
         [
             constants.CAPTURE_ARG,
@@ -43,7 +43,7 @@ def test_double_action_args():
 
     :return:
     """
-    parser = arghandler.parse_arguments()
+    parser = arg_handler.parse_arguments()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args([constants.CAPTURE_ARG, constants.RESTORE_ARG])
     assert pytest_wrapped_e.type == SystemExit
@@ -54,7 +54,7 @@ def test_no_action_args():
 
     :return:
     """
-    parser = arghandler.parse_arguments()
+    parser = arg_handler.parse_arguments()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args(["--" + constants.tag.arg])
     assert pytest_wrapped_e.type == SystemExit
@@ -66,9 +66,9 @@ def test_determine_migrate_action_capture():
     :return:
     """
     test_service_tuple = [(constants.tag, constants.CAPTURE_ARG)]
-    parser = arghandler.parse_arguments()
+    parser = arg_handler.parse_arguments()
     arguments = parser.parse_args([constants.CAPTURE_ARG, "--" + constants.tag.arg])
-    services_to_migrate = arghandler.determine_migrate_action(arguments)
+    services_to_migrate = arg_handler.determine_migrate_action(arguments)
     assert services_to_migrate == test_service_tuple
 
 
@@ -78,9 +78,9 @@ def test_determine_migrate_action_restore():
     :return:
     """
     test_service_tuple = [(constants.opc, constants.RESTORE_ARG)]
-    parser = arghandler.parse_arguments()
+    parser = arg_handler.parse_arguments()
     arguments = parser.parse_args([constants.RESTORE_ARG, "--" + constants.opc.arg])
-    services_to_migrate = arghandler.determine_migrate_action(arguments)
+    services_to_migrate = arg_handler.determine_migrate_action(arguments)
     assert services_to_migrate == test_service_tuple
 
 
@@ -90,9 +90,9 @@ def test_determine_migrate_action_thdbbg():
     :return:
     """
     test_service_tuple = [(constants.tag, constants.thdbbug.arg)]
-    parser = arghandler.parse_arguments()
+    parser = arg_handler.parse_arguments()
     arguments = parser.parse_args([constants.thdbbug.arg])
-    services_to_migrate = arghandler.determine_migrate_action(arguments)
+    services_to_migrate = arg_handler.determine_migrate_action(arguments)
     assert services_to_migrate == test_service_tuple
 
 
@@ -106,28 +106,19 @@ def test_capture_migrate_mongo_data():
     constants.mongo_restore = test_constants.mongo_restore
     constants.migration_dir = test_constants.migration_dir
     constants.service_config_dir = test_constants.service_config_dir
-    mongo_process = mongohandler.start_mongo(test_constants.mongod_exe, test_constants.mongo_config)
+    mongo_process = mongo_handler.start_mongo(
+        test_constants.mongod_exe, test_constants.mongo_config
+    )
     test_service = test_constants.test_service
     if os.path.isdir(constants.migration_dir):
         shutil.rmtree(constants.migration_dir)
-    config = mongohandler.get_service_config(test_service)
-    mongohandler.migrate_mongo_cmd(test_service, constants.CAPTURE_ARG, config)
+    config = mongo_handler.get_service_config(test_service)
+    mongo_handler.migrate_mongo_cmd(test_service, constants.CAPTURE_ARG, config)
     dump_dir = os.path.join(constants.migration_dir, "local")
-    mongohandler.stop_mongo(mongo_process)
+    mongo_handler.stop_mongo(mongo_process)
     files = os.walk(dump_dir)
     for file in files:
-        assert str(file).endswith((".bzon.gz, .json.gz"))
-
-
-def check_migration_dir():
-    """TODO: Complete documentation.
-
-    :return:
-    """
-    # TODO: Fix this!  It's all broken.
-    test_dir = os.mkdir(os.path.join(os.path.abspath(os.sep)), "test_dir")
-    filehandler.check_migration_dir(test_dir)
-    assert not os.path.isdir(test_dir)
+        assert str(file).endswith(".bzon.gz, .json.gz")
 
 
 def test_capture_migrate_dir():
@@ -137,17 +128,15 @@ def test_capture_migrate_dir():
     """
     test = test_constants.test_service
     constants.migration_dir = test_constants.migration_dir
-    if os.path.isdir(test.MIGRATION_DIR):
-        shutil.rmtree(test.MIGRATION_DIR)
+    if os.path.isdir(test.migration_dir):
+        shutil.rmtree(test.migration_dir)
     if os.path.isdir(test.source_dir):
         shutil.rmtree(test.source_dir)
     os.mkdir(test.source_dir)
     os.mkdir(os.path.join(test.source_dir, "lev1"))
     os.mkdir(os.path.join(test.source_dir, "lev1", "lev2"))
-    filehandler.migrate_dir(test, constants.CAPTURE_ARG)
-    assert os.path.isdir(
-        os.path.join(constants.migration_dir, test.name, "lev1", "lev2")
-    )
+    file_handler.migrate_dir(test, constants.CAPTURE_ARG)
+    assert os.path.isdir(os.path.join(constants.migration_dir, test.name, "lev1", "lev2"))
     shutil.rmtree(test.source_dir)
     shutil.rmtree(constants.migration_dir)
 
@@ -167,8 +156,8 @@ def test_capture_migrate_singlefile():
     os.mkdir(constants.migration_dir)
     test_file = open(os.path.join(test.singlefile_source_dir, "demofile2.txt"), "a")
     test_file.close()
-    filehandler.migrate_singlefile(test, constants.CAPTURE_ARG)
-    assert os.path.isfile(os.path.join(test.MIGRATION_DIR, "demofile2.txt"))
+    file_handler.migrate_singlefile(test, constants.CAPTURE_ARG)
+    assert os.path.isfile(os.path.join(test.migration_dir, "demofile2.txt"))
     shutil.rmtree(test.source_dir)
     shutil.rmtree(constants.migration_dir)
 

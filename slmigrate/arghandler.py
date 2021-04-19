@@ -141,9 +141,7 @@ def determine_migrate_action(arguments):
             )
     # Special case for thdbbug, since there are no services given on the command line.
     if arguments.action == constants.thdbbug.arg:
-        services_to_migrate.append(
-            ServiceToMigrate(service=constants.tag, action=arguments.action)
-        )
+        services_to_migrate.append(ServiceToMigrate(service=constants.tag, action=arguments.action))
     return services_to_migrate
 
 

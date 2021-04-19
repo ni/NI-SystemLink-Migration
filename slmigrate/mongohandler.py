@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import bson
 from pymongo import errors as pyerr
 from pymongo import MongoClient
+
 from slmigrate import constants
 
 

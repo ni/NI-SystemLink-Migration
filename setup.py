@@ -1,11 +1,11 @@
-"""
-TODO: Complete documentation.
-"""
+"""TODO: Complete documentation."""
 
 from pathlib import Path
+
 from setuptools import setup
 
 from slmigrate import __version__
+
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
