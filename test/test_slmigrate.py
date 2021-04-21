@@ -96,29 +96,30 @@ def test_determine_migrate_action_thdbbg():
     assert services_to_migrate == test_service_tuple
 
 
-def test_capture_migrate_mongo_data():
-    """TODO: Complete documentation.
-
-    :return:
-    """
-    constants.mongo_config = test_constants.mongo_config
-    constants.mongo_dump = test_constants.mongo_dump
-    constants.mongo_restore = test_constants.mongo_restore
-    constants.migration_dir = test_constants.migration_dir
-    constants.service_config_dir = test_constants.service_config_dir
-    mongo_process = mongo_handler.start_mongo(
-        test_constants.mongod_exe, test_constants.mongo_config
-    )
-    test_service = test_constants.test_service
-    if os.path.isdir(constants.migration_dir):
-        shutil.rmtree(constants.migration_dir)
-    config = mongo_handler.get_service_config(test_service)
-    mongo_handler.migrate_mongo_cmd(test_service, constants.CAPTURE_ARG, config)
-    dump_dir = os.path.join(constants.migration_dir, "local")
-    mongo_handler.stop_mongo(mongo_process)
-    files = os.walk(dump_dir)
-    for file in files:
-        assert str(file).endswith(".bzon.gz, .json.gz")
+# TODO: Replace this with a true unit test and move this to an integration test.
+# def test_capture_migrate_mongo_data():
+#     """TODO: Complete documentation.
+#
+#     :return:
+#     """
+#     constants.mongo_config = test_constants.mongo_config
+#     constants.mongo_dump = test_constants.mongo_dump
+#     constants.mongo_restore = test_constants.mongo_restore
+#     constants.migration_dir = test_constants.migration_dir
+#     constants.service_config_dir = test_constants.service_config_dir
+#     mongo_process = mongo_handler.start_mongo(
+#         test_constants.mongod_exe, test_constants.mongo_config
+#     )
+#     test_service = test_constants.test_service
+#     if os.path.isdir(constants.migration_dir):
+#         shutil.rmtree(constants.migration_dir)
+#     config = mongo_handler.get_service_config(test_service)
+#     mongo_handler.migrate_mongo_cmd(test_service, constants.CAPTURE_ARG, config)
+#     dump_dir = os.path.join(constants.migration_dir, "local")
+#     mongo_handler.stop_mongo(mongo_process)
+#     files = os.walk(dump_dir)
+#     for file in files:
+#         assert str(file).endswith(".bzon.gz, .json.gz")
 
 
 def test_capture_migrate_dir():
