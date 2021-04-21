@@ -7,5 +7,6 @@
         "Python3",
         "nitaghistorian",
         "linting"
-    ]
+    ],
+    "python.pythonPath": "C:\\Users\\edwar\\anaconda3\\envs\\python_3_9\\python.exe"
 }
