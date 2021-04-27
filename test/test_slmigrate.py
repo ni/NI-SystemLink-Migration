@@ -15,6 +15,7 @@ from test import test_constants
 from .context import systemlinkmigrate
 
 
+@pytest.mark.unit
 def test_parse_arguments():
     """TODO: Complete documentation.
 
@@ -38,6 +39,7 @@ def test_parse_arguments():
     )
 
 
+@pytest.mark.unit
 def test_double_action_args():
     """TODO: Complete documentation.
 
@@ -49,6 +51,7 @@ def test_double_action_args():
     assert pytest_wrapped_e.type == SystemExit
 
 
+@pytest.mark.unit
 def test_no_action_args():
     """TODO: Complete documentation.
 
@@ -60,6 +63,7 @@ def test_no_action_args():
     assert pytest_wrapped_e.type == SystemExit
 
 
+@pytest.mark.unit
 def test_determine_migrate_action_capture():
     """TODO: Complete documentation.
 
@@ -72,6 +76,7 @@ def test_determine_migrate_action_capture():
     assert services_to_migrate == test_service_tuple
 
 
+@pytest.mark.unit
 def test_determine_migrate_action_restore():
     """TODO: Complete documentation.
 
@@ -84,6 +89,7 @@ def test_determine_migrate_action_restore():
     assert services_to_migrate == test_service_tuple
 
 
+@pytest.mark.unit
 def test_determine_migrate_action_thdbbg():
     """TODO: Complete documentation.
 
@@ -122,6 +128,7 @@ def test_determine_migrate_action_thdbbg():
 #         assert str(file).endswith(".bzon.gz, .json.gz")
 
 
+@pytest.mark.unit
 def test_capture_migrate_dir():
     """TODO: Complete documentation.
 
@@ -142,6 +149,7 @@ def test_capture_migrate_dir():
     shutil.rmtree(constants.migration_dir)
 
 
+@pytest.mark.unit
 def test_capture_migrate_singlefile():
     """TODO: Complete documentation.
 
@@ -163,6 +171,7 @@ def test_capture_migrate_singlefile():
     shutil.rmtree(constants.migration_dir)
 
 
+@pytest.mark.unit
 def test_missing_migration_directory():
     """TODO: Complete documentation.
 
@@ -182,6 +191,7 @@ def test_missing_migration_directory():
     assert pytest_wrapped_e.value.code != 0
 
 
+@pytest.mark.unit
 def test_missing_service_migration_file():
     """TODO: Complete documentation.
 
@@ -203,6 +213,7 @@ def test_missing_service_migration_file():
     shutil.rmtree(constants.migration_dir)
 
 
+@pytest.mark.unit
 def test_missing_service_migration_dir():
     """TODO: Complete documentation.
 
