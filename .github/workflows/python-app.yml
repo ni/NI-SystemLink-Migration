@@ -36,5 +36,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude basic_scripts
     - name: Test with pytest
       run: |
-        pytest
-        pytest -s -v test/test_slmigrate.py --doctest-modules --cov slmigrate --cov-config=.coveragerc --cov-report term-missing
+        # pytest
+        # pytest -s -v test/test_slmigrate.py --doctest-modules --cov slmigrate --cov-config=.coveragerc --cov-report term-missing
+        tox "-m unit"
