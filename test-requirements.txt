@@ -9,3 +9,4 @@ twine
 cli-test-helpers
 pymongo
 tox
+poetry
