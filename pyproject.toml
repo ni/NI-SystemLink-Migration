@@ -5,7 +5,7 @@ description = "The tool for migrating SystemLink data."
 authors = ["sedwards <shawn.edwards@ni.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.6.8"
 argparse = "^1.4.0"
 pytest = "^6.2.3"
 pymongo = "^3.11.3"
