@@ -15,12 +15,13 @@ from slmigrate import (
 
 
 def restore_error_check(argparser, service, action):
-    """TODO: Complete documentation.
+    """
+    Verifies the arguments given are valid for a backup or restore.
 
-    :param argparser:
-    :param service:
-    :param action:
-    :return:
+    :param argparser: The argument parser object to validate the arguments for.
+    :param service: The service to check the arguments are valid for.
+    :param action: The action to validate, either backup or restore.
+    :return: None.
     """
     if action == constants.RESTORE_ARG:
         if not filehandler.migration_dir_exists(constants.migration_dir):
@@ -46,9 +47,10 @@ def restore_error_check(argparser, service, action):
 
 # Main
 def main():
-    """TODO: Complete documentation.
+    """
+    The entry point for the NI SystemLink Migration tool.
 
-    :return:
+    :return: None.
     """
     argparser = arghandler.parse_arguments()
     arguments = argparser.parse_args()

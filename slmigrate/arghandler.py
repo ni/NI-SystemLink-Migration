@@ -122,10 +122,11 @@ def parse_arguments():
 
 
 def determine_migrate_action(arguments):
-    """TODO: Complete documentation.
+    """
+    Generate a list of migration strategies to use during migration, based on the given arguments.
 
-    :param arguments:
-    :return:
+    :param arguments: The arguments to determine the migration action from.
+    :return: A list of selected migration actions.
     """
     ServiceToMigrate = namedtuple("ServiceToMigrate", ["service", "action"])
     services_to_migrate = []
@@ -146,18 +147,21 @@ def determine_migrate_action(arguments):
 
 
 def determine_migration_dir(arguments):
-    """TODO: Complete documentation.
-
-    :param arguments:
-    :return:
     """
+    Sets the migration directory path based on the given arguments.
+
+    :param arguments: The arguments to determine the migration directory from.
+    :return: None.
+    """
+    # TODO: Make this method return the migration directory instead.
     constants.migration_dir = getattr(arguments, constants.MIGRATION_ARG)
 
 
 def determine_source_db(arguments):
-    """TODO: Complete documentation.
-
-    :param arguments:
-    :return:
     """
+    Sets the source directory path based on the given arguments.
+    :param arguments: The arguments to determine the source directory from.
+    :return: None.
+    """
+    # TODO: Make this method return the source directory instead.
     constants.SOURCE_DB = getattr(arguments, constants.SOURCE_DB_ARG)
