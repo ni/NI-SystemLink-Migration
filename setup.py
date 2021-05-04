@@ -3,7 +3,9 @@ Utility function to read the README file which is used for the long_description 
 """
 
 from pathlib import Path
+
 from setuptools import setup
+
 from slmigrate import __version__
 
 
