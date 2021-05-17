@@ -11,6 +11,7 @@ from slmigrate import (
     filehandler,
     mongohandler,
     servicemgrhandler,
+    pluginhandler
 )
 
 
@@ -63,10 +64,18 @@ def main():
         service = service_to_migrate.service
         action = service_to_migrate.action
         print(service.name + " " + action + " migration called")
+        if action == constants.CAPTURE_ARG:
+            service.capture(mongohandler, filehandler)
+        elif action == constants.RESTORE_ARG:
+            service.restore(mongohandler, filehandler)
+        elif action == constants.thdbbug.arg:
+            service.thdbbug(mongohandler, filehandler)
+
         config = mongohandler.get_service_config(service)
         mongohandler.migrate_mongo_cmd(service, action, config)
         filehandler.migrate_dir(service, action)
         filehandler.migrate_singlefile(service, action)
+
     mongohandler.stop_mongo(mongo_proc)
     servicemgrhandler.start_all_sl_services()
 

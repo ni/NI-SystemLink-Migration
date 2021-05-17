@@ -3,7 +3,10 @@
 import argparse
 from collections import namedtuple
 
-from slmigrate import constants
+from slmigrate import (
+    constants,
+    pluginhandler,
+)
 
 
 def parse_arguments():
@@ -13,74 +16,12 @@ def parse_arguments():
     """
     parser = argparse.ArgumentParser(prog="slmigrate")
 
+    
     parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument(
-        "--" + constants.tag.arg,
-        "--tags",
-        "--tagingestion",
-        "--taghistory",
-        help="Migrate tags and tag histories",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.opc.arg,
-        "--opcua",
-        "--opcuaclient",
-        help="Migrate OPCUA sessions and certificates",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.fis.arg,
-        "--file",
-        "--files",
-        help="Migrate ingested files",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.testmonitor.arg,
-        "--test",
-        "--tests",
-        "--testmonitor",
-        help="Migrate Test Monitor data",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.asset.arg,
-        "--assets",
-        help="Migrate asset utilization and calibration data",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.repository.arg,
-        "--repo",
-        help="Migrate packages and feeds",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.alarmrule.arg,
-        "--alarms",
-        "--alarm",
-        help="Migrate Tag alarm_rules",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.userdata.arg,
-        "--ud",
-        help="Migrate user data",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.notification.arg,
-        "--notifications",
-        help="Migrate notifications strategies, templates, and groups",
-        action="store_true",
-    )
-    parent_parser.add_argument(
-        "--" + constants.states.arg,
-        "--state",
-        help="Migrate system states",
-        action="store_true",
-    )
+
+    for name, plugin in pluginhandler.load_plugins().items():
+        add_plugin_arguments(parent_parser, name, plugin)
+
     parent_parser.add_argument(
         "--" + constants.MIGRATION_ARG,
         "--directory",
@@ -137,7 +78,7 @@ def determine_migrate_action(arguments):
             and not (arg == constants.MIGRATION_ARG)
         ):
             services_to_migrate.append(
-                ServiceToMigrate(service=getattr(constants, arg), action=arguments.action)
+                ServiceToMigrate(service=pluginhandler.loaded_plugins[arg], action=arguments.action)
             )
     # Special case for thdbbug, since there are no services given on the command line.
     if arguments.action == constants.thdbbug.arg:
@@ -161,3 +102,12 @@ def determine_source_db(arguments):
     :return:
     """
     constants.SOURCE_DB = getattr(arguments, constants.SOURCE_DB_ARG)
+
+def add_plugin_arguments(parser, name, plugin):
+    for name in plugin.names:
+        parser.add_argument(
+            "--" + name,
+            help=plugin.help,
+            action="store_true",
+            dest=name
+        )
