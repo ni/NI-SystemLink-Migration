@@ -51,6 +51,18 @@ def stop_mongo(proc):
     subprocess.Popen.kill(proc)
 
 
+def get_connection_args(service_config):
+    if "Mongo.CustomConnectionString" in service_config:
+        return " --uri {0}".format(service_config["Mongo.CustomConnectionString"])
+    else:
+        return " --port {0} --db {1} --username {2} --password {3}".format(
+            str(service_config["Mongo.Port"]),
+            service_config["Mongo.Database"],
+            service_config["Mongo.User"],
+            service_config["Mongo.Password"]
+        )
+
+
 def capture_migration(service, action, config):
     """
     Capture the data in mongoDB from the given service.
@@ -64,14 +76,7 @@ def capture_migration(service, action, config):
         return
     cmd_to_run = (
         constants.mongo_dump
-        + " --port "
-        + str(config[service.name]["Mongo.Port"])
-        + " --db "
-        + config[service.name]["Mongo.Database"]
-        + " --username "
-        + config[service.name]["Mongo.User"]
-        + " --password "
-        + config[service.name]["Mongo.Password"]
+        + get_connection_args(config[service.name])
         + " --out "
         + constants.mongo_migration_dir
         + " --gzip"
@@ -95,14 +100,7 @@ def restore_migration(service, action, config):
     )
     cmd_to_run = (
         constants.mongo_restore
-        + " --port "
-        + str(config[service.name]["Mongo.Port"])
-        + " --db "
-        + config[service.name]["Mongo.Database"]
-        + " --username "
-        + config[service.name]["Mongo.User"]
-        + " --password "
-        + config[service.name]["Mongo.Password"]
+        + get_connection_args(config[service.name])
         + " --gzip "
         + mongo_dump_file
     )
@@ -226,6 +224,7 @@ def check_merge_history_readiness(destination_db):
             "Manager. Please see <TODO: DOCUMENTATION LINK HERE> for more detail"
         )
         sys.exit()
+
 
 # TODO: Get rid of 'config' parameter if it is not used.
 def migrate_within_instance(service, action, config):
