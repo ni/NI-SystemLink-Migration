@@ -51,16 +51,21 @@ def stop_mongo(proc):
     subprocess.Popen.kill(proc)
 
 
-def get_connection_args(service_config):
+def get_connection_args(service_config, action):
     if "Mongo.CustomConnectionString" in service_config:
-        return " --uri {0}".format(service_config["Mongo.CustomConnectionString"])
+        args = " --uri {0}".format(service_config["Mongo.CustomConnectionString"])
+        if action == constants.RESTORE_ARG:
+            # We need to provide the db option (even though it's redundant with the uri) because of a bug with mongoDB 4.2
+            # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
+            args += " --db {0}".format(service_config["Mongo.Database"])
     else:
-        return " --port {0} --db {1} --username {2} --password {3}".format(
+        args = " --port {0} --db {1} --username {2} --password {3}".format(
             str(service_config["Mongo.Port"]),
             service_config["Mongo.Database"],
             service_config["Mongo.User"],
             service_config["Mongo.Password"]
         )
+    return args
 
 
 def capture_migration(service, action, config):
@@ -76,7 +81,7 @@ def capture_migration(service, action, config):
         return
     cmd_to_run = (
         constants.mongo_dump
-        + get_connection_args(config[service.name])
+        + get_connection_args(config[service.name], action)
         + " --out "
         + constants.mongo_migration_dir
         + " --gzip"
@@ -100,7 +105,7 @@ def restore_migration(service, action, config):
     )
     cmd_to_run = (
         constants.mongo_restore
-        + get_connection_args(config[service.name])
+        + get_connection_args(config[service.name], action)
         + " --gzip "
         + mongo_dump_file
     )
