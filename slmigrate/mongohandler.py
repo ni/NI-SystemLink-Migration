@@ -5,12 +5,14 @@ import os
 import subprocess
 import sys
 from types import SimpleNamespace
+from pathlib import Path
 
 import bson
 from pymongo import errors as pyerr
 from pymongo import MongoClient
 
 from slmigrate import constants
+from slmigrate.MigrationAction import MigrationAction
 
 
 def get_service_config(service):
@@ -77,14 +79,16 @@ def capture_migration(service, action, config):
     :param config: The configuration for the given service.
     :return: None.
     """
-    if action != constants.CAPTURE_ARG:
-        return
+    mongo_dump_file = os.path.join(
+        constants.mongo_migration_dir, config[service.name]["Mongo.Database"]
+    )
+    Path(mongo_dump_file).mkdir(parents=True, exist_ok=True)
     cmd_to_run = (
         constants.mongo_dump
         + get_connection_args(config[service.name], action)
-        + " --out "
-        + constants.mongo_migration_dir
         + " --gzip"
+        + " --archive="
+        + mongo_dump_file
     )
     subprocess.run(cmd_to_run, check=True)
 
@@ -98,15 +102,16 @@ def restore_migration(service, action, config):
     :param config: The configuration for the given service.
     :return: None.
     """
-    if action != constants.RESTORE_ARG:
-        return
+    print("Hello world")
     mongo_dump_file = os.path.join(
         constants.mongo_migration_dir, config[service.name]["Mongo.Database"]
     )
+    print(mongo_dump_file)
     cmd_to_run = (
         constants.mongo_restore
         + get_connection_args(config[service.name], action)
         + " --gzip "
+        + "--archive="
         + mongo_dump_file
     )
     subprocess.run(cmd_to_run, check=True)
@@ -258,7 +263,7 @@ def migrate_within_instance(service, action, config):
     migrate_metadata_collection(source_db, destination_db)
 
 
-def migrate_mongo_cmd(service, action, config):
+def migrate_mongo_cmd(service, action: MigrationAction, config):
     """
     Performs a restore or a capture operation depending on the chosen action.
 
@@ -267,9 +272,10 @@ def migrate_mongo_cmd(service, action, config):
     :param config: The mongo configuration for the service to migrate.
     :return: None.
     """
-    if action == constants.thdbbug.arg:
+    print("test")
+    if action == MigrationAction.THDBBUG:
         migrate_within_instance(service, action, config)
-    if action == constants.CAPTURE_ARG:
+    if action == MigrationAction.CAPTURE:
         capture_migration(service, action, config)
-    if action == constants.RESTORE_ARG:
+    if action == MigrationAction.RESTORE:
         restore_migration(service, action, config)
