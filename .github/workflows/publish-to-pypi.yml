@@ -2,13 +2,13 @@ name: Publish Package to PyPI
 
 on:
   push:
-    tags:
-      - 'v*'
+    paths:
+      - VERSION
     branches:
       - main
   release:
     types:
-      - [created]
+      - published
 
 jobs:
   build-and-publish:

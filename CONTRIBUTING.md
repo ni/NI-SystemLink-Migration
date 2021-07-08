@@ -19,6 +19,12 @@ See [GitHub's official documentation](https://help.github.com/articles/using-pul
 
 - TODO: include testing steps here.
 
+# Releasing
+1. On the GitHub project's main page, click Releases (on the right-hand side), and create a new release.
+2. Use a tag and release name based on the migration tool's current version, e.g. "v0.1.0" and "0.1.0", respectively.
+3. Update the version number in your source files and post a PR.
+4. After a sufficient amount of time (minutes), verify that the release shows up on PyPI.
+
 # Contributing
 
 After you've verified that you can successfully build and run unit tests for
