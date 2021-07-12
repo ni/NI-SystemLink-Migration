@@ -17,15 +17,15 @@
 ### Basic usage
 
 ```bash
-py systemlinkmigrate.py capture --tags
+nislmigrate capture --tags
 ```
-Running `systemlinkmigrate.py` with the above arguments will capture tag and tag history and store this data in `C:\migration`. 
+Running `nislmigrate` with the above arguments will capture tag and tag history and store this data in `C:\migration`. 
 
 ```bash
-py systemlinkmigrate.py restore --tags
+nislmigrate restore --tags
 ```
 
-Running `systemlinkmigrate.py` with the above arguments will restore tag and tag history data from the directory `C:\migration`.
+Running `nislmigrate` with the above arguments will restore tag and tag history data from the directory `C:\migration`.
 
 ### Capture and Restore
 The `capture` and `restore` actions determine the directionality of the migration. The `capture` action is used when migrating data FROM an existing SystemLink server. The `restore` action is used when migrating data TO a new SystemLink server. Both actions cannot be used simultaneously. 
@@ -34,7 +34,7 @@ The `capture` and `restore` actions determine the directionality of the migratio
 To migrate the data associated with a SystemLink service you must specify the service as an argument. Multiple services may be captured or restored by providing multiple arguments; e.g:
 
 ```bash
-py systemlinkmigrate.py capture --tags --opc
+nislmigrate capture --tags --opc
 ```
 
 #### Supported Services
