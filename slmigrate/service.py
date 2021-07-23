@@ -1,5 +1,7 @@
 import slmigrate.constants as constants
-import os, json
+import os
+import json
+import functools
 
 from abc import ABC, abstractmethod
 
@@ -21,8 +23,8 @@ class ServicePlugin(ABC):
     def help(self):
         return "A short sentence describing the operation of the plugin"
 
-    @property
-    def service_config(self):
+    @functools.cached_property
+    def config(self):
         # most (all?) services use this style of config file.  Plugins won't need to override this method.
         config_file = os.path.join(constants.service_config_dir, self.name + ".json")
         with open(config_file, encoding="utf-8-sig") as json_file:

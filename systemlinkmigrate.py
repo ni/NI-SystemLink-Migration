@@ -70,12 +70,6 @@ def main():
             service.restore(mongohandler, filehandler)
         elif action == constants.thdbbug.arg:
             service.thdbbug(mongohandler, filehandler)
-
-        config = mongohandler.get_service_config(service)
-        mongohandler.migrate_mongo_cmd(service, action, config)
-        filehandler.migrate_dir(service, action)
-        filehandler.migrate_singlefile(service, action)
-
     mongohandler.stop_mongo(mongo_proc)
     servicemgrhandler.start_all_sl_services()
 
