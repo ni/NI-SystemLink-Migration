@@ -99,6 +99,24 @@ def migrate_singlefile(service, action):
         shutil.copy(singlefile_full_path, service.singlefile_source_dir)
 
 
+def capture_singlefile(service, dir, file):
+    migration_dir = determine_migration_dir(service)
+    remove_dir(migration_dir)
+    os.mkdir(migration_dir)
+    singlefile_full_path = os.path.join(
+        constants.program_data_dir,
+        dir,
+        file,
+    )
+    shutil.copy(singlefile_full_path, migration_dir)
+
+
+def restore_singlefile(service, dir, file):
+    migration_dir = determine_migration_dir(service)
+    singlefile_full_path = os.path.join(migration_dir, service.file)
+    shutil.copy(singlefile_full_path, dir)
+
+
 def migrate_dir(service, action):
     """TODO: Complete documentation.
 

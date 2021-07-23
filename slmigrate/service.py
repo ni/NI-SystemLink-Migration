@@ -1,5 +1,7 @@
-import slmigrate.constants
-from abc import ABC,abstractmethod
+import slmigrate.constants as constants
+import os, json
+
+from abc import ABC, abstractmethod
 
 
 class ServicePlugin(ABC):
@@ -11,8 +13,8 @@ class ServicePlugin(ABC):
 
     @property
     def name(self):
-        #first element of the names list is the default name for argparsing
-        return names[0]
+        # first element of the names list is the default name for argparsing
+        return self.names[0]
 
     @property
     @abstractmethod
@@ -28,15 +30,8 @@ class ServicePlugin(ABC):
 
     @abstractmethod
     def capture(self, mongohandler=None, filehandler=None):
-        config = mongohandler.get_service_config(service)
-        mongohandler.migrate_mongo_cmd(service, constants.CAPTURE_ARG, config)
-        filehandler.migrate_dir(service, constants.CAPTURE_ARG)
-        filehandler.migrate_singlefile(service, constants.CAPTURE_ARG)
+        pass
 
     @abstractmethod
     def restore(self, mongohandler=None, filehandler=None):
-        config = mongohandler.get_service_config(service)
-        mongohandler.migrate_mongo_cmd(service, constants.RESTORE_ARG, config)
-        filehandler.migrate_dir(service, constants.RESTORE_ARG)
-        filehandler.migrate_singlefile(service, constants.RESTORE_ARG)
- 
+        pass

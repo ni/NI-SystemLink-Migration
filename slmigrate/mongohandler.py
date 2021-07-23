@@ -48,16 +48,13 @@ def stop_mongo(proc):
     subprocess.Popen.kill(proc)
 
 
-def capture_migration(service, action, config):
+def capture_migration(service):
     """TODO: Complete documentation.
 
     :param service:
-    :param action:
-    :param config:
     :return:
     """
-    if action != constants.CAPTURE_ARG:
-        return
+    config = get_service_config(service)
     cmd_to_run = (
         constants.mongo_dump
         + " --port "
@@ -75,16 +72,14 @@ def capture_migration(service, action, config):
     subprocess.run(cmd_to_run, check=True)
 
 
-def restore_migration(service, action, config):
+def restore_migration(service):
     """TODO: Complete documentation.
 
     :param service:
-    :param action:
-    :param config:
     :return:
     """
-    if action != constants.RESTORE_ARG:
-        return
+
+    config = get_service_config(service)
     mongo_dump_file = os.path.join(
         constants.mongo_migration_dir, config[service.name]["Mongo.Database"]
     )
@@ -221,19 +216,15 @@ def migrate_within_instance(service, action, config):
     """TODO: Complete documentation.
 
     :param service:
-    :param action:
-    :param config:
     :return:
     """
-    if not action == constants.thdbbug.arg:
-        return
     codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
-    no_sql_config = get_service_config(constants.no_sql)
+    config = get_service_config(constants.no_sql)
     client = MongoClient(
-        host=[no_sql_config[constants.no_sql.name]["Mongo.Host"]],
-        port=no_sql_config[constants.no_sql.name]["Mongo.Port"],
-        username=no_sql_config[constants.no_sql.name]["Mongo.User"],
-        password=no_sql_config[constants.no_sql.name]["Mongo.Password"],
+        host=[config[constants.no_sql.name]["Mongo.Host"]],
+        port=config[constants.no_sql.name]["Mongo.Port"],
+        username=config[constants.no_sql.name]["Mongo.User"],
+        password=config[constants.no_sql.name]["Mongo.Password"],
     )
     source_db = client.get_database(name=service.SOURCE_DB, codec_options=codec)
     destination_db = client.get_database(name=service.destination_db, codec_options=codec)
@@ -241,18 +232,3 @@ def migrate_within_instance(service, action, config):
     migrate_values_collection(source_db, destination_db)
     migrate_metadata_collection(source_db, destination_db)
 
-
-def migrate_mongo_cmd(service, action, config):
-    """TODO: Complete documentation.
-
-    :param service:
-    :param action:
-    :param config:
-    :return:
-    """
-    if action == constants.thdbbug.arg:
-        migrate_within_instance(service, action, config)
-    if action == constants.CAPTURE_ARG:
-        capture_migration(service, action, config)
-    if action == constants.RESTORE_ARG:
-        restore_migration(service, action, config)
