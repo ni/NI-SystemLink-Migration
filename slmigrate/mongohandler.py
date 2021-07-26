@@ -54,17 +54,17 @@ def capture_migration(service):
     :param service:
     :return:
     """
-    config = get_service_config(service)
+    # TODO get rid of the [service.name] by changing the property
     cmd_to_run = (
         constants.mongo_dump
         + " --port "
-        + str(config[service.name]["Mongo.Port"])
+        + str(service.config[service.name]["Mongo.Port"])
         + " --db "
-        + config[service.name]["Mongo.Database"]
+        + service.config[service.name]["Mongo.Database"]
         + " --username "
-        + config[service.name]["Mongo.User"]
+        + service.config[service.name]["Mongo.User"]
         + " --password "
-        + config[service.name]["Mongo.Password"]
+        + service.config[service.name]["Mongo.Password"]
         + " --out "
         + constants.mongo_migration_dir
         + " --gzip"
@@ -79,7 +79,7 @@ def restore_migration(service):
     :return:
     """
 
-    config = get_service_config(service)
+    config = service.config
     mongo_dump_file = os.path.join(
         constants.mongo_migration_dir, config[service.name]["Mongo.Database"]
     )

@@ -3,46 +3,13 @@
 Not all services will be supported. Additional services will be supported over time.
 """
 
-import os
-
 from slmigrate import (
     arghandler,
     constants,
     filehandler,
     mongohandler,
     servicemgrhandler,
-    pluginhandler
 )
-
-
-def restore_error_check(argparser, service, action):
-    """TODO: Complete documentation.
-
-    :param argparser:
-    :param service:
-    :param action:
-    :return:
-    """
-    if action == constants.RESTORE_ARG:
-        if not filehandler.migration_dir_exists(constants.migration_dir):
-            argparser.error(constants.migration_dir + " does not exist")
-        if not filehandler.service_restore_singlefile_exists(service):
-            argparser.error(
-                service.name
-                + ": "
-                + os.path.join(
-                    filehandler.determine_migration_dir(service),
-                    service.singlefile_to_migrate,
-                )
-                + " does not exist"
-            )
-        if not filehandler.service_restore_dir_exists(service):
-            argparser.error(
-                service.name
-                + ": "
-                + filehandler.determine_migration_dir(service)
-                + " does not exist"
-            )
 
 
 # Main
@@ -51,12 +18,18 @@ def main():
 
     :return:
     """
-    argparser = arghandler.parse_arguments()
+    argparser = arghandler.setup_arguments()
     arguments = argparser.parse_args()
+    print(arguments)
     arghandler.determine_migration_dir(arguments)
     services_to_migrate = arghandler.determine_migrate_action(arguments)
     for service_to_migrate in services_to_migrate:
-        restore_error_check(argparser, service_to_migrate.service, service_to_migrate.action)
+        try:
+            service_to_migrate.service.restore_error_check(mongohandler, filehandler)
+        except Exception as ex:
+            # raise an error in argparse here
+            argparser.error(str(ex))
+            pass
     arghandler.determine_source_db(arguments)
     servicemgrhandler.stop_all_sl_services()
     mongo_proc = mongohandler.start_mongo(constants.mongod_exe, constants.mongo_config)

@@ -9,17 +9,17 @@ from slmigrate import (
 )
 
 
-def parse_arguments():
+def setup_arguments():
     """Set up available command line arguments.
 
     :return:
     """
     parser = argparse.ArgumentParser(prog="slmigrate")
 
-    
     parent_parser = argparse.ArgumentParser(add_help=False)
 
     for name, plugin in pluginhandler.load_plugins().items():
+        print(name)
         add_plugin_arguments(parent_parser, name, plugin)
 
     parent_parser.add_argument(
@@ -102,6 +102,7 @@ def determine_source_db(arguments):
     :return:
     """
     constants.SOURCE_DB = getattr(arguments, constants.SOURCE_DB_ARG)
+
 
 def add_plugin_arguments(parser, name, plugin):
     for name in plugin.names:
