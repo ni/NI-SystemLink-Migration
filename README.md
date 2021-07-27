@@ -76,45 +76,7 @@ Due to a bug introduced in SystemLink 2020R2 it is possible for tag history data
 py systmelinkmigrate.py thdbbug --sourcedb myadmindb
 ```
 
-
-
 # Extending systemlinkmigrate.py
 The `systemlinkmigrate.py` utility can be extended to migrate services whose data is within MongoDB, a single file, or directory. For data not covered by these additional changes may be needed that are not covered in this README. 
 
-## Getting started for development
-Like SystemLink this tool is designed to be developed, tested, and run on Windows. 
-- Install Python3, pip, and tox
-- Run `tox --devenv {venv}` where {venv} is the desired virtual environment name
-- Run `{venv}\Scripts\activate.ps1`
-- Run `test/dlmongo.ps1`
-- Run `tox` to execute tests
-
-If these steps execute/pass you are ready for development
-
-## Adding a new service dictionary constant
-Add a new dictionary describing the service in `slmigrate/constants.py`. Existing dictionaries in source can be used as models for new ones. It is assumed all services have data in MongoDB to be migrated. Take note if your service contains one or more files on disk that must be migrated, and include the appropriate key/values in the dictionary as needed. Be sure to use `SimpleNamespace` to enable calling dictionary items in a `dot.deliminted.fashion`. 
-**Example**
-```python
-opc_dict = {
-    'arg': 'opc', # Primary argument. Recommened this to match the variable named assigned with SimpleNamespace
-    'name': "OpcClient", # This is the exact service name as found in JSOJ files in C:\ProgramData\National Instruments\Skyline\Config
-    'directory_migration': True, # True because these service contains data within a directory
-    'singlefile_migration': False, # False because these services does not migrate single files
-    'migration_dir': os.path.join(migration_dir, "OpcClient"), # Name of migration directory for this service
-    'source_dir': os.path.join(program_data_dir, "National Instruments", "Skyline", "Data", "OpcClient") # Directory containing service data to be migrated. 
-}
-opc = SimpleNamespace(**opc_dict) # call dictionary items in a dot.deliminted.fashion rather than access the dictionary directly
-```
-
-## Adding new arguments
-A new service will require new arguments to be passed from the command line. This can all be done in `slmigrate/arghander.py/parse_arguments`. Be sure to use the value from the service dictionary for specifying the primary argument as this is used to look up the dictionary in `determiner_migrate_action`. Additional alias arguments may be specified. For example:
-
-```python
-parser.add_argument("--" + constants.opc.arg, "--opcua", "--opcuaclient", help="Migrate OPCUA sessions and certificates", action="store_true")
-    
-```
-
-## Tests and CI
-By and large tests should be agnostic to a particular service, and use the `test_service` in `slmigrate/test/test_constants.py` whenever possible. 
-
-All tests must pass and all code pass `flake8` linting before new code to be checked into `master`. 
+See `CONTRIBUTING.md` for getting started with developing or extending this tool.
