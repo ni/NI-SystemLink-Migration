@@ -1,9 +1,12 @@
 """Handle passed-in arguments."""
 
 import argparse
+import os
 from collections import namedtuple
 
 from slmigrate import constants
+from slmigrate.ServiceMigrationSpecification import ServiceMigrationSpecification
+from slmigrate.MigrationAction import MigrationAction
 
 
 def parse_arguments():
@@ -121,15 +124,14 @@ def parse_arguments():
     return parser
 
 
-def determine_migrate_action(arguments):
+def determine_migration_specifications(arguments):
     """
     Generate a list of migration strategies to use during migration, based on the given arguments.
 
     :param arguments: The arguments to determine the migration action from.
     :return: A list of selected migration actions.
     """
-    ServiceToMigrate = namedtuple("ServiceToMigrate", ["service", "action"])
-    services_to_migrate = []
+    service_arguments = []
     for arg in vars(arguments):
         if (
             getattr(arguments, arg)
@@ -137,24 +139,56 @@ def determine_migrate_action(arguments):
             and not (arg == constants.SOURCE_DB_ARG)
             and not (arg == constants.MIGRATION_ARG)
         ):
-            services_to_migrate.append(
-                ServiceToMigrate(service=getattr(constants, arg), action=arguments.action)
-            )
-    # Special case for thdbbug, since there are no services given on the command line.
-    if arguments.action == constants.thdbbug.arg:
-        services_to_migrate.append(ServiceToMigrate(service=constants.tag, action=arguments.action))
-    return services_to_migrate
+            service_arguments.append(arg)
 
+    service_migration_specifications = []
+    for service_argument in service_arguments:
+        service_name = getattr(constants, service_argument)
+        service_action = get_migration_action(arguments)
+        service_migration_directory = get_migration_dir(arguments)
+        service_migration_specification = ServiceMigrationSpecification(service_name, service_action, service_migration_directory)
+        service_migration_specifications.append(service_migration_specification)
+    
+    return service_migration_specifications
 
-def determine_migration_dir(arguments):
+def get_migration_dir(arguments):
     """
-    Sets the migration directory path based on the given arguments.
+    Gets the migration directory path based on the given arguments.
 
     :param arguments: The arguments to determine the migration directory from.
-    :return: None.
+    :return: The migration directory specified in the arguments, or a default if none is provided.
     """
-    # TODO: Make this method return the migration directory instead.
-    constants.migration_dir = getattr(arguments, constants.MIGRATION_ARG)
+    migration_directory_path = getattr(arguments, constants.MIGRATION_ARG, constants.migration_dir)
+    if not os.path.isdir(migration_directory_path):
+        os.mkdir(migration_directory_path)
+    constants.migration_dir = migration_directory_path
+    return constants.migration_dir
+
+def get_migration_action(arguments):
+    """
+    Determines whether to capture or restore the servers data from the given arguments.
+
+    :param arguments: The arguments to determine the migration action.
+    :return: The migration action to take.
+    """
+    if arguments.action == constants.RESTORE_ARG:
+        return MigrationAction.RESTORE
+    elif arguments.action == constants.CAPTURE_ARG:
+        return MigrationAction.CAPTURE
+    else:
+        print("Please specify whether to 'capture' or 'restore' data.")
+        exit()
+
+def verify_migration_action(arguments):
+    """
+    Determines whether a capture or restore has been specified in the arguments.
+
+    :param arguments: The arguments to verify specify a migration action.
+    :return: True if either a capture or restore have been specified in the arguments.
+    """
+    if arguments.action == constants.RESTORE_ARG or arguments.action == constants.CAPTURE_ARG:
+        return True
+    return False
 
 
 def determine_source_db(arguments):
@@ -163,5 +197,4 @@ def determine_source_db(arguments):
     :param arguments: The arguments to determine the source directory from.
     :return: None.
     """
-    # TODO: Make this method return the source directory instead.
-    constants.SOURCE_DB = getattr(arguments, constants.SOURCE_DB_ARG)
+    constants.SOURCE_DB = getattr(arguments, constants.SOURCE_DB_ARG, constants.SOURCE_DB)
