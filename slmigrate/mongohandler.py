@@ -86,9 +86,9 @@ def capture_migration(service, action, config):
     cmd_to_run = (
         constants.mongo_dump
         + get_connection_args(config[service.name], action)
-        + " --gzip"
-        + " --archive="
+        + " --out"
         + mongo_dump_file
+        + " --gzip"
     )
     subprocess.run(cmd_to_run, check=True)
 
@@ -102,16 +102,13 @@ def restore_migration(service, action, config):
     :param config: The configuration for the given service.
     :return: None.
     """
-    print("Hello world")
     mongo_dump_file = os.path.join(
         constants.mongo_migration_dir, config[service.name]["Mongo.Database"]
     )
-    print(mongo_dump_file)
     cmd_to_run = (
         constants.mongo_restore
         + get_connection_args(config[service.name], action)
         + " --gzip "
-        + "--archive="
         + mongo_dump_file
     )
     subprocess.run(cmd_to_run, check=True)
