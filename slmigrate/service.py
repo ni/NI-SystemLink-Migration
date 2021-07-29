@@ -1,12 +1,12 @@
 import slmigrate.constants as constants
 import os
 import json
-import functools
 
 from abc import ABC, abstractmethod
 
-
 class ServicePlugin(ABC):
+
+    cached_config = None
 
     @property
     @abstractmethod
@@ -23,12 +23,14 @@ class ServicePlugin(ABC):
     def help(self):
         return "A short sentence describing the operation of the plugin"
 
-    @functools.cached_property
+    @property
     def config(self):
-        # most (all?) services use this style of config file.  Plugins won't need to override this method.
-        config_file = os.path.join(constants.service_config_dir, self.name + ".json")
-        with open(config_file, encoding="utf-8-sig") as json_file:
-            return json.load(json_file)
+        if self.cached_config is None:
+            # most (all?) services use this style of config file.  Plugins won't need to override this method.
+            config_file = os.path.join(constants.service_config_dir, self.name + ".json")
+            with open(config_file, encoding="utf-8-sig") as json_file:
+                self.cached_config = json.load(json_file)
+        return self.cached_config;
 
     @abstractmethod
     def capture(self, mongohandler=None, filehandler=None):
@@ -38,7 +40,6 @@ class ServicePlugin(ABC):
     def restore(self, mongohandler=None, filehandler=None):
         pass
 
-    @abstractmethod
     def restore_error_check(self, mongohandler=None, filehandler=None):
         """TODO: Complete documentation.
 

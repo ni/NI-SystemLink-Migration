@@ -14,7 +14,7 @@ def setup_arguments():
 
     :return:
     """
-    parser = argparse.ArgumentParser(prog="slmigrate")
+    parser = argparse.ArgumentParser(prog="nislmigrate")
 
     parent_parser = argparse.ArgumentParser(add_help=False)
 

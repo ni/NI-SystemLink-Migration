@@ -14,6 +14,19 @@ import slmigrate.mongohandler as mongo_handler
 from test import test_constants
 from .context import systemlinkmigrate
 
+@pytest.mark.unit
+def test_parse_arguments2():
+    """TODO: Complete documentation.
+
+    :return:
+    """
+    parser = arg_handler.setup_arguments()
+    assert parser.parse_args(
+        [
+            constants.CAPTURE_ARG,
+            "--" + constants.tag.arg
+        ]
+    )
 
 @pytest.mark.unit
 def test_parse_arguments():
@@ -21,7 +34,7 @@ def test_parse_arguments():
 
     :return:
     """
-    parser = arg_handler.parse_arguments()
+    parser = arg_handler.setup_arguments()
     assert parser.parse_args(
         [
             constants.CAPTURE_ARG,
@@ -45,7 +58,7 @@ def test_double_action_args():
 
     :return:
     """
-    parser = arg_handler.parse_arguments()
+    parser = arg_handler.setup_arguments()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args([constants.CAPTURE_ARG, constants.RESTORE_ARG])
     assert pytest_wrapped_e.type == SystemExit
@@ -57,7 +70,7 @@ def test_no_action_args():
 
     :return:
     """
-    parser = arg_handler.parse_arguments()
+    parser = arg_handler.setup_arguments()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args(["--" + constants.tag.arg])
     assert pytest_wrapped_e.type == SystemExit
@@ -69,11 +82,12 @@ def test_determine_migrate_action_capture():
 
     :return:
     """
-    test_service_tuple = [(constants.tag, constants.CAPTURE_ARG)]
-    parser = arg_handler.parse_arguments()
+    parser = arg_handler.setup_arguments()
     arguments = parser.parse_args([constants.CAPTURE_ARG, "--" + constants.tag.arg])
     services_to_migrate = arg_handler.determine_migrate_action(arguments)
-    assert services_to_migrate == test_service_tuple
+    assert len(services_to_migrate) == 1
+    assert services_to_migrate[0].service.name == constants.tag.arg
+    assert services_to_migrate[0].action == constants.CAPTURE_ARG
 
 
 @pytest.mark.unit
@@ -82,11 +96,13 @@ def test_determine_migrate_action_restore():
 
     :return:
     """
-    test_service_tuple = [(constants.opc, constants.RESTORE_ARG)]
-    parser = arg_handler.parse_arguments()
+    parser = arg_handler.setup_arguments()
     arguments = parser.parse_args([constants.RESTORE_ARG, "--" + constants.opc.arg])
     services_to_migrate = arg_handler.determine_migrate_action(arguments)
-    assert services_to_migrate == test_service_tuple
+    print(services_to_migrate)
+    assert len(services_to_migrate) == 1
+    assert services_to_migrate[0].service.name == constants.opc.arg
+    assert services_to_migrate[0].action == constants.RESTORE_ARG
 
 
 @pytest.mark.unit
@@ -96,10 +112,12 @@ def test_determine_migrate_action_thdbbg():
     :return:
     """
     test_service_tuple = [(constants.tag, constants.thdbbug.arg)]
-    parser = arg_handler.parse_arguments()
+    parser = arg_handler.setup_arguments()
     arguments = parser.parse_args([constants.thdbbug.arg])
     services_to_migrate = arg_handler.determine_migrate_action(arguments)
-    assert services_to_migrate == test_service_tuple
+    assert len(services_to_migrate) == 1
+    assert services_to_migrate[0].service.name == constants.tag.name
+    assert services_to_migrate[0].action == constants.thdbbug.arg
 
 
 # TODO: Replace this with a true unit test and move this to an integration test.
