@@ -9,41 +9,45 @@ from slmigrate import constants
 
 
 def remove_readonly(func, path, excinfo):
-    """TODO: Complete documentation.
+    """
+    Removes the readonly attribute from a file path.
 
-    :param func:
-    :param path:
-    :param excinfo:
-    :return:
+    :param func: A continuation to run with the path.
+    :param path: The path to remove the readonly attribute from.
+    :param excinfo: Not used.
+    :return: None.
     """
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
 
 def determine_migration_dir(service):
-    """TODO: Complete documentation.
-
-    :param service:
-    :return:
     """
-    migration_dir = os.path.join(constants.migration_dir, service.name)
-    return migration_dir
+    Generates the migration directory for a particular service.
+
+    :param service: The service to determine the migration directory for.
+    :return: The migration directory for the service.
+    """
+    return os.path.join(constants.migration_dir, service.name)
 
 
 def migration_dir_exists(dir_):
-    """TODO: Complete documentation.
+    """
+    Determines whether a directory exists.
 
-    :param dir_:
-    :return:
+    :param dir_: The directory path to check.
+    :return: True if the given directory path is a directory and exists.
     """
     return os.path.isdir(dir_)
 
 
 def service_restore_singlefile_exists(service):
-    """TODO: Complete documentation.
+    """
+    Checks whether the migrated data for a given single file migration
+    service exists in the migration directory and can be restored.
 
-    :param service:
-    :return:
+    :param service: The service to verify data has been migrated for.
+    :return: True if there is migrated data for a given service
     """
     if not service.singlefile_migration:
         return True
@@ -54,10 +58,12 @@ def service_restore_singlefile_exists(service):
 
 
 def service_restore_dir_exists(service):
-    """TODO: Complete documentation.
+    """
+    Checks whether the migrated data for a given directory migration
+    service exists in the migration directory and can be restored.
 
-    :param service:
-    :return:
+    :param service: The service to verify data has been migrated for.
+    :return: True if there is migrated data for a given service.
     """
     if not service.directory_migration:
         return True
@@ -66,21 +72,23 @@ def service_restore_dir_exists(service):
 
 
 def remove_dir(dir_):
-    """TODO: Complete documentation.
+    """
+    Deletes the given directory and its children.
 
-    :param dir_:
-    :return:
+    :param dir_: The directory to remove.
+    :return: None.
     """
     if os.path.isdir(dir_):
         shutil.rmtree(dir_, onerror=remove_readonly)
 
 
 def migrate_singlefile(service, action):
-    """TODO: Complete documentation.
+    """
+    Perform a capture or restore the given service.
 
-    :param service:
-    :param action:
-    :return:
+    :param service: The service to capture or restore.
+    :param action: Whether to capture or restore.
+    :return: None.
     """
     if not service.singlefile_migration:
         return
@@ -118,11 +126,12 @@ def restore_singlefile(service, dir, file):
 
 
 def migrate_dir(service, action):
-    """TODO: Complete documentation.
+    """
+    Perform a capture or restore the given service.
 
-    :param service:
-    :param action:
-    :return:
+    :param service: The service to capture or restore.
+    :param action: Whether to capture or restore.
+    :return: None.
     """
     if not service.directory_migration:
         return

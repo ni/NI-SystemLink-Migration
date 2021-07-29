@@ -14,9 +14,10 @@ from slmigrate import (
 
 # Main
 def main():
-    """TODO: Complete documentation.
+    """
+    The entry point for the NI SystemLink Migration tool.
 
-    :return:
+    :return: None.
     """
     argparser = arghandler.setup_arguments()
     arguments = argparser.parse_args()

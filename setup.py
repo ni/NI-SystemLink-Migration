@@ -1,4 +1,6 @@
-"""TODO: Complete documentation."""
+"""
+Utility function to read the README file which is used for the long_description of the python package.
+"""
 
 from pathlib import Path
 
@@ -7,29 +9,24 @@ from setuptools import setup
 from slmigrate import __version__
 
 
-# Utility function to read the README file.
-# Used for the long_description.  It's nice, because now 1) we have a top level
-# README file and 2) it's easier to type in the README file than to put a raw
-# string in below ...
+def read_requirements(filename):
+    """
+    Reads the contents of a requirements file located next to this module.
+
+    :param filename: The name of the python requirements file.
+    :return: The list of requirements.
+    """
+    return read(filename).splitlines()
 
 
 def read(file_name):
-    """TODO: Complete documentation.
+    """
+    Reads the contents of a file located next to this module.
 
-    :param file_name:
-    :return:
+    :param file_name: The name of the file to read.
+    :return: The entire contents of the file.
     """
     return open(Path(__file__).parent / file_name).read()
-
-
-def read_requirements(filename):
-    """TODO: Complete documentation.
-
-    :param filename:
-    :return:
-    """
-    with open(filename) as file:
-        return file.read().splitlines()
 
 
 settings = dict(
@@ -56,7 +53,6 @@ settings = dict(
         "License :: OSI Approved :: MIT License",
     ],
 )
-
 
 if __name__ == "__main__":
     setup(**settings)
