@@ -7,19 +7,19 @@ from slmigrate import (
     constants,
     pluginhandler,
 )
+from slmigrate.migrationaction import MigrationAction
 
 
-def setup_arguments():
+def create_nislmigrate_argument_parser():
     """Set up available command line arguments.
 
-    :return:
+    :return: An ArgumentParser setup to parse input given by the user into the flags the migration tool expects.
     """
     parser = argparse.ArgumentParser(prog="nislmigrate")
 
     parent_parser = argparse.ArgumentParser(add_help=False)
 
     for name, plugin in pluginhandler.load_plugins().items():
-        print(name)
         add_plugin_arguments(parent_parser, name, plugin)
 
     parent_parser.add_argument(
@@ -28,7 +28,7 @@ def setup_arguments():
         "--folder",
         help="Specify the directory used for migrated data",
         action="store",
-        default=constants.migration_dir,
+        default=constants.default_migration_dir,
     )
     parent_parser.add_argument(
         "--" + constants.SOURCE_DB_ARG,
@@ -38,7 +38,7 @@ def setup_arguments():
         default=constants.SOURCE_DB,
     )
 
-    commands = parser.add_subparsers(dest=constants.SUBPARSER_STORAGE_ATTR)
+    commands = parser.add_subparsers(dest=constants.MIGRATION_ACTION_FIELD_NAME)
     commands.add_parser(
         constants.CAPTURE_ARG,
         help="capture is used to pull data and settings off SystemLink server",
@@ -49,7 +49,6 @@ def setup_arguments():
         help="restore is used to push data and settings to a clean SystemLink server. ",
         parents=[parent_parser],
     )
-
     commands.add_parser(
         constants.thdbbug.arg,
         help=(
@@ -62,50 +61,55 @@ def setup_arguments():
     return parser
 
 
-def determine_migrate_action(arguments):
+def get_list_of_services_to_capture_or_restore(arguments):
     """
     Generate a list of migration strategies to use during migration, based on the given arguments.
 
     :param arguments: The arguments to determine the migration action from.
     :return: A list of selected migration actions.
     """
-    ServiceToMigrate = namedtuple("ServiceToMigrate", ["service", "action"])
     services_to_migrate = []
     for arg in vars(arguments):
         if (
             getattr(arguments, arg)
-            and not (arg == constants.SUBPARSER_STORAGE_ATTR)
+            and not (arg == constants.MIGRATION_ACTION_FIELD_NAME)
             and not (arg == constants.SOURCE_DB_ARG)
             and not (arg == constants.MIGRATION_ARG)
         ):
-            services_to_migrate.append(
-                ServiceToMigrate(service=pluginhandler.loaded_plugins[arg], action=arguments.action)
-            )
-    # Special case for thdbbug, since there are no services given on the command line.
-    if arguments.action == constants.thdbbug.arg:
-        services_to_migrate.append(ServiceToMigrate(service=constants.tag, action=arguments.action))
+            services_to_migrate.append(pluginhandler.loaded_plugins[arg])
     return services_to_migrate
 
 
-def determine_migration_dir(arguments):
+def determine_migration_action(arguments):
+    validate_migration_action(arguments.action)
+    if arguments.action == constants.RESTORE_ARG:
+        return MigrationAction.RESTORE
+    elif arguments.action == constants.CAPTURE_ARG:
+        return MigrationAction.CAPTURE
+
+def validate_migration_action(invalid_value: str):
+    if invalid_value is None:
+        raise ValueError("Migration action not specified. Specify either 'capture' or 'restore'")
+    if not invalid_value == constants.RESTORE_ARG and not invalid_value == constants.CAPTURE_ARG:
+        raise ValueError("'%s' is not a valid migration action, change it to 'capture' or 'restore'" % invalid_value)
+
+def get_migration_directory_from_arguments(arguments):
     """
     Sets the migration directory path based on the given arguments.
 
     :param arguments: The arguments to determine the migration directory from.
     :return: None.
     """
-    # TODO: Make this method return the migration directory instead.
-    constants.migration_dir = getattr(arguments, constants.MIGRATION_ARG)
+    return getattr(arguments, constants.MIGRATION_ARG, constants.default_migration_dir)
 
 
-def determine_source_db(arguments):
+def get_migration_source_database_path_from_arguments(arguments):
     """
     Sets the source directory path based on the given arguments.
     :param arguments: The arguments to determine the source directory from.
     :return: None.
     """
-    # TODO: Make this method return the source directory instead.
-    constants.SOURCE_DB = getattr(arguments, constants.SOURCE_DB_ARG)
+    return getattr(arguments, constants.SOURCE_DB_ARG, constants.SOURCE_DB)
 
 
 def add_plugin_arguments(parser, name, plugin):

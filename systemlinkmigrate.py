@@ -4,49 +4,41 @@ Not all services will be supported. Additional services will be supported over t
 """
 
 from slmigrate import (
-    arghandler,
+    argument_handler,
     constants,
     filehandler,
-    mongohandler,
     servicemgrhandler,
+    servicemigrator,
 )
 
 
 # Main
+from slmigrate.mongohandler import MongoHandler
+
+
 def main():
     """
     The entry point for the NI SystemLink Migration tool.
 
     :return: None.
     """
-    argparser = arghandler.setup_arguments()
-    arguments = argparser.parse_args()
-    print(arguments)
-    arghandler.determine_migration_dir(arguments)
-    services_to_migrate = arghandler.determine_migrate_action(arguments)
-    for service_to_migrate in services_to_migrate:
-        try:
-            service_to_migrate.service.restore_error_check(mongohandler, filehandler)
-        except Exception as ex:
-            # raise an error in argparse here
-            argparser.error(str(ex))
-            pass
-    arghandler.determine_source_db(arguments)
-    servicemgrhandler.stop_all_sl_services()
-    mongo_proc = mongohandler.start_mongo(constants.mongod_exe, constants.mongo_config)
-    for service_to_migrate in services_to_migrate:
-        service = service_to_migrate.service
-        action = service_to_migrate.action
-        print(service.name + " " + action + " migration called")
-        if action == constants.CAPTURE_ARG:
-            service.capture(mongohandler, filehandler)
-        elif action == constants.RESTORE_ARG:
-            service.restore(mongohandler, filehandler)
-        elif action == constants.thdbbug.arg:
-            service.thdbbug(mongohandler, filehandler)
-    mongohandler.stop_mongo(mongo_proc)
-    servicemgrhandler.start_all_sl_services()
+    try:
+        argument_parser = argument_handler.create_nislmigrate_argument_parser()
+        parsed_arguments = argument_parser.parse_args()
+        constants.SOURCE_DB = argument_handler.get_migration_source_database_path_from_arguments(parsed_arguments)
 
+        migrator = servicemigrator.ServiceMigrator()
+        migrator.mongo_handler = MongoHandler()
+        migrator.file_handler = filehandler
+        migrator.service_manager = servicemgrhandler
+
+        services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore(parsed_arguments)
+        migration_action = argument_handler.determine_migration_action(parsed_arguments)
+        migration_directory = argument_handler.get_migration_directory_from_arguments(parsed_arguments)
+
+        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
+    except Exception as exception:
+        argument_parser.error(str(exception))
 
 if __name__ == "__main__":
     main()

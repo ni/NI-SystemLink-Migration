@@ -1,3 +1,3 @@
 import argparse
-import slmigrate.arghandler
+import slmigrate.argument_handler
 import slmigrate.pluginhandler as pluginhandler

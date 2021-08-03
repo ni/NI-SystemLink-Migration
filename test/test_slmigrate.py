@@ -7,24 +7,33 @@ from unittest.mock import patch
 
 import pytest
 
-import slmigrate.arghandler as arg_handler
+import slmigrate.argument_handler as arg_handler
 import slmigrate.constants as constants
 import slmigrate.filehandler as file_handler
-import slmigrate.mongohandler as mongo_handler
+from slmigrate.migrationaction import MigrationAction
 from test import test_constants
 from .context import systemlinkmigrate
 
 @pytest.mark.unit
-def test_parse_arguments2():
+def test_parse_arguments():
     """TODO: Complete documentation.
 
     :return:
     """
-    parser = arg_handler.setup_arguments()
+    parser = arg_handler.create_nislmigrate_argument_parser()
     assert parser.parse_args(
         [
             constants.CAPTURE_ARG,
-            "--" + constants.tag.arg
+            "--" + constants.tag.arg,
+            "--" + constants.opc.arg,
+            "--" + constants.testmonitor.arg,
+            "--" + constants.alarmrule.arg,
+            "--" + constants.opc.arg,
+            "--" + constants.asset.arg,
+            "--" + constants.repository.arg,
+            "--" + constants.userdata.arg,
+            "--" + constants.notification.arg,
+            "--" + constants.states.arg,
         ]
     )
 
@@ -34,7 +43,7 @@ def test_parse_arguments():
 
     :return:
     """
-    parser = arg_handler.setup_arguments()
+    parser = arg_handler.create_nislmigrate_argument_parser()
     assert parser.parse_args(
         [
             constants.CAPTURE_ARG,
@@ -58,7 +67,7 @@ def test_double_action_args():
 
     :return:
     """
-    parser = arg_handler.setup_arguments()
+    parser = arg_handler.create_nislmigrate_argument_parser()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args([constants.CAPTURE_ARG, constants.RESTORE_ARG])
     assert pytest_wrapped_e.type == SystemExit
@@ -70,54 +79,67 @@ def test_no_action_args():
 
     :return:
     """
-    parser = arg_handler.setup_arguments()
+    parser = arg_handler.create_nislmigrate_argument_parser()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args(["--" + constants.tag.arg])
     assert pytest_wrapped_e.type == SystemExit
 
 
 @pytest.mark.unit
-def test_determine_migrate_action_capture():
+def test_capture_tag_service_arguments_recognizes_capture_action():
     """TODO: Complete documentation.
 
     :return:
     """
-    parser = arg_handler.setup_arguments()
+    parser = arg_handler.create_nislmigrate_argument_parser()
     arguments = parser.parse_args([constants.CAPTURE_ARG, "--" + constants.tag.arg])
-    services_to_migrate = arg_handler.determine_migrate_action(arguments)
-    assert len(services_to_migrate) == 1
-    assert services_to_migrate[0].service.name == constants.tag.arg
-    assert services_to_migrate[0].action == constants.CAPTURE_ARG
+
+    migration_action = arg_handler.determine_migration_action(arguments)
+
+    assert migration_action == MigrationAction.CAPTURE
 
 
 @pytest.mark.unit
-def test_determine_migrate_action_restore():
+def test_capture_tag_service_arguments_recognizes_tag_service():
     """TODO: Complete documentation.
 
     :return:
     """
-    parser = arg_handler.setup_arguments()
-    arguments = parser.parse_args([constants.RESTORE_ARG, "--" + constants.opc.arg])
-    services_to_migrate = arg_handler.determine_migrate_action(arguments)
-    print(services_to_migrate)
+    parser = arg_handler.create_nislmigrate_argument_parser()
+    arguments = parser.parse_args([constants.CAPTURE_ARG, "--" + constants.tag.arg])
+    services_to_migrate = arg_handler.get_list_of_services_to_capture_or_restore(arguments)
+
     assert len(services_to_migrate) == 1
-    assert services_to_migrate[0].service.name == constants.opc.arg
-    assert services_to_migrate[0].action == constants.RESTORE_ARG
+    assert services_to_migrate[0].name == constants.tag.arg
 
 
 @pytest.mark.unit
-def test_determine_migrate_action_thdbbg():
+def test_restore_tag_service_arguments_recognizes_restore_action():
     """TODO: Complete documentation.
 
     :return:
     """
-    test_service_tuple = [(constants.tag, constants.thdbbug.arg)]
-    parser = arg_handler.setup_arguments()
-    arguments = parser.parse_args([constants.thdbbug.arg])
-    services_to_migrate = arg_handler.determine_migrate_action(arguments)
+    parser = arg_handler.create_nislmigrate_argument_parser()
+    arguments = parser.parse_args([constants.RESTORE_ARG, "--" + constants.tag.arg])
+
+    migration_action = arg_handler.determine_migration_action(arguments)
+
+    assert migration_action == MigrationAction.RESTORE
+
+
+@pytest.mark.unit
+def test_restore_tag_service_arguments_recognizes_tag_service():
+    """TODO: Complete documentation.
+
+    :return:
+    """
+    parser = arg_handler.create_nislmigrate_argument_parser()
+    arguments = parser.parse_args([constants.RESTORE_ARG, "--" + constants.tag.arg])
+
+    services_to_migrate = arg_handler.get_list_of_services_to_capture_or_restore(arguments)
+
     assert len(services_to_migrate) == 1
-    assert services_to_migrate[0].service.name == constants.tag.name
-    assert services_to_migrate[0].action == constants.thdbbug.arg
+    assert services_to_migrate[0].name == constants.tag.arg
 
 
 # TODO: Replace this with a true unit test and move this to an integration test.
@@ -152,19 +174,18 @@ def test_capture_migrate_dir():
 
     :return:
     """
-    test = test_constants.test_service
-    constants.migration_dir = test_constants.migration_dir
-    if os.path.isdir(test.migration_dir):
-        shutil.rmtree(test.migration_dir)
-    if os.path.isdir(test.source_dir):
-        shutil.rmtree(test.source_dir)
-    os.mkdir(test.source_dir)
-    os.mkdir(os.path.join(test.source_dir, "lev1"))
-    os.mkdir(os.path.join(test.source_dir, "lev1", "lev2"))
-    file_handler.migrate_dir(test, constants.CAPTURE_ARG)
-    assert os.path.isdir(os.path.join(constants.migration_dir, test.name, "lev1", "lev2"))
-    shutil.rmtree(test.source_dir)
-    shutil.rmtree(constants.migration_dir)
+    test_service = test_constants.test_service
+    if os.path.isdir(test_service.migration_dir):
+        shutil.rmtree(test_service.migration_dir)
+    if os.path.isdir(test_service.source_dir):
+        shutil.rmtree(test_service.source_dir)
+    os.makedirs(test_service.source_dir)
+    os.makedirs(os.path.join(test_service.source_dir, "lev1"))
+    os.makedirs(os.path.join(test_service.source_dir, "lev1", "lev2"))
+    file_handler.migrate_dir(constants.default_migration_dir, test_service, constants.CAPTURE_ARG)
+    assert os.path.isdir(os.path.join(constants.default_migration_dir, test_service.name, "lev1", "lev2"))
+    shutil.rmtree(test_service.source_dir)
+    shutil.rmtree(constants.default_migration_dir)
 
 
 @pytest.mark.unit
@@ -173,20 +194,19 @@ def test_capture_migrate_singlefile():
 
     :return:
     """
-    constants.migration_dir = test_constants.migration_dir
     test = test_constants.test_service
     if os.path.isdir(test.singlefile_migration_dir):
         shutil.rmtree(test.singlefile_migration_dir)
     if os.path.isdir(test.singlefile_source_dir):
         shutil.rmtree(test.singlefile_source_dir)
-    os.mkdir(test.singlefile_source_dir)
-    os.mkdir(constants.migration_dir)
+    os.makedirs(test.singlefile_source_dir)
+    os.makedirs(test.singlefile_migration_dir)
     test_file = open(os.path.join(test.singlefile_source_dir, "demofile2.txt"), "a")
     test_file.close()
-    file_handler.migrate_singlefile(test, constants.CAPTURE_ARG)
+    file_handler.migrate_singlefile(test.singlefile_migration_dir, test, constants.CAPTURE_ARG)
     assert os.path.isfile(os.path.join(test.migration_dir, "demofile2.txt"))
-    shutil.rmtree(test.source_dir)
-    shutil.rmtree(constants.migration_dir)
+    shutil.rmtree(test.singlefile_source_dir)
+    shutil.rmtree(test.singlefile_migration_dir)
 
 
 @pytest.mark.unit
@@ -222,13 +242,13 @@ def test_missing_service_migration_file():
         "--" + constants.MIGRATION_ARG,
         test_constants.migration_dir,
     ]
-    os.mkdir(constants.migration_dir)
+    os.makedirs(constants.default_migration_dir)
     with patch.object(sys, "argv", test_args):
         with pytest.raises(SystemExit) as pytest_wrapped_e:
             systemlinkmigrate.main()
     assert pytest_wrapped_e.type == SystemExit
     assert pytest_wrapped_e.value.code != 0
-    shutil.rmtree(constants.migration_dir)
+    shutil.rmtree(constants.default_migration_dir)
 
 
 @pytest.mark.unit
@@ -244,10 +264,10 @@ def test_missing_service_migration_dir():
         "--" + constants.MIGRATION_ARG,
         test_constants.migration_dir,
     ]
-    os.mkdir(constants.migration_dir)
+    os.makedirs(constants.default_migration_dir)
     with patch.object(sys, "argv", test_args):
         with pytest.raises(SystemExit) as pytest_wrapped_e:
             systemlinkmigrate.main()
     assert pytest_wrapped_e.type == SystemExit
     assert pytest_wrapped_e.value.code != 0
-    shutil.rmtree(constants.migration_dir)
+    shutil.rmtree(constants.default_migration_dir)

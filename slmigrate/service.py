@@ -40,14 +40,16 @@ class ServicePlugin(ABC):
     def restore(self, mongohandler=None, filehandler=None):
         pass
 
-    def restore_error_check(self, mongohandler=None, filehandler=None):
+    def restore_error_check(self, migration_directory: str, mongohandler=None, filehandler=None):
         """TODO: Complete documentation.
 
         :param service:
         :return:
         """
-        if not filehandler.migration_dir_exists(constants.migration_dir):
-            raise FileNotFoundError(constants.migration_dir + " does not exist")
+        if filehandler == None:
+            return
+        if not filehandler.migration_dir_exists(migration_directory):
+            raise FileNotFoundError(migration_directory + " does not exist")
         if not filehandler.service_restore_singlefile_exists(self):
             raise FileNotFoundError(
                 self.name
