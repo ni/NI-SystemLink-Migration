@@ -3,6 +3,8 @@
 Not all services will be supported. Additional services will be supported over time.
 """
 
+import ctypes, os
+
 from slmigrate import (
     argument_handler,
     constants,
@@ -11,10 +13,17 @@ from slmigrate import (
     servicemigrator,
 )
 
+from slmigrate.ServiceMigrationSpecification import ServiceMigrationSpecification
+from slmigrate.MigrationAction import MigrationAction
 
 # Main
 from slmigrate.mongohandler import MongoHandler
 
+def is_admin():
+    try:
+        return (os.getuid() == 0)
+    except AttributeError:
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
 
 def main():
     """
@@ -22,6 +31,8 @@ def main():
 
     :return: None.
     """
+    if not is_admin():
+        report_error("Please run the migration tool with administrator permissions.")
     try:
         argument_parser = argument_handler.create_nislmigrate_argument_parser()
         parsed_arguments = argument_parser.parse_args()

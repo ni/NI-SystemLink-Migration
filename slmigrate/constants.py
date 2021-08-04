@@ -4,8 +4,8 @@ import os
 from types import SimpleNamespace
 
 # Global Path Constants
-default_migration_dir = os.path.join(os.path.abspath(os.sep), "migration")
-mongo_migration_dir = os.path.join(default_migration_dir, "mongo-dump")
+default_migration_dir = os.path.expanduser('~\Documents\migration')
+mongo_migration_dir = os.path.join(migration_dir, "mongo-dump")
 MIGRATION_ARG = "dir"
 program_file_dir = os.environ.get("ProgramW6432")
 program_data_dir = os.environ.get("ProgramData")

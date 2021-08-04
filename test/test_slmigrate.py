@@ -17,14 +17,13 @@ from .context import systemlinkmigrate
 
 @pytest.mark.unit
 def test_double_action_args():
-    """TODO: Complete documentation.
-
-    :return:
+    """
+    Given:
     """
     parser = arg_handler.create_nislmigrate_argument_parser()
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         parser.parse_args([constants.CAPTURE_ARG, constants.RESTORE_ARG])
-    assert pytest_wrapped_e.type == SystemExit
+        assert pytest_wrapped_e.type == SystemExit
 
 
 @pytest.mark.unit
