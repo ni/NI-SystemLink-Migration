@@ -3,7 +3,8 @@
 Not all services will be supported. Additional services will be supported over time.
 """
 
-import ctypes, os
+import ctypes
+import os
 
 from slmigrate import (
     constants,
@@ -14,11 +15,13 @@ from slmigrate import (
 from slmigrate.argument_handler import ArgumentHandler
 from slmigrate.mongohandler import MongoHandler
 
+
 def is_admin():
     try:
         return os.getuid() == 0
     except AttributeError:
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
+
 
 def main():
     """
@@ -29,6 +32,7 @@ def main():
     if not is_admin():
         raise PermissionError("Please run the migration tool with administrator permissions.")
     main_without_admin_check()
+
 
 # TODO: Remove this once all tests are proper unit tests or end to end tests.
 def main_without_admin_check():
@@ -51,6 +55,7 @@ def main_without_admin_check():
     migration_directory = argument_handler.get_migration_directory_from_arguments()
 
     migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
+
 
 if __name__ == "__main__":
     main()

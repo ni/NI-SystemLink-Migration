@@ -1,7 +1,3 @@
-import os
-import shutil
-import sys
-from unittest.mock import patch
 
 import pytest
 
@@ -16,7 +12,7 @@ from slmigrate.migrationaction import MigrationAction
     [constants.CAPTURE_ARGUMENT, constants.RESTORE_ARGUMENT],
     ["--" + constants.tag.arg],
     [constants.CAPTURE_ARGUMENT, "--invalid"],
-    ["notcaptureorrestore"],
+    ["not_capture_or_restore"],
 ])
 def test_invalid_arguments_exits_with_exception(arguments):
     """

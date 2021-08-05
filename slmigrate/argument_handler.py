@@ -8,10 +8,15 @@ from slmigrate import (
 )
 from slmigrate.migrationaction import MigrationAction
 
-
+"""
+TODO: Documentation.
+"""
 class ArgumentHandler:
     parsed_arguments = None
 
+    """
+    TODO: Documentation.
+    """
     def __init__(self, arguments=None):
         argument_parser = self.create_nislmigrate_argument_parser()
         if arguments is None:
@@ -19,8 +24,10 @@ class ArgumentHandler:
         else:
             self.parsed_arguments = argument_parser.parse_args(arguments)
 
+
     def create_nislmigrate_argument_parser(self):
-        """Set up available command line arguments.
+        """
+        TODO: Documentation.
 
         :return: An ArgumentParser setup to parse input given by the user into the flags the migration tool expects.
         """
@@ -29,7 +36,7 @@ class ArgumentHandler:
         parent_parser = argparse.ArgumentParser(add_help=False)
 
         for name, plugin in pluginhandler.load_plugins().items():
-            self.add_plugin_arguments(parent_parser, name, plugin)
+            self.add_plugin_arguments(parent_parser, plugin)
 
         parent_parser.add_argument(
             "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
@@ -88,17 +95,16 @@ class ArgumentHandler:
 
 
     def determine_migration_action(self):
-        self.validate_migration_action(self.parsed_arguments.action)
+        """
+        Determines whether to capture or restore based on the arguments.
+
+        :return: None.
+        """
         if self.parsed_arguments.action == constants.RESTORE_ARGUMENT:
             return MigrationAction.RESTORE
         elif self.parsed_arguments.action == constants.CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
 
-    def validate_migration_action(self, invalid_value: str):
-        if invalid_value is None:
-            raise ValueError("Migration action not specified. Specify either 'capture' or 'restore'")
-        if not invalid_value == constants.RESTORE_ARGUMENT and not invalid_value == constants.CAPTURE_ARGUMENT:
-            raise ValueError("'%s' is not a valid migration action, change it to 'capture' or 'restore'" % invalid_value)
 
     def get_migration_directory_from_arguments(self):
         """
@@ -112,12 +118,19 @@ class ArgumentHandler:
     def get_migration_source_database_path_from_arguments(self):
         """
         Sets the source directory path based on the given arguments.
+
         :return: None.
         """
         return getattr(self.parsed_arguments, constants.SOURCE_DATABASE_ARGUMENT, constants.SOURCE_DB)
 
 
-    def add_plugin_arguments(self, parser, name, plugin):
+    def add_plugin_arguments(self, parser, plugin):
+        """
+        Adds expected arguments to the parser for the plugin.
+        :param parser: The parser to add the argument flag to.
+        :param plugin: The plugin to add an argument flag for.
+        :return: None.
+        """
         for name in plugin.names:
             parser.add_argument(
                 "--" + name,

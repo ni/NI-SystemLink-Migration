@@ -7,10 +7,8 @@ from unittest.mock import patch
 
 import pytest
 
-from slmigrate.argument_handler import ArgumentHandler
 import slmigrate.constants as constants
 import slmigrate.filehandler as file_handler
-from slmigrate.migrationaction import MigrationAction
 from test import test_constants
 from .context import systemlinkmigrate
 
