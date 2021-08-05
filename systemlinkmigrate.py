@@ -52,7 +52,7 @@ def main_without_admin_check():
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
     migration_action = argument_handler.determine_migration_action()
-    migration_directory = argument_handler.get_migration_directory_from_arguments()
+    migration_directory = argument_handler.get_migration_directory()
 
     migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
 

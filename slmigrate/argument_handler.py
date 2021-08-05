@@ -8,14 +8,17 @@ from slmigrate import (
 )
 from slmigrate.migrationaction import MigrationAction
 
+
 """
-TODO: Documentation.
+Processes arguments either from the command line or just a list of arguments and breaks them
+into the properties required by the migration tool.
 """
 class ArgumentHandler:
     parsed_arguments = None
 
     """
-    TODO: Documentation.
+    Creates a new instance of ArgumentHandler
+    :param arguments: The list of arguments to process, or None to directly grab CLI arguments. 
     """
     def __init__(self, arguments=None):
         argument_parser = self.create_nislmigrate_argument_parser()
@@ -24,35 +27,17 @@ class ArgumentHandler:
         else:
             self.parsed_arguments = argument_parser.parse_args(arguments)
 
-
     def create_nislmigrate_argument_parser(self):
         """
-        TODO: Documentation.
+        Creates an argparse parser that knows how to parse the migration tool's command line arguments.
 
-        :return: An ArgumentParser setup to parse input given by the user into the flags the migration tool expects.
+        :return: The built parser.
         """
         argument_parser = argparse.ArgumentParser(prog="nislmigrate")
 
         parent_parser = argparse.ArgumentParser(add_help=False)
-
-        for name, plugin in pluginhandler.load_plugins().items():
-            self.add_plugin_arguments(parent_parser, plugin)
-
-        parent_parser.add_argument(
-            "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
-            "--directory",
-            "--folder",
-            help="Specify the directory used for migrated data",
-            action="store",
-            default=constants.DEFAULT_MIGRATION_DIRECTORY,
-        )
-        parent_parser.add_argument(
-            "--" + constants.SOURCE_DATABASE_ARGUMENT,
-            "--sourcedb",
-            help="The name of the source directory when performing intra-database migration",
-            action="store",
-            default=constants.SOURCE_DB,
-        )
+        self.add_plugin_arguments(parent_parser)
+        self.add_additional_flag_options(parent_parser)
 
         commands = argument_parser.add_subparsers(dest=constants.MIGRATION_ACTION_FIELD_NAME)
         commands.add_parser(
@@ -75,6 +60,22 @@ class ArgumentHandler:
         )
         return argument_parser
 
+    def add_additional_flag_options(self, parent_parser):
+        parent_parser.add_argument(
+            "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
+            "--directory",
+            "--folder",
+            help="Specify the directory used for migrated data",
+            action="store",
+            default=constants.DEFAULT_MIGRATION_DIRECTORY,
+        )
+        parent_parser.add_argument(
+            "--" + constants.SOURCE_DATABASE_ARGUMENT,
+            "--sourcedb",
+            help="The name of the source directory when performing intra-database migration",
+            action="store",
+            default=constants.SOURCE_DB,
+        )
 
     def get_list_of_services_to_capture_or_restore(self):
         """
@@ -93,7 +94,6 @@ class ArgumentHandler:
                 services_to_migrate.append(pluginhandler.loaded_plugins[arg])
         return services_to_migrate
 
-
     def determine_migration_action(self):
         """
         Determines whether to capture or restore based on the arguments.
@@ -105,15 +105,13 @@ class ArgumentHandler:
         elif self.parsed_arguments.action == constants.CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
 
-
-    def get_migration_directory_from_arguments(self):
+    def get_migration_directory(self):
         """
         Sets the migration directory path based on the given arguments.
 
         :return: None.
         """
         return getattr(self.parsed_arguments, constants.MIGRATION_DIRECTORY_ARGUMENT, constants.DEFAULT_MIGRATION_DIRECTORY)
-
 
     def get_migration_source_database_path_from_arguments(self):
         """
@@ -123,18 +121,17 @@ class ArgumentHandler:
         """
         return getattr(self.parsed_arguments, constants.SOURCE_DATABASE_ARGUMENT, constants.SOURCE_DB)
 
-
-    def add_plugin_arguments(self, parser, plugin):
+    def add_plugin_arguments(self, parser):
         """
-        Adds expected arguments to the parser for the plugin.
+        Adds expected arguments to the parser for all plugins.
         :param parser: The parser to add the argument flag to.
-        :param plugin: The plugin to add an argument flag for.
         :return: None.
         """
-        for name in plugin.names:
-            parser.add_argument(
-                "--" + name,
-                help=plugin.help,
-                action="store_true",
-                dest=name
-            )
+        for _, plugin in pluginhandler.load_plugins().items():
+            for name in plugin.names:
+                parser.add_argument(
+                    "--" + name,
+                    help=plugin.help,
+                    action="store_true",
+                    dest=name
+                )

@@ -97,12 +97,25 @@ def test_restore_two_services_arguments_recognizes_both_services():
     assert services_to_migrate[1].name == constants.asset.arg or services_to_migrate[0].name == constants.asset.arg
 
 @pytest.mark.unit
-def test_parse_custom_directory():
-    """TODO: Complete documentation.
+def test_get_migration_directory_returns_default():
+    """
+    given: The --dir argument is not specified when constructing the argument handler.
+    when: get_migration_directory is called.
+    then: the migration directory returned is the default one.
+    """
+    arguments = [constants.CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    argument_handler = ArgumentHandler(arguments)
 
-    :return:
+    assert argument_handler.get_migration_directory() == constants.DEFAULT_MIGRATION_DIRECTORY
+
+@pytest.mark.unit
+def test_get_migration_directory_returns_migration_directory():
+    """
+    given: The --dir argument is specified when constructing the argument handler.
+    when: get_migration_directory is called.
+    then: the migration directory returned is the one specified in the command arguments.
     """
     arguments = [constants.CAPTURE_ARGUMENT, "--" + constants.tag.arg, "--dir=test"]
     argument_handler = ArgumentHandler(arguments)
 
-    assert argument_handler.get_migration_directory_from_arguments() == "test"
+    assert argument_handler.get_migration_directory() == "test"
