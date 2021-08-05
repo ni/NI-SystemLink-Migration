@@ -94,7 +94,7 @@ def migrate_singlefile(migration_directory_root: str, service: ServicePlugin, ac
     if not service.singlefile_migration:
         return
     migration_dir = determine_migration_directory_for_service(migration_directory_root, service)
-    if action == constants.CAPTURE_ARG:
+    if action == constants.CAPTURE_ARGUMENT:
         remove_dir(migration_dir)
         os.mkdir(migration_dir)
         singlefile_full_path = os.path.join(
@@ -103,7 +103,7 @@ def migrate_singlefile(migration_directory_root: str, service: ServicePlugin, ac
             service.singlefile_to_migrate,
         )
         shutil.copy(singlefile_full_path, migration_dir)
-    elif action == constants.RESTORE_ARG:
+    elif action == constants.RESTORE_ARGUMENT:
         singlefile_full_path = os.path.join(migration_dir, service.singlefile_to_migrate)
         shutil.copy(singlefile_full_path, service.singlefile_source_dir)
 
@@ -137,9 +137,9 @@ def migrate_dir(migration_directory_root: str, service: ServicePlugin, action: s
     if not service.directory_migration:
         return
     migration_dir = determine_migration_directory_for_service(migration_directory_root, service)
-    if action == constants.CAPTURE_ARG:
+    if action == constants.CAPTURE_ARGUMENT:
         remove_dir(migration_dir)
         shutil.copytree(service.source_dir, migration_dir)
-    elif action == constants.RESTORE_ARG:
+    elif action == constants.RESTORE_ARGUMENT:
         remove_dir(service.source_dir)
         dir_util.copy_tree(migration_dir, service.source_dir)

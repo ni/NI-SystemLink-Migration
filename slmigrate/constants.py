@@ -4,9 +4,9 @@ import os
 from types import SimpleNamespace
 
 # Global Path Constants
-default_migration_dir = os.path.expanduser('~\Documents\migration')
-mongo_migration_dir = os.path.join(migration_dir, "mongo-dump")
-MIGRATION_ARG = "dir"
+DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\Documents\migration')
+MONGO_MIGRATION_SUB_DIRECTORY = os.path.join(DEFAULT_MIGRATION_DIRECTORY, "mongo-dump")
+MIGRATION_DIRECTORY_ARGUMENT = "dir"
 program_file_dir = os.environ.get("ProgramW6432")
 program_data_dir = os.environ.get("ProgramData")
 
@@ -66,7 +66,7 @@ tag_dict = {
     "name": "TagHistorian",
     "directory_migration": False,
     "singlefile_migration": True,
-    "singlefile_migration_dir": os.path.join(default_migration_dir, "keyvaluedb"),
+    "singlefile_migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "keyvaluedb"),
     "singlefile_source_dir": os.path.join(
         program_data_dir, "National Instruments", "Skyline", "KeyValueDatabase"
     ),
@@ -79,7 +79,7 @@ opc_dict = {
     "name": "OpcClient",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(default_migration_dir, "OpcClient"),
+    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "OpcClient"),
     "source_dir": os.path.join(
         program_data_dir, "National Instruments", "Skyline", "Data", "OpcClient"
     ),
@@ -91,7 +91,7 @@ fis_dict = {
     "name": "FileIngestion",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(default_migration_dir, "FileIngestion"),
+    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "FileIngestion"),
     "source_dir": os.path.join(
         program_data_dir, "National Instruments", "Skyline", "Data", "FileIngestion"
     ),
@@ -127,7 +127,7 @@ repository_dict = {
     "name": "Repository",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(default_migration_dir, "Respository"),
+    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "Respository"),
     "source_dir": os.path.join(
         program_file_dir,
         "National Instruments",
@@ -161,7 +161,7 @@ states_dict = {
     "name": "SystemsStateManager",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(default_migration_dir, "SystemsStateManager"),
+    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "SystemsStateManager"),
     "source_dir": os.path.join(
         program_data_dir,
         "National Instruments",
@@ -188,8 +188,8 @@ thdbbug_dict = {
 thdbbug = SimpleNamespace(**thdbbug_dict)
 
 # Argument constants
-CAPTURE_ARG = "capture"
-RESTORE_ARG = "restore"
-SOURCE_DB_ARG = "sourcedb"
+CAPTURE_ARGUMENT = "capture"
+RESTORE_ARGUMENT = "restore"
+SOURCE_DATABASE_ARGUMENT = "sourcedb"
 # TODO: Change to default
 SOURCE_DB = "admin"

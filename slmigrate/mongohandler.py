@@ -5,14 +5,13 @@ import os
 import subprocess
 import sys
 from types import SimpleNamespace
-from pathlib import Path
 
 import bson
-from pymongo import errors as pyerr
+from pymongo import errors as mongo_errors
 from pymongo import MongoClient
 
 from slmigrate import constants
-from slmigrate.MigrationAction import MigrationAction
+from slmigrate.migrationaction import MigrationAction
 
 class MongoHandler:
     is_mongo_process_running = False
@@ -58,10 +57,10 @@ class MongoHandler:
         self.is_mongo_process_running = False
 
 
-    def get_connection_args(self, service_config, action):
+    def get_connection_args(self, service_config, action: MigrationAction):
         if "Mongo.CustomConnectionString" in service_config:
             args = " --uri {0}".format(service_config["Mongo.CustomConnectionString"])
-            if action == constants.RESTORE_ARG:
+            if action == MigrationAction.RESTORE:
                 # We need to provide the db option (even though it's redundant with the uri) because of a bug with mongoDB 4.2
                 # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
                 args += " --db {0}".format(service_config["Mongo.Database"])
@@ -75,43 +74,42 @@ class MongoHandler:
         return args
 
 
-    def capture_migration(self, service, action, config):
+    def capture_migration(self, service, migration_directory: str):
         """
         Capture the data in mongoDB from the given service.
 
         :param service: The service to capture the data for.
-        :param action: Whether to capture or restore. Restore will no-op.
-        :param config: The configuration for the given service.
+        :param migration_directory: The directory to migrate the service in to.
         :return: None.
         """
         # TODO get rid of the [service.name] by changing the property
+        config = self.get_service_config(service)
         cmd_to_run = (
             constants.mongo_dump
-            + self.get_connection_args(config[service.name], action)
+            + self.get_connection_args(config[service.name], MigrationAction.CAPTURE)
             + " --out "
-            + constants.mongo_migration_dir
+            + os.path.join(migration_directory, constants.mongo_migration_dir)
             + " --gzip"
         )
         self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
 
 
-    def restore_migration(self, service, action):
+    def restore_migration(self, service, migration_directory: str):
         """
         Restore the data in mongoDB from the given service.
 
         :param service: The service to capture the data for.
-        :param action: Whether to capture or restore. Restore will no-op.
-        :param config: The configuration for the given service.
+        :param migration_directory: The directory to restore the service in to.
         :return: None.
         """
-
-        config = service.config
+        config = self.get_service_config(service)
         mongo_dump_file = os.path.join(
-            constants.mongo_migration_dir, config[service.name]["Mongo.Database"]
-        )
+            migration_directory,
+            constants.mongo_migration_dir,
+            config[service.name]["Mongo.Database"])
         cmd_to_run = (
             constants.mongo_restore
-            + self.get_connection_args(config[service.name], action)
+            + self.get_connection_args(config[service.name], MigrationAction.RESTORE)
             + " --gzip "
             + mongo_dump_file
         )
@@ -129,7 +127,7 @@ class MongoHandler:
         try:
             print("Migrating " + str(document["_id"]))
             destination_collection.insert_one(document)
-        except pyerr.DuplicateKeyError:
+        except mongo_errors.DuplicateKeyError:
             print("Document " + str(document["_id"]) + " already exists. Skipping")
 
 
@@ -262,7 +260,7 @@ class MongoHandler:
         self.migrate_metadata_collection(source_db, destination_db)
 
 
-    def migrate_mongo_cmd(self, service, action, config):
+    def migrate_mongo_cmd(self, service, action, config, migration_directory: str):
         """
         Performs a restore or a capture operation depending on the chosen action.
 
@@ -273,10 +271,10 @@ class MongoHandler:
         """
         if action == constants.thdbbug.arg:
             self.migrate_within_instance(service, action, config)
-        if action == constants.CAPTURE_ARG:
-            self.capture_migration(service, action, config)
-        if action == constants.RESTORE_ARG:
-            self.restore_migration(service, action, config)
+        if action == constants.CAPTURE_ARGUMENT:
+            self.capture_migration(service, action, config, migration_directory)
+        if action == constants.RESTORE_ARGUMENT:
+            self.restore_migration(service, action, config, migration_directory)
 
     def ensure_mongo_process_is_running_and_execute_command(self, command: str):
         self.start_mongo()
