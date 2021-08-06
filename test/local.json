@@ -1,0 +1,10 @@
+{
+    "local" : {
+       "Mongo.Database" : "local",
+       "Mongo.Host" : "localhost",
+       "Mongo.Port" : 27017,
+       "Mongo.UseTls" : false,
+       "Mongo.User": "",
+       "Mongo.Password": ""
+    }
+ }
