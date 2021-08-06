@@ -6,6 +6,11 @@ from slmigrate import (
 )
 from slmigrate.migration_action import MigrationAction
 
+CAPTURE_ARGUMENT = "capture"
+RESTORE_ARGUMENT = "restore"
+SOURCE_DATABASE_ARGUMENT = "sourcedb"
+MIGRATION_DIRECTORY_ARGUMENT = "dir"
+
 
 class ArgumentHandler:
     """
@@ -14,11 +19,11 @@ class ArgumentHandler:
     """
     parsed_arguments = None
 
-    """
-    Creates a new instance of ArgumentHandler
-    :param arguments: The list of arguments to process, or None to directly grab CLI arguments.
-    """
     def __init__(self, arguments=None):
+        """
+        Creates a new instance of ArgumentHandler
+        :param arguments: The list of arguments to process, or None to directly grab CLI arguments.
+        """
         argument_parser = self.create_nislmigrate_argument_parser()
         if arguments is None:
             self.parsed_arguments = argument_parser.parse_args()
@@ -39,12 +44,12 @@ class ArgumentHandler:
 
         commands = argument_parser.add_subparsers(dest=constants.MIGRATION_ACTION_FIELD_NAME)
         commands.add_parser(
-            constants.CAPTURE_ARGUMENT,
+            CAPTURE_ARGUMENT,
             help="capture is used to pull data and settings off SystemLink server",
             parents=[parent_parser],
         )
         commands.add_parser(
-            constants.RESTORE_ARGUMENT,
+            RESTORE_ARGUMENT,
             help="restore is used to push data and settings to a clean SystemLink server. ",
             parents=[parent_parser],
         )
@@ -59,8 +64,13 @@ class ArgumentHandler:
         return argument_parser
 
     def add_additional_flag_options(self, parent_parser):
+        """
+        Creates an argparse parser that knows how to parse the migration tool's command line arguments.
+
+        :param parent_parser: The parent parser to add the flags to.
+        """
         parent_parser.add_argument(
-            "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
+            "--" + MIGRATION_DIRECTORY_ARGUMENT,
             "--directory",
             "--folder",
             help="Specify the directory used for migrated data",
@@ -68,7 +78,7 @@ class ArgumentHandler:
             default=constants.DEFAULT_MIGRATION_DIRECTORY,
         )
         parent_parser.add_argument(
-            "--" + constants.SOURCE_DATABASE_ARGUMENT,
+            "--" + SOURCE_DATABASE_ARGUMENT,
             "--sourcedb",
             help="The name of the source directory when performing intra-database migration",
             action="store",
@@ -86,8 +96,8 @@ class ArgumentHandler:
             if (
                 getattr(self.parsed_arguments, arg) and not
                 (arg == constants.MIGRATION_ACTION_FIELD_NAME) and not
-                (arg == constants.SOURCE_DATABASE_ARGUMENT) and not
-                (arg == constants.MIGRATION_DIRECTORY_ARGUMENT)
+                (arg == SOURCE_DATABASE_ARGUMENT) and not
+                (arg == MIGRATION_DIRECTORY_ARGUMENT)
             ):
                 services_to_migrate.append(pluginhandler.loaded_plugins[arg])
         return services_to_migrate
@@ -98,26 +108,18 @@ class ArgumentHandler:
 
         :return: None.
         """
-        if self.parsed_arguments.action == constants.RESTORE_ARGUMENT:
+        if self.parsed_arguments.action == RESTORE_ARGUMENT:
             return MigrationAction.RESTORE
-        elif self.parsed_arguments.action == constants.CAPTURE_ARGUMENT:
+        elif self.parsed_arguments.action == CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
 
     def get_migration_directory(self):
         """
-        Sets the migration directory path based on the given arguments.
+        Gets the migration directory path based on the parsed arguments.
 
-        :return: None.
+        :return: The migration directory path from the arguments, or the default if none was specified.
         """
-        return getattr(self.parsed_arguments, constants.MIGRATION_DIRECTORY_ARGUMENT, constants.DEFAULT_MIGRATION_DIRECTORY)
-
-    def get_migration_source_database_path_from_arguments(self):
-        """
-        Sets the source directory path based on the given arguments.
-
-        :return: None.
-        """
-        return getattr(self.parsed_arguments, constants.SOURCE_DATABASE_ARGUMENT, constants.SOURCE_DB)
+        return getattr(self.parsed_arguments, MIGRATION_DIRECTORY_ARGUMENT, constants.DEFAULT_MIGRATION_DIRECTORY)
 
     def add_plugin_arguments(self, parser):
         """

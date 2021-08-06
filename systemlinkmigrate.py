@@ -6,14 +6,11 @@ Not all services will be supported. Additional services will be supported over t
 import ctypes
 import os
 
-from slmigrate import (
-    constants,
-    filehandler,
-    servicemgrhandler,
-    servicemigrator,
-)
 from slmigrate.argument_handler import ArgumentHandler
-from slmigrate.mongohandler import MongoHandler
+from slmigrate.file_handler import FileHandler
+from slmigrate.mongo_handler import MongoHandler
+from slmigrate.service_migrator import ServiceMigrator
+from slmigrate.systemlink_service_manager import SystemLinkServiceManager
 
 
 def is_admin():
@@ -31,19 +28,16 @@ def main():
     """
     if not is_admin():
         raise PermissionError("Please run the migration tool with administrator permissions.")
+
     argument_handler = ArgumentHandler()
-    # TODO: Don't overwrite this constant.
-    constants.SOURCE_DB = argument_handler.get_migration_source_database_path_from_arguments()
-
-    migrator = servicemigrator.ServiceMigrator()
-    migrator.mongo_handler = MongoHandler()
-    migrator.file_handler = filehandler
-    migrator.service_manager = servicemgrhandler
-
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
     migration_action = argument_handler.determine_migration_action()
     migration_directory = argument_handler.get_migration_directory()
 
+    migrator = ServiceMigrator()
+    migrator.mongo_handler = MongoHandler()
+    migrator.file_handler = FileHandler()
+    migrator.service_manager = SystemLinkServiceManager()
     migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
 
 

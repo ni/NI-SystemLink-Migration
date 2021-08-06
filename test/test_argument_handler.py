@@ -1,7 +1,7 @@
 
 import pytest
 
-from slmigrate.argument_handler import ArgumentHandler
+from slmigrate.argument_handler import ArgumentHandler, CAPTURE_ARGUMENT, RESTORE_ARGUMENT
 import slmigrate.constants as constants
 from slmigrate.migration_action import MigrationAction
 
@@ -9,16 +9,16 @@ from slmigrate.migration_action import MigrationAction
 @pytest.mark.unit
 @pytest.mark.parametrize("arguments", [
     [],
-    [constants.CAPTURE_ARGUMENT, constants.RESTORE_ARGUMENT],
+    [CAPTURE_ARGUMENT, RESTORE_ARGUMENT],
     ["--" + constants.tag.arg],
-    [constants.CAPTURE_ARGUMENT, "--invalid"],
+    [CAPTURE_ARGUMENT, "--invalid"],
     ["not_capture_or_restore"],
 ])
 def test_invalid_arguments_exits_with_exception(arguments):
     """
     Given:
     """
-    arguments = [constants.CAPTURE_ARGUMENT, constants.RESTORE_ARGUMENT]
+    arguments = [CAPTURE_ARGUMENT, RESTORE_ARGUMENT]
     with pytest.raises(SystemExit):
         ArgumentHandler(arguments)
 
@@ -29,7 +29,7 @@ def test_capture_tag_service_arguments_recognizes_capture_action():
 
     :return:
     """
-    arguments = [constants.CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
     argument_handler = ArgumentHandler(arguments)
 
     migration_action = argument_handler.determine_migration_action()
@@ -43,7 +43,7 @@ def test_capture_tag_service_arguments_recognizes_tag_service():
 
     :return:
     """
-    arguments = [constants.CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -58,7 +58,7 @@ def test_restore_tag_service_arguments_recognizes_restore_action():
 
     :return:
     """
-    arguments = [constants.RESTORE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [RESTORE_ARGUMENT, "--" + constants.tag.arg]
     argument_handler = ArgumentHandler(arguments)
 
     migration_action = argument_handler.determine_migration_action()
@@ -72,7 +72,7 @@ def test_restore_tag_service_arguments_recognizes_tag_service():
 
     :return:
     """
-    arguments = [constants.RESTORE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [RESTORE_ARGUMENT, "--" + constants.tag.arg]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -87,7 +87,7 @@ def test_restore_two_services_arguments_recognizes_both_services():
 
     :return:
     """
-    arguments = [constants.RESTORE_ARGUMENT, "--" + constants.tag.arg, "--" + constants.asset.arg]
+    arguments = [RESTORE_ARGUMENT, "--" + constants.tag.arg, "--" + constants.asset.arg]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -104,7 +104,7 @@ def test_get_migration_directory_returns_default():
     when: get_migration_directory is called.
     then: the migration directory returned is the default one.
     """
-    arguments = [constants.CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == constants.DEFAULT_MIGRATION_DIRECTORY
@@ -117,7 +117,7 @@ def test_get_migration_directory_returns_migration_directory():
     when: get_migration_directory is called.
     then: the migration directory returned is the one specified in the command arguments.
     """
-    arguments = [constants.CAPTURE_ARGUMENT, "--" + constants.tag.arg, "--dir=test"]
+    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg, "--dir=test"]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == "test"

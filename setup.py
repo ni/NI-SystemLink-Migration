@@ -30,15 +30,15 @@ def read(file_name):
 
 
 settings = dict(
-    name="slmigrate",
-    packages=["slmigrate"],
+    name="nislmigrate",
+    packages=["nislmigrate"],
     version=__version__,
     author="prestwick",
     author_email="",
     description=("Migrate various SystemLink data and configuration between servers"),
     license="MIT",
-    keywords="slmigrate",
-    url="https://github.com/prestwick/systemlink-migration-sandbox",
+    keywords="nislmigrate",
+    url="https://github.com/ni/NI-SystemLink-Migration",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     python_requires=">=3.7",

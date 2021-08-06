@@ -233,7 +233,7 @@ class MongoHandler:
         self.migrate_values_collection(source_db, destination_db)
         self.migrate_metadata_collection(source_db, destination_db)
 
-    def migrate_mongo_cmd(self, service, action, config, migration_directory: str):
+    def migrate_mongo_cmd(self, service, action: MigrationAction, config, migration_directory: str):
         """
         Performs a restore or a capture operation depending on the chosen action.
 
@@ -245,9 +245,9 @@ class MongoHandler:
         """
         if action == constants.thdbbug.arg:
             self.migrate_within_instance(service, action, config)
-        if action == constants.CAPTURE_ARGUMENT:
+        if action == MigrationAction.CAPTURE:
             self.capture_migration(service, action, config, migration_directory)
-        if action == constants.RESTORE_ARGUMENT:
+        if action == MigrationAction.RESTORE:
             self.restore_migration(service, action, config, migration_directory)
 
     def ensure_mongo_process_is_running_and_execute_command(self, command: str):

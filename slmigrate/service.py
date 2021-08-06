@@ -65,8 +65,8 @@ class ServicePlugin(ABC):
             return
         if not file_handler.migration_dir_exists(migration_directory):
             raise FileNotFoundError(migration_directory + " does not exist")
-        if not file_handler.service_restore_singlefile_exists(self):
+        if not file_handler.service_restore_singlefile_exists(migration_directory, self):
             path = os.path.join(file_handler.determine_migration_dir(self), self.singlefile_to_migrate)
             raise FileNotFoundError(self.name + ": " + path + " does not exist")
-        if not file_handler.self_restore_dir_exists(self):
+        if not file_handler.service_restore_dir_exists(migration_directory, self):
             raise FileNotFoundError(self.name + ": " + file_handler.determine_migration_dir(self) + " does not exist")

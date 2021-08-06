@@ -1,7 +1,7 @@
 from slmigrate.migration_action import MigrationAction
-from slmigrate.mongohandler import MongoHandler
+from slmigrate.mongo_handler import MongoHandler
 from slmigrate.service import ServicePlugin
-from slmigrate.servicemigrator import ServiceMigrator
+from slmigrate.service_migrator import ServiceMigrator
 import pytest
 
 

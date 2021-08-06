@@ -6,7 +6,6 @@ from types import SimpleNamespace
 # Global Path Constants
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
 MONGO_MIGRATION_SUB_DIRECTORY = os.path.join(DEFAULT_MIGRATION_DIRECTORY, "mongo-dump")
-MIGRATION_DIRECTORY_ARGUMENT = "dir"
 program_file_dir = os.environ.get("ProgramW6432")
 program_data_dir = os.environ.get("ProgramData")
 
@@ -187,9 +186,5 @@ thdbbug_dict = {
 }
 thdbbug = SimpleNamespace(**thdbbug_dict)
 
-# Argument constants
-CAPTURE_ARGUMENT = "capture"
-RESTORE_ARGUMENT = "restore"
-SOURCE_DATABASE_ARGUMENT = "sourcedb"
 # TODO: Change to default
 SOURCE_DB = "admin"
