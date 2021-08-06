@@ -1,12 +1,8 @@
 """Migration tests."""
 
-import os
-import shutil
-
 import pytest
 
 import slmigrate.constants as constants
-from slmigrate import file_handler, systemlink_service_manager
 from slmigrate.argument_handler import ArgumentHandler, RESTORE_ARGUMENT, MIGRATION_DIRECTORY_ARGUMENT
 from slmigrate.file_handler import FileHandler
 from slmigrate.mongo_handler import MongoHandler
