@@ -11,7 +11,8 @@ from pymongo import errors as mongo_errors
 from pymongo import MongoClient
 
 from slmigrate import constants
-from slmigrate.migrationaction import MigrationAction
+from slmigrate.migration_action import MigrationAction
+
 
 class MongoHandler:
     is_mongo_process_running = False
@@ -28,7 +29,6 @@ class MongoHandler:
         with open(config_file, encoding="utf-8-sig") as json_file:
             return json.load(json_file)
 
-
     def start_mongo(self):
         """
         Begins the mongo DB subprocess on this computer.
@@ -44,7 +44,6 @@ class MongoHandler:
         )
         self.is_mongo_process_running = True
 
-
     def stop_mongo(self):
         """
         Stops the given process.
@@ -55,7 +54,6 @@ class MongoHandler:
             return
         subprocess.Popen.kill(self.mongo_process_handle)
         self.is_mongo_process_running = False
-
 
     def get_connection_args(self, service_config, action: MigrationAction):
         if "Mongo.CustomConnectionString" in service_config:
@@ -73,7 +71,6 @@ class MongoHandler:
             )
         return args
 
-
     def capture_migration(self, service, migration_directory: str):
         """
         Capture the data in mongoDB from the given service.
@@ -84,15 +81,9 @@ class MongoHandler:
         """
         # TODO get rid of the [service.name] by changing the property
         config = self.get_service_config(service)
-        cmd_to_run = (
-            constants.mongo_dump
-            + self.get_connection_args(config[service.name], MigrationAction.CAPTURE)
-            + " --out "
-            + os.path.join(migration_directory, constants.mongo_migration_dir)
-            + " --gzip"
-        )
+        connection_arguments = self.get_connection_args(config[service.name], MigrationAction.CAPTURE)
+        cmd_to_run = constants.mongo_dump + connection_arguments + " --out " + os.path.join(migration_directory, constants.mongo_migration_dir) + " --gzip"
         self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
-
 
     def restore_migration(self, service, migration_directory: str):
         """
@@ -107,14 +98,9 @@ class MongoHandler:
             migration_directory,
             constants.mongo_migration_dir,
             config[service.name]["Mongo.Database"])
-        cmd_to_run = (
-            constants.mongo_restore
-            + self.get_connection_args(config[service.name], MigrationAction.RESTORE)
-            + " --gzip "
-            + mongo_dump_file
-        )
+        connection_arguments = self.get_connection_args(config[service.name], MigrationAction.RESTORE)
+        cmd_to_run = constants.mongo_restore + connection_arguments + " --gzip " + mongo_dump_file
         self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
-
 
     def migrate_document(self, destination_collection, document):
         """
@@ -129,7 +115,6 @@ class MongoHandler:
             destination_collection.insert_one(document)
         except mongo_errors.DuplicateKeyError:
             print("Document " + str(document["_id"]) + " already exists. Skipping")
-
 
     def identify_metadata_conflict(self, destination_collection, source_document):
         """
@@ -156,7 +141,6 @@ class MongoHandler:
 
         return None
 
-
     def merge_history_document(self, source_id, destination_id, destination_db):
         """
         Merges the contents of one document into another document.
@@ -170,7 +154,6 @@ class MongoHandler:
         destination_collection.update_one(
             {"metadataId": source_id}, {"$set": {"metadataId": destination_id}}
         )
-
 
     def migrate_metadata_collection(self, source_db, destination_db):
         """
@@ -187,18 +170,11 @@ class MongoHandler:
         for source_document in source_collection_iterable:
             conflict = self.identify_metadata_conflict(destination_collection, source_document)
             if conflict:
-                print(
-                    "Conflict Found! "
-                    + "source_id="
-                    + str(conflict.source_id)
-                    + " destination_id="
-                    + str(conflict.destination_id)
-                )
+                print("Conflict Found! " + "source_id=" + str(conflict.source_id) + " destination_id=" + str(conflict.destination_id))
 
                 self.merge_history_document(conflict.source_id, conflict.destination_id, destination_db)
             else:
                 self.migrate_document(destination_collection, source_document)
-
 
     def migrate_values_collection(self, source_db, destination_db):
         """
@@ -213,7 +189,6 @@ class MongoHandler:
         destination_collection = destination_db.get_collection(collection_name)
         for document in collection_iterable:
             self.migrate_document(destination_collection, document)
-
 
     def check_merge_history_readiness(self, destination_db):
         """
@@ -233,7 +208,6 @@ class MongoHandler:
                 "Manager. Please see <TODO: DOCUMENTATION LINK HERE> for more detail"
             )
             sys.exit()
-
 
     # TODO: Get rid of 'config' parameter if it is not used.
     def migrate_within_instance(self, service, action, config):
@@ -259,7 +233,6 @@ class MongoHandler:
         self.migrate_values_collection(source_db, destination_db)
         self.migrate_metadata_collection(source_db, destination_db)
 
-
     def migrate_mongo_cmd(self, service, action, config, migration_directory: str):
         """
         Performs a restore or a capture operation depending on the chosen action.
@@ -267,6 +240,7 @@ class MongoHandler:
         :param service: The service to capture or restore.
         :param action: Whether to capture or restore.
         :param config: The mongo configuration for the service to migrate.
+        :param migration_directory: Directory to capture into or capture from.
         :return: None.
         """
         if action == constants.thdbbug.arg:

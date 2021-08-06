@@ -57,19 +57,13 @@ for service in services:
 
     # Restore mongo database from contents of migration directory
     mongo_dump_file = os.path.join(no_sql_dump_dir, config[service]["Mongo.Database"])
-    mongo_restore_cmd = (
-        mongo_restore
-        + " --port "
-        + str(config[service]["Mongo.Port"])
-        + " --db "
-        + config[service]["Mongo.Database"]
-        + " --username "
-        + config[service]["Mongo.User"]
-        + " --password "
-        + config[service]["Mongo.Password"]
-        + " --gzip "
-        + mongo_dump_file
-    )
+    mongo_restore_cmd = mongo_restore
+    mongo_restore_cmd += " --port " + str(config[service]["Mongo.Port"])
+    mongo_restore_cmd += " --db " + config[service]["Mongo.Database"]
+    mongo_restore_cmd += " --username " + config[service]["Mongo.User"]
+    mongo_restore_cmd += " --password " + config[service]["Mongo.Password"]
+    mongo_restore_cmd += " --gzip " + mongo_dump_file
+
     subprocess.run(mongo_restore_cmd, check=True)
 
 # Stop SystemLink services to dump Redis DB contents to disk and dump to migration directory

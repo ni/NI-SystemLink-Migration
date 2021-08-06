@@ -31,16 +31,6 @@ def main():
     """
     if not is_admin():
         raise PermissionError("Please run the migration tool with administrator permissions.")
-    main_without_admin_check()
-
-
-# TODO: Remove this once all tests are proper unit tests or end to end tests.
-def main_without_admin_check():
-    """
-    The entry point for the NI SystemLink Migration tool.
-
-    :return: None.
-    """
     argument_handler = ArgumentHandler()
     # TODO: Don't overwrite this constant.
     constants.SOURCE_DB = argument_handler.get_migration_source_database_path_from_arguments()

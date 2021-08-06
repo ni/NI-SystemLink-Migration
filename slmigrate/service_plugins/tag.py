@@ -16,18 +16,18 @@ class TagPlugin(ServicePlugin):
     _singlefile_dir = os.path.join(constants.program_data_dir, "National Instruments", "Skyline", "KeyValueDatabase")
     _singlefile = "dump.rdb"
 
-    def capture(self, args, mongohandler=None, filehandler=None):
-        mongohandler.capture_migration(self)
-        filehandler.capture_singlefile
+    def capture(self, args, mongo_handler=None, file_handler=None):
+        mongo_handler.capture_migration(self)
+        file_handler.capture_singlefile
         (
             self,
             self._singlefile_dir,
             self._singlefile,
         )
 
-    def restore(self, args, mongohandler=None, filehandler=None):
-        mongohandler.restore_migration(self)
-        filehandler.restore_singlefile
+    def restore(self, args, mongo_handler=None, file_handler=None):
+        mongo_handler.restore_migration(self)
+        file_handler.restore_singlefile
         (
             self,
             self._singlefile_dir,

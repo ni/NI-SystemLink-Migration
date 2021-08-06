@@ -44,19 +44,13 @@ with open(config_file, encoding="utf-8-sig") as json_file:
 
 # Restore mongo database from contents of migration directory
 mongo_dump_file = os.path.join(no_sql_dump_dir, config[SERVICE]["Mongo.Database"])
-mongo_restore_cmd = (
-    mongo_restore
-    + " --port "
-    + str(config[SERVICE]["Mongo.Port"])
-    + " --db "
-    + config[SERVICE]["Mongo.Database"]
-    + " --username "
-    + config[SERVICE]["Mongo.User"]
-    + " --password "
-    + config[SERVICE]["Mongo.Password"]
-    + " --gzip "
-    + mongo_dump_file
-)
+mongo_restore_cmd = mongo_restore
+mongo_restore_cmd += " --port " + str(config[SERVICE]["Mongo.Port"])
+mongo_restore_cmd += " --db " + config[SERVICE]["Mongo.Database"]
+mongo_restore_cmd += " --username " + config[SERVICE]["Mongo.User"]
+mongo_restore_cmd += " --password " + config[SERVICE]["Mongo.Password"]
+mongo_restore_cmd += " --gzip " + mongo_dump_file
+
 subprocess.run(mongo_restore_cmd)
 
 # Restart service manager to access alarm rule details

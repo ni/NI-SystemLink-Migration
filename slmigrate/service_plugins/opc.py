@@ -1,5 +1,6 @@
 from slmigrate.service import ServicePlugin
 
+
 class OPCPlugin(ServicePlugin):
 
     @property
@@ -10,8 +11,8 @@ class OPCPlugin(ServicePlugin):
     def help(self):
         return "Migrate OPCUA sessions and certificates"
 
-    def capture(self, args, mongohandler=None, filehandler=None):
+    def capture(self, args, mongo_handler=None, file_handler=None):
         pass
 
-    def restore(self, args, mongohandler=None, filehandler=None):
+    def restore(self, args, mongo_handler=None, file_handler=None):
         pass

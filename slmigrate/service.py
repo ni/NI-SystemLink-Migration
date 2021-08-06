@@ -4,6 +4,7 @@ import json
 
 from abc import ABC, abstractmethod
 
+
 class ServicePlugin(ABC):
 
     cached_config = None
@@ -15,7 +16,7 @@ class ServicePlugin(ABC):
 
     @property
     def name(self):
-        # first element of the names list is the default name for argparsing
+        # first element of the names list is the default name for argument parsing
         return self.names[0]
 
     @property
@@ -30,40 +31,42 @@ class ServicePlugin(ABC):
             config_file = os.path.join(constants.service_config_dir, self.name + ".json")
             with open(config_file, encoding="utf-8-sig") as json_file:
                 self.cached_config = json.load(json_file)
-        return self.cached_config;
+        return self.cached_config
 
     @abstractmethod
-    def capture(self, mongohandler=None, filehandler=None):
-        pass
-
-    @abstractmethod
-    def restore(self, mongohandler=None, filehandler=None):
-        pass
-
-    def restore_error_check(self, migration_directory: str, mongohandler=None, filehandler=None):
-        """TODO: Complete documentation.
-
-        :param service:
-        :return:
+    def capture(self, mongo_handler=None, file_handler=None):
         """
-        if filehandler == None:
+        Captures the given service from SystemLink.
+
+        :param mongo_handler: An object capable of performing mongo database operations.
+        :param file_handler: An object capable of performing file operations.
+        """
+        pass
+
+    @abstractmethod
+    def restore(self, mongo_handler=None, file_handler=None):
+        """
+        Restores the given service to SystemLink.
+
+        :param mongo_handler: An object capable of performing mongo database operations.
+        :param file_handler: An object capable of performing file operations.
+        """
+        pass
+
+    def restore_error_check(self, migration_directory: str, mongo_handler=None, file_handler=None):
+        """
+        Raises a FileNotFoundError if the service anticipates an error migrating.
+
+        :param migration_directory: The directory to migrate to.
+        :param mongo_handler: An object capable of performing mongo database operations.
+        :param file_handler: An object capable of performing file operations.
+        """
+        if file_handler is None:
             return
-        if not filehandler.migration_dir_exists(migration_directory):
+        if not file_handler.migration_dir_exists(migration_directory):
             raise FileNotFoundError(migration_directory + " does not exist")
-        if not filehandler.service_restore_singlefile_exists(self):
-            raise FileNotFoundError(
-                self.name
-                + ": "
-                + os.path.join(
-                    filehandler.determine_migration_dir(self),
-                    self.singlefile_to_migrate,
-                )
-                + " does not exist"
-            )
-        if not filehandler.self_restore_dir_exists(self):
-            raise FileNotFoundError(
-                self.name
-                + ": "
-                + filehandler.determine_migration_dir(self)
-                + " does not exist"
-            )
+        if not file_handler.service_restore_singlefile_exists(self):
+            path = os.path.join(file_handler.determine_migration_dir(self), self.singlefile_to_migrate)
+            raise FileNotFoundError(self.name + ": " + path + " does not exist")
+        if not file_handler.self_restore_dir_exists(self):
+            raise FileNotFoundError(self.name + ": " + file_handler.determine_migration_dir(self) + " does not exist")

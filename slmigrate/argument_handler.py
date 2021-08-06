@@ -1,24 +1,22 @@
-"""Handle passed-in arguments."""
-
 import argparse
 
 from slmigrate import (
     constants,
     pluginhandler,
 )
-from slmigrate.migrationaction import MigrationAction
+from slmigrate.migration_action import MigrationAction
 
 
-"""
-Processes arguments either from the command line or just a list of arguments and breaks them
-into the properties required by the migration tool.
-"""
 class ArgumentHandler:
+    """
+    Processes arguments either from the command line or just a list of arguments and breaks them
+    into the properties required by the migration tool.
+    """
     parsed_arguments = None
 
     """
     Creates a new instance of ArgumentHandler
-    :param arguments: The list of arguments to process, or None to directly grab CLI arguments. 
+    :param arguments: The list of arguments to process, or None to directly grab CLI arguments.
     """
     def __init__(self, arguments=None):
         argument_parser = self.create_nislmigrate_argument_parser()
@@ -86,10 +84,10 @@ class ArgumentHandler:
         services_to_migrate = []
         for arg in vars(self.parsed_arguments):
             if (
-                getattr(self.parsed_arguments, arg)
-                and not (arg == constants.MIGRATION_ACTION_FIELD_NAME)
-                and not (arg == constants.SOURCE_DATABASE_ARGUMENT)
-                and not (arg == constants.MIGRATION_DIRECTORY_ARGUMENT)
+                getattr(self.parsed_arguments, arg) and not
+                (arg == constants.MIGRATION_ACTION_FIELD_NAME) and not
+                (arg == constants.SOURCE_DATABASE_ARGUMENT) and not
+                (arg == constants.MIGRATION_DIRECTORY_ARGUMENT)
             ):
                 services_to_migrate.append(pluginhandler.loaded_plugins[arg])
         return services_to_migrate

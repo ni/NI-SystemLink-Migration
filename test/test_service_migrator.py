@@ -1,12 +1,9 @@
-import slmigrate.argument_handler as arg_handler
-import slmigrate.constants as constants
-import slmigrate.filehandler as file_handler
-from slmigrate.migrationaction import MigrationAction
+from slmigrate.migration_action import MigrationAction
 from slmigrate.mongohandler import MongoHandler
 from slmigrate.service import ServicePlugin
 from slmigrate.servicemigrator import ServiceMigrator
-from .context import systemlinkmigrate
 import pytest
+
 
 @pytest.mark.unit
 def test_capture_services_with_restore_action_captures_plugin():
@@ -19,6 +16,7 @@ def test_capture_services_with_restore_action_captures_plugin():
 
     assert service.capture_count == 1
 
+
 @pytest.mark.unit
 def test_capture_services_with_restore_action_restores_plugin():
     service_migrator = ServiceMigrator()
@@ -29,6 +27,7 @@ def test_capture_services_with_restore_action_restores_plugin():
     service_migrator.migrate_services([service], MigrationAction.RESTORE, "")
 
     assert service.restore_count == 1
+
 
 @pytest.mark.unit
 def test_capture_services_with_unknown_action_throws_exception():
@@ -42,8 +41,8 @@ def test_capture_services_with_unknown_action_throws_exception():
 
 
 class TestMigratorPlugin(ServicePlugin):
-    capture_count = 0;
-    restore_count = 0;
+    capture_count = 0
+    restore_count = 0
 
     @property
     def help(self):
@@ -53,11 +52,12 @@ class TestMigratorPlugin(ServicePlugin):
     def names(self):
         return "test"
 
-    def capture(self, args, mongohandler=None, filehandler=None):
+    def capture(self, mongo_handler=None, file_handler=None):
         self.capture_count += 1
 
-    def restore(self, args, mongohandler=None, filehandler=None):
+    def restore(self, mongo_handler=None, file_handler=None):
         self.restore_count += 1
+
 
 class TestServiceManagerHandler:
     are_services_running = True
@@ -67,7 +67,8 @@ class TestServiceManagerHandler:
 
     def start_all_sl_services(self):
         self.are_services_running = True
-0
+
+
 class TestMongoHandler(MongoHandler):
     is_mongo_running = True
 

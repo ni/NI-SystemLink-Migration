@@ -1,4 +1,4 @@
-from slmigrate.migrationaction import MigrationAction
+from slmigrate.migration_action import MigrationAction
 from slmigrate.service import ServicePlugin
 
 
@@ -35,4 +35,3 @@ class ServiceMigrator:
     def pre_migration_error_check(self, migrators: list, migration_directory: str):
         for migrator in migrators:
             migrator.restore_error_check(migration_directory, self.mongo_handler, self.file_handler)
-

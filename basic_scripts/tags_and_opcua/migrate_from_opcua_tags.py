@@ -55,20 +55,13 @@ for service in services:
         config = json.load(json_file)
 
     # Dump mongo database to migration directory
-    mongo_dump_cmd = (
-        mongo_dump
-        + " --port "
-        + str(config[service]["Mongo.Port"])
-        + " --db "
-        + config[service]["Mongo.Database"]
-        + " --username "
-        + config[service]["Mongo.User"]
-        + " --password "
-        + config[service]["Mongo.Password"]
-        + " --out "
-        + no_sql_dump_dir
-        + " --gzip"
-    )
+    mongo_dump_cmd = mongo_dump
+    mongo_dump_cmd += " --port " + str(config[service]["Mongo.Port"])
+    mongo_dump_cmd += " --db " + config[service]["Mongo.Database"]
+    mongo_dump_cmd += " --username " + config[service]["Mongo.User"]
+    mongo_dump_cmd += " --password " + config[service]["Mongo.Password"]
+    mongo_dump_cmd += " --out " + no_sql_dump_dir
+    mongo_dump_cmd += " --gzip"
     subprocess.run(mongo_dump_cmd, check=True)
 
 # Stop SystemLink services to dump Redis DB contents to disk and dump to migration directory

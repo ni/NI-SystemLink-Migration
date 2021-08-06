@@ -2,15 +2,16 @@
 
 import os
 import shutil
-import sys
-from unittest.mock import patch
 
 import pytest
 
 import slmigrate.constants as constants
 import slmigrate.filehandler as file_handler
+from slmigrate import filehandler, servicemgrhandler
+from slmigrate.argument_handler import ArgumentHandler
+from slmigrate.mongohandler import MongoHandler
+from slmigrate.servicemigrator import ServiceMigrator
 from test import test_constants
-from .context import systemlinkmigrate
 
 
 @pytest.mark.unit
@@ -60,16 +61,25 @@ def test_missing_migration_directory():
 
     :return:
     """
-    test_args = [
-        test_constants.MIGRATION_CMD,
+    test_arguments = [
         constants.RESTORE_ARGUMENT,
         "--" + constants.tag.arg,
-        "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
-        test_constants.migration_dir,
+        "--" + constants.MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
     ]
-    with patch.object(sys, "argv", test_args):
-        with pytest.raises(FileNotFoundError):
-            systemlinkmigrate.main_without_admin_check()
+
+    argument_handler = ArgumentHandler(test_arguments)
+
+    migrator = ServiceMigrator()
+    migrator.mongo_handler = MongoHandler()
+    migrator.file_handler = filehandler
+    migrator.service_manager = servicemgrhandler
+
+    services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
+    migration_action = argument_handler.determine_migration_action()
+    migration_directory = argument_handler.get_migration_directory()
+
+    with pytest.raises(FileNotFoundError):
+        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
 
 
 @pytest.mark.unit
@@ -78,17 +88,26 @@ def test_missing_service_migration_file():
 
     :return:
     """
-    test_args = [
-        test_constants.MIGRATION_CMD,
+    test_arguments = [
         constants.RESTORE_ARGUMENT,
         "--" + constants.tag.arg,
-        "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
-        test_constants.migration_dir,
+        "--" + constants.MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
     ]
+
     os.makedirs(constants.DEFAULT_MIGRATION_DIRECTORY)
-    with patch.object(sys, "argv", test_args):
-        with pytest.raises(FileNotFoundError):
-            systemlinkmigrate.main_without_admin_check()
+    argument_handler = ArgumentHandler(test_arguments)
+
+    migrator = ServiceMigrator()
+    migrator.mongo_handler = MongoHandler()
+    migrator.file_handler = filehandler
+    migrator.service_manager = servicemgrhandler
+
+    services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
+    migration_action = argument_handler.determine_migration_action()
+    migration_directory = argument_handler.get_migration_directory()
+
+    with pytest.raises(FileNotFoundError):
+        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
     shutil.rmtree(constants.DEFAULT_MIGRATION_DIRECTORY)
 
 
@@ -98,15 +117,23 @@ def test_missing_service_migration_dir():
 
     :return:
     """
-    test_args = [
-        test_constants.MIGRATION_CMD,
+    test_arguments = [
         constants.RESTORE_ARGUMENT,
         "--" + constants.fis.arg,
-        "--" + constants.MIGRATION_DIRECTORY_ARGUMENT,
-        test_constants.migration_dir,
+        "--" + constants.MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
     ]
     os.makedirs(constants.DEFAULT_MIGRATION_DIRECTORY)
-    with patch.object(sys, "argv", test_args):
-        with pytest.raises(FileNotFoundError):
-            systemlinkmigrate.main_without_admin_check()
+    argument_handler = ArgumentHandler(test_arguments)
+
+    migrator = ServiceMigrator()
+    migrator.mongo_handler = MongoHandler()
+    migrator.file_handler = filehandler
+    migrator.service_manager = servicemgrhandler
+
+    services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
+    migration_action = argument_handler.determine_migration_action()
+    migration_directory = argument_handler.get_migration_directory()
+
+    with pytest.raises(FileNotFoundError):
+        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
     shutil.rmtree(constants.DEFAULT_MIGRATION_DIRECTORY)

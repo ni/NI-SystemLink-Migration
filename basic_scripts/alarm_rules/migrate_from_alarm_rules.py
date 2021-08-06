@@ -35,18 +35,11 @@ with open(config_file, encoding="utf-8-sig") as json_file:
     config = json.load(json_file)
 
 # Dump mongo database to migration directory
-mongo_dump_cmd = (
-    mongo_dump
-    + " --port "
-    + str(config[SERVICE]["Mongo.Port"])
-    + " --db "
-    + config[SERVICE]["Mongo.Database"]
-    + " --username "
-    + config[SERVICE]["Mongo.User"]
-    + " --password "
-    + config[SERVICE]["Mongo.Password"]
-    + " --out "
-    + no_sql_dump_dir
-    + " --gzip"
-)
+mongo_dump_cmd = mongo_dump
+mongo_dump_cmd += " --port " + str(config[SERVICE]["Mongo.Port"])
+mongo_dump_cmd += " --db " + config[SERVICE]["Mongo.Database"]
+mongo_dump_cmd += " --username " + config[SERVICE]["Mongo.User"]
+mongo_dump_cmd += " --password " + config[SERVICE]["Mongo.Password"]
+mongo_dump_cmd += " --out " + no_sql_dump_dir
+mongo_dump_cmd += " --gzip"
 subprocess.run(mongo_dump_cmd)

@@ -3,7 +3,7 @@ import pytest
 
 from slmigrate.argument_handler import ArgumentHandler
 import slmigrate.constants as constants
-from slmigrate.migrationaction import MigrationAction
+from slmigrate.migration_action import MigrationAction
 
 
 @pytest.mark.unit
@@ -96,6 +96,7 @@ def test_restore_two_services_arguments_recognizes_both_services():
     assert services_to_migrate[0].name == constants.tag.arg or services_to_migrate[1].name == constants.tag.arg
     assert services_to_migrate[1].name == constants.asset.arg or services_to_migrate[0].name == constants.asset.arg
 
+
 @pytest.mark.unit
 def test_get_migration_directory_returns_default():
     """
@@ -107,6 +108,7 @@ def test_get_migration_directory_returns_default():
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == constants.DEFAULT_MIGRATION_DIRECTORY
+
 
 @pytest.mark.unit
 def test_get_migration_directory_returns_migration_directory():

@@ -1,11 +1,8 @@
 import importlib
 import pkgutil
 import inspect
-from slmigrate.service import ServicePlugin
 import slmigrate.service_plugins
 
-#list comprehension that gives all the subclasses of ServicePlugin in a module
-#[cls for _, cls in mod.__dict__.items() if isinstance(cls, type) and issubclass(cls, ServicePlugin)]
 
 def iter_namespace(ns_pkg):
     # Specifying the second argument (prefix) to iter_modules makes the
@@ -14,11 +11,13 @@ def iter_namespace(ns_pkg):
     # the name.
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
+
 discovered_plugin_files = [
     importlib.import_module(name)
     for _, name, _
     in iter_namespace(slmigrate.service_plugins)
 ]
+
 
 def load_plugins():
     instances = {}
@@ -29,5 +28,6 @@ def load_plugins():
                 # using the first name as the key, this may change
                 instances.update({instance.names[0]: instance})
     return instances
+
 
 loaded_plugins = load_plugins()
