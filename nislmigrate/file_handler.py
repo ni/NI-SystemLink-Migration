@@ -117,7 +117,7 @@ class FileHandler:
         )
         shutil.copy(singlefile_full_path, migration_dir)
 
-    def restore_singlefile(self, migration_directory_root: str, service: ServicePlugin, dir, file):
+    def restore_singlefile(self, migration_directory_root: str, service: ServicePlugin, dir, file) -> None:
         migration_dir = self.determine_migration_directory_for_service(migration_directory_root, service)
         singlefile_full_path = os.path.join(migration_dir, service.file)
         shutil.copy(singlefile_full_path, dir)

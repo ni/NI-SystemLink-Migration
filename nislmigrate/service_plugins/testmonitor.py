@@ -11,8 +11,8 @@ class TestMonitorPlugin(ServicePlugin):
     def help(self):
         return "Migrate Test Monitor data"
 
-    def capture(self, args, mongo_handler=None, file_handler=None):
+    def capture(self, mongo_handler=None, file_handler=None):
         pass
 
-    def restore(self, args, mongo_handler=None, file_handler=None):
+    def restore(self, mongo_handler=None, file_handler=None):
         pass
