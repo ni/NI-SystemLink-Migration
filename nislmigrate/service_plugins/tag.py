@@ -1,6 +1,6 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 import os
-import slmigrate.constants as constants
+import nislmigrate.constants as constants
 
 
 class TagPlugin(ServicePlugin):

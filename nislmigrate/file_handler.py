@@ -5,9 +5,9 @@ import shutil
 import stat
 from distutils import dir_util
 
-from slmigrate import constants
-from slmigrate.migration_action import MigrationAction
-from slmigrate.service import ServicePlugin
+from nislmigrate import constants
+from nislmigrate.migration_action import MigrationAction
+from nislmigrate.service import ServicePlugin
 
 
 class FileHandler:

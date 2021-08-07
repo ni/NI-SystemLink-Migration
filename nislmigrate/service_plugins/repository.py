@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class OPCPlugin(ServicePlugin):
+class RepositoryPlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["opc", "opcua", "opcuaclient"]
+        return ["repository", "repo"]
 
     @property
     def help(self):
-        return "Migrate OPCUA sessions and certificates"
+        return "Migrate packages and feeds"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

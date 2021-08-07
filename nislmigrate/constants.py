@@ -4,23 +4,13 @@ import os
 from types import SimpleNamespace
 
 # Global Path Constants
+# TODO: Move this to argument_handler. All paths should be relative and combined with the correct base migration directory by plugins.
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
 MONGO_MIGRATION_SUB_DIRECTORY = os.path.join(DEFAULT_MIGRATION_DIRECTORY, "mongo-dump")
 program_file_dir = os.environ.get("ProgramW6432")
 program_data_dir = os.environ.get("ProgramData")
 
 # Variables for calling EXEs
-slconf_cmd = os.path.join(
-    program_file_dir,
-    "National Instruments",
-    "Shared",
-    "Skyline",
-    "NISystemLinkServerConfigCmd.exe",
-)
-slconf_cmd_stop_all = slconf_cmd + " stop-all-services wait "
-slconf_cmd_start_all = slconf_cmd + " start-all-services wait "
-slconf_cmd_stop_service = slconf_cmd + " stop-service "
-slconf_cmd_start_service = slconf_cmd + " start-service "
 mongo_dump = os.path.join(
     program_file_dir,
     "National Instruments",
@@ -185,6 +175,3 @@ thdbbug_dict = {
     "destination_db": "nitaghistorian",
 }
 thdbbug = SimpleNamespace(**thdbbug_dict)
-
-# TODO: Change to default
-SOURCE_DB = "admin"

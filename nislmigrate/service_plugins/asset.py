@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class FilePlugin(ServicePlugin):
+class AssetPlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["fis", "file", "files"]
+        return ["asset", "assets"]
 
     @property
     def help(self):
-        return "Migrate ingested files"
+        return "Migrate asset utilization and calibration data"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

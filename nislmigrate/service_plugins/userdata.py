@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class TestMonitorPlugin(ServicePlugin):
+class UserDataPlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["testmonitor", "test", "tests"]
+        return ["userdata", "ud", ]
 
     @property
     def help(self):
-        return "Migrate Test Monitor data"
+        return "Migrate user data"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

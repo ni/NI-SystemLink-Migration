@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class UserDataPlugin(ServicePlugin):
+class FilePlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["userdata", "ud", ]
+        return ["notification", "notifications", ]
 
     @property
     def help(self):
-        return "Migrate user data"
+        return "Migrate notifications strategies, templates, and groups"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

@@ -10,8 +10,8 @@ import bson
 from pymongo import errors as mongo_errors
 from pymongo import MongoClient
 
-from slmigrate import constants
-from slmigrate.migration_action import MigrationAction
+from nislmigrate import constants
+from nislmigrate.migration_action import MigrationAction
 
 
 class MongoHandler:
