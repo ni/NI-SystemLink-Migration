@@ -12,7 +12,7 @@ from pymongo import MongoClient
 
 from nislmigrate import constants
 from nislmigrate.migration_action import MigrationAction
-
+from nislmigrate.service import ServicePlugin
 
 MONGO_MIGRATION_DIRECTORY = "mongo-dump"
 
@@ -88,7 +88,7 @@ class MongoHandler:
         cmd_to_run = constants.mongo_dump + connection_arguments + " --out " + os.path.join(migration_directory, MONGO_MIGRATION_DIRECTORY) + " --gzip"
         self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
 
-    def restore_migration(self, service, migration_directory: str):
+    def restore_migration(self, service: ServicePlugin, migration_directory: str):
         """
         Restore the data in mongoDB from the given service.
 
