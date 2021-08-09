@@ -7,7 +7,7 @@ class TagPlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["tag", "tags", "tagingestion", "taghistory"]
+        return ["TagHistorian", "taghistory", "tags", "tagingestion", "tag"]
 
     @property
     def help(self):
@@ -16,10 +16,13 @@ class TagPlugin(ServicePlugin):
     _singlefile_dir = os.path.join(constants.program_data_dir, "National Instruments", "Skyline", "KeyValueDatabase")
     _singlefile = "dump.rdb"
 
-    def capture(self, mongo_handler=None, file_handler=None):
-        mongo_handler.capture_migration(self)
-        file_handler.capture_singlefile(self, self._singlefile_dir, self._singlefile)
+    def capture(self, migration_directory: str, mongo_handler=None, file_handler=None):
+        mongo_handler.capture_migration(self, migration_directory)
+        file_handler.capture_singlefile(migration_directory, self, self._singlefile_dir, self._singlefile)
 
-    def restore(self, mongo_handler=None, file_handler=None):
-        mongo_handler.restore_migration(self)
-        file_handler.restore_singlefile(self, self._singlefile_dir, self._singlefile)
+    def restore(self, migration_directory: str, mongo_handler=None, file_handler=None):
+        mongo_handler.restore_migration(self, migration_directory)
+        file_handler.restore_singlefile(migration_directory, self, self._singlefile_dir, self._singlefile)
+
+    def restore_error_check(self, migration_directory: str, mongo_handler=None, file_handler=None):
+        pass

@@ -35,6 +35,9 @@ class ArgumentHandler:
         else:
             self.parsed_arguments = argument_parser.parse_args(arguments)
 
+    def validate_arguments(self):
+        pass
+
     def get_list_of_services_to_capture_or_restore(self) -> List[ServicePlugin]:
         """
         Generate a list of migration strategies to use during migration, based on the given arguments.
@@ -49,7 +52,10 @@ class ArgumentHandler:
                 (arg == SOURCE_DATABASE_ARGUMENT) and not
                 (arg == MIGRATION_DIRECTORY_ARGUMENT)
             ):
-                services_to_migrate.append(self.plugin_loader.get_plugins()[arg])
+                plugins = self.plugin_loader.get_plugins().items()
+                for _, plugin in plugins:
+                    if arg in plugin.names and plugin not in services_to_migrate:
+                        services_to_migrate.append(plugin)
         return services_to_migrate
 
     def determine_migration_action(self) -> MigrationAction:

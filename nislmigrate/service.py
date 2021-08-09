@@ -54,7 +54,7 @@ class ServicePlugin(ABC):
         return self.cached_config
 
     @abstractmethod
-    def capture(self, mongo_handler=None, file_handler=None):
+    def capture(self, migration_directory: str, mongo_handler=None, file_handler=None):
         """
         Captures the given service from SystemLink.
 
@@ -64,7 +64,7 @@ class ServicePlugin(ABC):
         pass
 
     @abstractmethod
-    def restore(self, mongo_handler=None, file_handler=None):
+    def restore(self, migration_directory: str, mongo_handler=None, file_handler=None):
         """
         Restores the given service to SystemLink.
 

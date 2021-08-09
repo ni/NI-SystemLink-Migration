@@ -19,7 +19,7 @@ class ServiceMigrator:
         :param migration_action: Whether to perform a capture or restore migration.
         :param migration_directory: The directory either capture data to, or restore data from.
         """
-        self.__pre_migration_error_check(service_migrators, migration_directory)
+        self.__pre_migration_error_check(service_migrators, migration_directory, migration_action)
         self.__stop_services_and_perform_migration(service_migrators, migration_action)
 
     def __stop_services_and_perform_migration(self, service_migrators: list, action: MigrationAction) -> None:
@@ -35,12 +35,13 @@ class ServiceMigrator:
     def __migrate_service(self, migrator: ServicePlugin, action: MigrationAction) -> None:
         print(migrator.name + " " + str(action) + " migration called")
         if action == MigrationAction.CAPTURE:
-            migrator.capture(self.mongo_handler, self.file_handler)
+            migrator.capture(self.migration_directory, self.mongo_handler, self.file_handler)
         elif action == MigrationAction.RESTORE:
-            migrator.restore(self.mongo_handler, self.file_handler)
+            migrator.restore(self.migration_directory, self.mongo_handler, self.file_handler)
         else:
             raise ValueError("Migration action is not the correct type.")
 
-    def __pre_migration_error_check(self, migrators: list, migration_directory: str) -> None:
-        for migrator in migrators:
-            migrator.restore_error_check(migration_directory, self.mongo_handler, self.file_handler)
+    def __pre_migration_error_check(self, migrators: list, migration_directory: str, migration_action: MigrationAction) -> None:
+        if (migration_action == MigrationAction.RESTORE):
+            for migrator in migrators:
+                migrator.restore_error_check(migration_directory, self.mongo_handler, self.file_handler)
