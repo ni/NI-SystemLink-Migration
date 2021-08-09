@@ -6,7 +6,7 @@ from pathlib import Path
 
 from setuptools import setup
 
-from slmigrate import __version__
+from nislmigrate import __version__
 
 
 def read_requirements(filename):

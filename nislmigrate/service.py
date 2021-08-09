@@ -1,4 +1,4 @@
-import slmigrate.constants as constants
+import nislmigrate.constants as constants
 import os
 import json
 
@@ -6,26 +6,46 @@ from abc import ABC, abstractmethod
 
 
 class ServicePlugin(ABC):
+    """
+    Base class for creating a plugin capable of migrating a SystemLink service.
+    """
 
     cached_config = None
 
     @property
     @abstractmethod
     def names(self):
+        """
+        Gets all names for this plugin.
+        :return: The plugin names.
+        """
         return ["service"]
 
     @property
     def name(self):
+        """
+        Gets the name of this plugin.
+        :return: The plugin name.
+        """
         # first element of the names list is the default name for argument parsing
         return self.names[0]
 
     @property
     @abstractmethod
     def help(self):
+        """
+        Gets the help string for this service migrator plugin.
+        :returns: The help string to display in the command line.
+        """
         return "A short sentence describing the operation of the plugin"
 
     @property
+    # TODO: Get rid of this in favor of just making all of this data private in the service implementations.
     def config(self):
+        """
+        Gets the configuration dictionary this plugin provides.
+        :returns: Gets the configuration dictionary this plugin provides.
+        """
         if self.cached_config is None:
             # most (all?) services use this style of config file.  Plugins won't need to override this method.
             config_file = os.path.join(constants.service_config_dir, self.name + ".json")
@@ -34,7 +54,7 @@ class ServicePlugin(ABC):
         return self.cached_config
 
     @abstractmethod
-    def capture(self, mongo_handler=None, file_handler=None):
+    def capture(self, migration_directory: str, mongo_handler=None, file_handler=None):
         """
         Captures the given service from SystemLink.
 
@@ -44,7 +64,7 @@ class ServicePlugin(ABC):
         pass
 
     @abstractmethod
-    def restore(self, mongo_handler=None, file_handler=None):
+    def restore(self, migration_directory: str, mongo_handler=None, file_handler=None):
         """
         Restores the given service to SystemLink.
 

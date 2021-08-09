@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class FilePlugin(ServicePlugin):
+class OPCPlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["states", "state", ]
+        return ["opc", "opcua", "opcuaclient"]
 
     @property
     def help(self):
-        return "Migrate system states"
+        return "Migrate OPCUA sessions and certificates"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

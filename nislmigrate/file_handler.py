@@ -5,9 +5,9 @@ import shutil
 import stat
 from distutils import dir_util
 
-from slmigrate import constants
-from slmigrate.migration_action import MigrationAction
-from slmigrate.service import ServicePlugin
+from nislmigrate import constants
+from nislmigrate.migration_action import MigrationAction
+from nislmigrate.service import ServicePlugin
 
 
 class FileHandler:
@@ -52,9 +52,6 @@ class FileHandler:
         :param service: The service to verify data has been migrated for.
         :return: True if there is migrated data for a given service
         """
-        if not service.config.singlefile_migration:
-            return True
-
         return os.path.isfile(
             os.path.join(self.determine_migration_directory_for_service(migration_directory_root, service), service.config.singlefile_to_migrate)
         )
@@ -117,9 +114,9 @@ class FileHandler:
         )
         shutil.copy(singlefile_full_path, migration_dir)
 
-    def restore_singlefile(self, migration_directory_root: str, service: ServicePlugin, dir, file):
+    def restore_singlefile(self, migration_directory_root: str, service: ServicePlugin, dir, file) -> None:
         migration_dir = self.determine_migration_directory_for_service(migration_directory_root, service)
-        singlefile_full_path = os.path.join(migration_dir, service.file)
+        singlefile_full_path = os.path.join(migration_dir, file)
         shutil.copy(singlefile_full_path, dir)
 
     def migrate_dir(self, migration_directory_root: str, service: ServicePlugin, action: MigrationAction):

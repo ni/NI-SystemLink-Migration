@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class RepositoryPlugin(ServicePlugin):
+class FilePlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["repository", "repo"]
+        return ["states", "state", ]
 
     @property
     def help(self):
-        return "Migrate packages and feeds"
+        return "Migrate system states"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

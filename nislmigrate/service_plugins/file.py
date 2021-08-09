@@ -1,15 +1,15 @@
-from slmigrate.service import ServicePlugin
+from nislmigrate.service import ServicePlugin
 
 
-class AlarmRulePlugin(ServicePlugin):
+class FilePlugin(ServicePlugin):
 
     @property
     def names(self):
-        return ["alarmrule", "alarms", "alarm"]
+        return ["fis", "file", "files"]
 
     @property
     def help(self):
-        return "Migrate Tag alarm rules"
+        return "Migrate ingested files"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

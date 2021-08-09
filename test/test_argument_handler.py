@@ -1,9 +1,9 @@
 
 import pytest
 
-from slmigrate.argument_handler import ArgumentHandler, CAPTURE_ARGUMENT, RESTORE_ARGUMENT
-import slmigrate.constants as constants
-from slmigrate.migration_action import MigrationAction
+from nislmigrate.argument_handler import ArgumentHandler, CAPTURE_ARGUMENT, RESTORE_ARGUMENT
+import nislmigrate.constants as constants
+from nislmigrate.migration_action import MigrationAction
 
 
 @pytest.mark.unit

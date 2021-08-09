@@ -10,8 +10,11 @@ import bson
 from pymongo import errors as mongo_errors
 from pymongo import MongoClient
 
-from slmigrate import constants
-from slmigrate.migration_action import MigrationAction
+from nislmigrate import constants
+from nislmigrate.migration_action import MigrationAction
+from nislmigrate.service import ServicePlugin
+
+MONGO_MIGRATION_DIRECTORY = "mongo-dump"
 
 
 class MongoHandler:
@@ -82,10 +85,10 @@ class MongoHandler:
         # TODO get rid of the [service.name] by changing the property
         config = self.get_service_config(service)
         connection_arguments = self.get_connection_args(config[service.name], MigrationAction.CAPTURE)
-        cmd_to_run = constants.mongo_dump + connection_arguments + " --out " + os.path.join(migration_directory, constants.mongo_migration_dir) + " --gzip"
+        cmd_to_run = constants.mongo_dump + connection_arguments + " --out " + os.path.join(migration_directory, MONGO_MIGRATION_DIRECTORY) + " --gzip"
         self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
 
-    def restore_migration(self, service, migration_directory: str):
+    def restore_migration(self, service: ServicePlugin, migration_directory: str):
         """
         Restore the data in mongoDB from the given service.
 
@@ -96,7 +99,7 @@ class MongoHandler:
         config = self.get_service_config(service)
         mongo_dump_file = os.path.join(
             migration_directory,
-            constants.mongo_migration_dir,
+            MONGO_MIGRATION_DIRECTORY,
             config[service.name]["Mongo.Database"])
         connection_arguments = self.get_connection_args(config[service.name], MigrationAction.RESTORE)
         cmd_to_run = constants.mongo_restore + connection_arguments + " --gzip " + mongo_dump_file

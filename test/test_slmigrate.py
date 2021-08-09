@@ -2,12 +2,12 @@
 
 import pytest
 
-import slmigrate.constants as constants
-from slmigrate.argument_handler import ArgumentHandler, RESTORE_ARGUMENT, MIGRATION_DIRECTORY_ARGUMENT
-from slmigrate.file_handler import FileHandler
-from slmigrate.mongo_handler import MongoHandler
-from slmigrate.service_migrator import ServiceMigrator
-from slmigrate.systemlink_service_manager import SystemLinkServiceManager
+import nislmigrate.constants as constants
+from nislmigrate.argument_handler import ArgumentHandler, RESTORE_ARGUMENT, MIGRATION_DIRECTORY_ARGUMENT
+from nislmigrate.file_handler import FileHandler
+from nislmigrate.mongo_handler import MongoHandler
+from nislmigrate.service_migrator import ServiceMigrator
+from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 from test import test_constants
 
 

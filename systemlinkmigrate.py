@@ -1,33 +1,22 @@
-"""Generic migration utility for migrating various data and settings between SystemLink servers.
+"""
+Generic migration utility for migrating various data and settings between SystemLink servers.
 
 Not all services will be supported. Additional services will be supported over time.
 """
 
-import ctypes
-import os
-
-from slmigrate.argument_handler import ArgumentHandler
-from slmigrate.file_handler import FileHandler
-from slmigrate.mongo_handler import MongoHandler
-from slmigrate.service_migrator import ServiceMigrator
-from slmigrate.systemlink_service_manager import SystemLinkServiceManager
-
-
-def is_admin():
-    try:
-        return os.getuid() == 0
-    except AttributeError:
-        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+from nislmigrate import permission_checker
+from nislmigrate.argument_handler import ArgumentHandler
+from nislmigrate.file_handler import FileHandler
+from nislmigrate.mongo_handler import MongoHandler
+from nislmigrate.service_migrator import ServiceMigrator
+from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 
 
 def main():
     """
     The entry point for the NI SystemLink Migration tool.
-
-    :return: None.
     """
-    if not is_admin():
-        raise PermissionError("Please run the migration tool with administrator permissions.")
+    permission_checker.raise_exception_if_not_running_with_elevated_permissions()
 
     argument_handler = ArgumentHandler()
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
