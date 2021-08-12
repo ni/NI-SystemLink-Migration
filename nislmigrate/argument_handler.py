@@ -73,6 +73,7 @@ class ArgumentHandler:
         Gets the migration directory path based on the parsed arguments.
         :return: The migration directory path from the arguments, or the default if none was specified.
         """
+        print(getattr(self.parsed_arguments, MIGRATION_DIRECTORY_ARGUMENT, DEFAULT_MIGRATION_DIRECTORY))
         return getattr(self.parsed_arguments, MIGRATION_DIRECTORY_ARGUMENT, DEFAULT_MIGRATION_DIRECTORY)
 
     def __create_migration_tool_argument_parser(self) -> argparse.ArgumentParser:

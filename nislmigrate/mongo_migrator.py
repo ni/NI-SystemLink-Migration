@@ -1,10 +1,10 @@
 """Handle Mongo operations."""
 
-import json
 import os
 import subprocess
 import sys
 from types import SimpleNamespace
+from typing import Dict
 
 import bson
 from pymongo import errors as mongo_errors
@@ -14,79 +14,73 @@ from nislmigrate import constants
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.service import ServicePlugin
 
-MONGO_MIGRATION_DIRECTORY = "mongo-dump"
+MONGO_DATABASE_NAME_CONFIGURATION_KEY = "Mongo.Database"
+MONGO_PORT_NAME_CONFIGURATION_KEY = "Mongo.Port"
+MONGO_USER_CONFIGURATION_KEY = "Mongo.User"
+MONGO_PASSWORD_CONFIGURATION_KEY = "Mongo.Password"
+MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY = "Mongo.CustomConnectionString"
 
+MONGO_EXECUTABLES_DIRECTORY = os.path.join(os.environ.get("ProgramW6432"), "National Instruments", "Shared", "Skyline", "NoSqlDatabase","bin")
+MONGO_DUMP_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongodump.exe")
+MONGO_RESTORE_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongorestore.exe")
+MONGO_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongod.exe")
 
-class MongoHandler:
+class MongoMigrator:
     is_mongo_process_running = False
     mongo_process_handle = None
 
-    def get_service_config(self, service):
-        """
-        Gets the path to the configuration file for the given service.
+    def __del__(self):
+        self.__stop_mongo()
 
-        :param service: The service name to get the configuration file for.
-        :return: The path to a service configuration file.
-        """
-        config_file = os.path.join(constants.service_config_dir, service.name + ".json")
-        with open(config_file, encoding="utf-8-sig") as json_file:
-            return json.load(json_file)
-
-    def start_mongo(self):
+    def __start_mongo(self):
         """
         Begins the mongo DB subprocess on this computer.
-
         :return: The started subprocess handling mongo DB.
         """
-        if self.is_mongo_process_running:
-            return
-        self.mongo_process_handle = subprocess.Popen(
-            constants.mongod_exe + " --config " + '"' + str(constants.mongo_config) + '"',
-            creationflags=subprocess.CREATE_NEW_CONSOLE,
-            env=os.environ,
-        )
-        self.is_mongo_process_running = True
+        if not self.is_mongo_process_running:
+            self.mongo_process_handle = subprocess.Popen(
+                constants.mongod_exe + " --config " + '"' + str(constants.mongo_config) + '"',
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+                env=os.environ,
+            )
+            self.is_mongo_process_running = True
 
-    def stop_mongo(self):
+    def __stop_mongo(self):
         """
-        Stops the given process.
-
+        Stops the mongo process.
         :return: None.
         """
-        if not self.is_mongo_process_running:
-            return
-        subprocess.Popen.kill(self.mongo_process_handle)
-        self.is_mongo_process_running = False
+        if self.is_mongo_process_running:
+            subprocess.Popen.kill(self.mongo_process_handle)
+            self.is_mongo_process_running = False
 
-    def get_connection_args(self, service_config, action: MigrationAction):
-        if "Mongo.CustomConnectionString" in service_config:
-            args = " --uri {0}".format(service_config["Mongo.CustomConnectionString"])
-            if action == MigrationAction.RESTORE:
-                # We need to provide the db option (even though it's redundant with the uri) because of a bug with mongoDB 4.2
-                # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
-                args += " --db {0}".format(service_config["Mongo.Database"])
-        else:
-            args = " --port {0} --db {1} --username {2} --password {3}".format(
-                str(service_config["Mongo.Port"]),
-                service_config["Mongo.Database"],
-                service_config["Mongo.User"],
-                service_config["Mongo.Password"]
-            )
-        return args
+    def __get_mongo_commands_connection_arguments(self, service_config: Dict[str, str], action: MigrationAction):
+        if MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY in service_config:
+            arguments = " --uri {0}".format(service_config[MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY])
+            arguments += self.__fix_mongo_restore_bug(action, service_config[MONGO_DATABASE_NAME_CONFIGURATION_KEY])
+            return arguments
+        return " --port {0} --db {1} --username {2} --password {3}".format(
+            str(service_config[MONGO_PORT_NAME_CONFIGURATION_KEY]),
+            service_config[MONGO_DATABASE_NAME_CONFIGURATION_KEY],
+            service_config[MONGO_USER_CONFIGURATION_KEY],
+            service_config[MONGO_PASSWORD_CONFIGURATION_KEY],)
 
-    def capture_migration(self, service, migration_directory: str):
+    def __fix_mongo_restore_bug(self, action: MigrationAction, mongo_database_name: str):
+        # We need to provide the db option (even though it's redundant with the uri)
+        # because of a bug with mongoDB 4.2
+        # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
+        return " --db " + mongo_database_name if action == MigrationAction.RESTORE else ""
+
+    def capture_migration(self, service: ServicePlugin, migration_directory: str):
         """
         Capture the data in mongoDB from the given service.
-
         :param service: The service to capture the data for.
         :param migration_directory: The directory to migrate the service in to.
-        :return: None.
         """
-        # TODO get rid of the [service.name] by changing the property
-        config = self.get_service_config(service)
-        connection_arguments = self.get_connection_args(config[service.name], MigrationAction.CAPTURE)
-        cmd_to_run = constants.mongo_dump + connection_arguments + " --out " + os.path.join(migration_directory, MONGO_MIGRATION_DIRECTORY) + " --gzip"
-        self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
+        config = service.config
+        connection_arguments = self.__get_mongo_commands_connection_arguments(config, MigrationAction.CAPTURE)
+        mongo_dump_command = MONGO_DUMP_EXECUTABLE_PATH + connection_arguments + " --out " + migration_directory + " --gzip"
+        self.__ensure_mongo_process_is_running_and_execute_command(mongo_dump_command)
 
     def restore_migration(self, service: ServicePlugin, migration_directory: str):
         """
@@ -96,14 +90,14 @@ class MongoHandler:
         :param migration_directory: The directory to restore the service in to.
         :return: None.
         """
-        config = self.get_service_config(service)
-        mongo_dump_file = os.path.join(
-            migration_directory,
-            MONGO_MIGRATION_DIRECTORY,
-            config[service.name]["Mongo.Database"])
-        connection_arguments = self.get_connection_args(config[service.name], MigrationAction.RESTORE)
-        cmd_to_run = constants.mongo_restore + connection_arguments + " --gzip " + mongo_dump_file
-        self.ensure_mongo_process_is_running_and_execute_command(cmd_to_run)
+        config = service.config
+        collection_name = config[MONGO_DATABASE_NAME_CONFIGURATION_KEY]
+        mongo_dump_file = os.path.join(migration_directory, collection_name)
+        if not os.path.exists(mongo_dump_file):
+            raise FileNotFoundError("Could not find the captured service at " + mongo_dump_file)
+        connection_arguments = self.__get_mongo_commands_connection_arguments(config, MigrationAction.RESTORE)
+        mongo_restore_command = MONGO_RESTORE_EXECUTABLE_PATH + connection_arguments + " --gzip " + mongo_dump_file
+        self.__ensure_mongo_process_is_running_and_execute_command(mongo_restore_command)
 
     def migrate_document(self, destination_collection, document):
         """
@@ -196,9 +190,7 @@ class MongoHandler:
     def check_merge_history_readiness(self, destination_db):
         """
         Checks whether a database is ready for data to be migrated to it.
-
         :param destination_db: The database to check and see if it is ready for data to be migrated into it.
-        :return: None.
         """
         # look for fields that should be set when Org modeling is present. If they are missing exit.
         collection_name = "metadata"
@@ -212,18 +204,14 @@ class MongoHandler:
             )
             sys.exit()
 
-    # TODO: Get rid of 'config' parameter if it is not used.
-    def migrate_within_instance(self, service, action, config):
+    def migrate_within_instance(self, service):
         """
         Migrates the data for a service from one mongo database to another mongo database.
 
         :param service: The service to migrate.
-        :param action: Whether to capture or restore.
-        :param config: Any additional configuration that might be needed to complete the migration.
-        :return: None.
         """
         codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
-        config = self.get_service_config(constants.no_sql)
+        config = service.config
         client = MongoClient(
             host=[config[constants.no_sql.name]["Mongo.Host"]],
             port=config[constants.no_sql.name]["Mongo.Port"],
@@ -236,23 +224,21 @@ class MongoHandler:
         self.migrate_values_collection(source_db, destination_db)
         self.migrate_metadata_collection(source_db, destination_db)
 
-    def migrate_mongo_cmd(self, service, action: MigrationAction, config, migration_directory: str):
+    def migrate_mongo_cmd(self, service, action: MigrationAction, migration_directory: str):
         """
         Performs a restore or a capture operation depending on the chosen action.
 
         :param service: The service to capture or restore.
         :param action: Whether to capture or restore.
-        :param config: The mongo configuration for the service to migrate.
         :param migration_directory: Directory to capture into or capture from.
-        :return: None.
         """
         if action == constants.thdbbug.arg:
-            self.migrate_within_instance(service, action, config)
+            self.migrate_within_instance(service)
         if action == MigrationAction.CAPTURE:
-            self.capture_migration(service, action, config, migration_directory)
+            self.capture_migration(service, migration_directory)
         if action == MigrationAction.RESTORE:
-            self.restore_migration(service, action, config, migration_directory)
+            self.restore_migration(service, migration_directory)
 
-    def ensure_mongo_process_is_running_and_execute_command(self, command: str):
-        self.start_mongo()
+    def __ensure_mongo_process_is_running_and_execute_command(self, command: str):
+        self.__start_mongo()
         subprocess.run(command, check=True)

@@ -4,9 +4,8 @@ import pytest
 
 import nislmigrate.constants as constants
 from nislmigrate.argument_handler import ArgumentHandler, RESTORE_ARGUMENT, MIGRATION_DIRECTORY_ARGUMENT
-from nislmigrate.file_handler import FileHandler
-from nislmigrate.mongo_handler import MongoHandler
-from nislmigrate.service_migrator import ServiceMigrator
+from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 from test import test_constants
 
@@ -25,9 +24,8 @@ def test_missing_migration_directory():
 
     argument_handler = ArgumentHandler(test_arguments)
 
-    migrator = ServiceMigrator()
-    migrator.mongo_handler = MongoHandler()
-    migrator.file_handler = FileHandler()
+    migrator_factory = MigratorFactory()
+    migrator = MigrationFacilitator(migrator_factory)
     migrator.service_manager = SystemLinkServiceManager()
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -35,7 +33,7 @@ def test_missing_migration_directory():
     migration_directory = argument_handler.get_migration_directory()
 
     with pytest.raises(FileNotFoundError):
-        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
+        migrator.migrate(services_to_migrate, migration_action, migration_directory)
 
 
 @pytest.mark.unit
@@ -52,9 +50,8 @@ def test_missing_service_migration_file():
 
     argument_handler = ArgumentHandler(test_arguments)
 
-    migrator = ServiceMigrator()
-    migrator.mongo_handler = MongoHandler()
-    migrator.file_handler = FileHandler()
+    migrator_factory = MigratorFactory()
+    migrator = MigrationFacilitator(migrator_factory)
     migrator.service_manager = SystemLinkServiceManager()
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -62,7 +59,7 @@ def test_missing_service_migration_file():
     migration_directory = argument_handler.get_migration_directory()
 
     with pytest.raises(FileNotFoundError):
-        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
+        migrator.migrate(services_to_migrate, migration_action, migration_directory)
 
 
 @pytest.mark.unit
@@ -78,9 +75,8 @@ def test_missing_service_migration_dir():
     ]
     argument_handler = ArgumentHandler(test_arguments)
 
-    migrator = ServiceMigrator()
-    migrator.mongo_handler = MongoHandler()
-    migrator.file_handler = FileHandler()
+    migrator_factory = MigratorFactory()
+    migrator = MigrationFacilitator(migrator_factory)
     migrator.service_manager = SystemLinkServiceManager()
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -88,4 +84,4 @@ def test_missing_service_migration_dir():
     migration_directory = argument_handler.get_migration_directory()
 
     with pytest.raises(FileNotFoundError):
-        migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
+        migrator.migrate(services_to_migrate, migration_action, migration_directory)

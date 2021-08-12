@@ -6,9 +6,10 @@ Not all services will be supported. Additional services will be supported over t
 
 from nislmigrate import permission_checker
 from nislmigrate.argument_handler import ArgumentHandler
-from nislmigrate.file_handler import FileHandler
-from nislmigrate.mongo_handler import MongoHandler
-from nislmigrate.service_migrator import ServiceMigrator
+from nislmigrate.file_migrator import FileMigrator
+from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.mongo_migrator import MongoMigrator
+from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 
 
@@ -23,11 +24,13 @@ def main():
     migration_action = argument_handler.determine_migration_action()
     migration_directory = argument_handler.get_migration_directory()
 
-    migrator = ServiceMigrator()
-    migrator.mongo_handler = MongoHandler()
-    migrator.file_handler = FileHandler()
-    migrator.service_manager = SystemLinkServiceManager()
-    migrator.migrate_services(services_to_migrate, migration_action, migration_directory)
+    migrator_factory = MigratorFactory()
+    migrator_factory.mongo_migrator = MongoMigrator()
+    migrator_factory.file_migrator = FileMigrator()
+
+    migration_facilitator = MigrationFacilitator(migrator_factory)
+    migration_facilitator.service_manager = SystemLinkServiceManager()
+    migration_facilitator.migrate(services_to_migrate, migration_action, migration_directory)
 
 
 if __name__ == "__main__":

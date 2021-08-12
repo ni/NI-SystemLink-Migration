@@ -1,43 +1,47 @@
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.mongo_handler import MongoHandler
+from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.mongo_migrator import MongoMigrator
 from nislmigrate.service import ServicePlugin
-from nislmigrate.service_migrator import ServiceMigrator
+from nislmigrate.migration_facilitator import MigrationFacilitator
 import pytest
 
 
 @pytest.mark.unit
 def test_capture_services_with_restore_action_captures_plugin():
-    service_migrator = ServiceMigrator()
+    migrator_factory = MigratorFactory()
+    service_migrator = MigrationFacilitator(migrator_factory)
     service_migrator.service_manager = TestServiceManagerHandler()
-    service_migrator.mongo_handler = TestMongoHandler()
+    service_migrator.mongo_handler = TestMongoMigrator()
     service = TestMigratorPlugin()
 
-    service_migrator.migrate_services([service], MigrationAction.CAPTURE, "")
+    service_migrator.migrate([service], MigrationAction.CAPTURE, "")
 
     assert service.capture_count == 1
 
 
 @pytest.mark.unit
 def test_capture_services_with_restore_action_restores_plugin():
-    service_migrator = ServiceMigrator()
+    migrator_factory = MigratorFactory()
+    service_migrator = MigrationFacilitator(migrator_factory)
     service_migrator.service_manager = TestServiceManagerHandler()
-    service_migrator.mongo_handler = TestMongoHandler()
+    service_migrator.mongo_handler = TestMongoMigrator()
     service = TestMigratorPlugin()
 
-    service_migrator.migrate_services([service], MigrationAction.RESTORE, "")
+    service_migrator.migrate([service], MigrationAction.RESTORE, "")
 
     assert service.restore_count == 1
 
 
 @pytest.mark.unit
 def test_capture_services_with_unknown_action_throws_exception():
-    service_migrator = ServiceMigrator()
+    migrator_factory = MigratorFactory()
+    service_migrator = MigrationFacilitator(migrator_factory)
     service_migrator.service_manager = TestServiceManagerHandler()
-    service_migrator.mongo_handler = TestMongoHandler()
+    service_migrator.mongo_handler = TestMongoMigrator()
     service = TestMigratorPlugin()
 
     with pytest.raises(ValueError):
-        service_migrator.migrate_services([service], "unknown", "")
+        service_migrator.migrate([service], "unknown", "")
 
 
 class TestMigratorPlugin(ServicePlugin):
@@ -69,7 +73,7 @@ class TestServiceManagerHandler:
         self.are_services_running = True
 
 
-class TestMongoHandler(MongoHandler):
+class TestMongoMigrator(MongoMigrator):
     is_mongo_running = True
 
     def start_mongo(self):
