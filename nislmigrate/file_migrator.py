@@ -10,7 +10,7 @@ from nislmigrate.migration_action import MigrationAction
 from nislmigrate.service import ServicePlugin
 
 
-class FileHandler:
+class FileMigrator:
     """
     Handles operations that act on the real file system.
     """
