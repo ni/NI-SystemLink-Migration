@@ -17,7 +17,7 @@ class MigrationFacilitator:
     def migrate(self, service_migrators: list, migration_action: MigrationAction, migration_directory: str):
         """
         Facilitates an entire capture or restore operation from start to finish.
-        :param service_migrators: The list of migrators to involve in the migration.
+        :param service_migrators: The list of plugins to involve in the migration.
         :param migration_action: Whether to perform a capture or restore migration.
         :param migration_directory: The directory either capture data to, or restore data from.
         """
@@ -25,7 +25,7 @@ class MigrationFacilitator:
         self.__stop_services_and_perform_migration(service_migrators, migration_action, migration_directory)
 
     def __stop_services_and_perform_migration(self, service_migrators: list, action: MigrationAction, migration_directory: str) -> None:
-        self.service_manager.stop_all_sl_services()
+        self.service_manager.stop_all_systemlink_services()
         try:
             for migrator in service_migrators:
                 self.__report_migration_starting(migrator.name, action, migration_directory)
@@ -35,7 +35,7 @@ class MigrationFacilitator:
             print("Error occured while migrating " + migrator.name)
             raise
         finally:
-            self.service_manager.start_all_sl_services()
+            self.service_manager.start_all_systemlink_services()
 
     def __migrate_service(self, migrator: ServicePlugin, action: MigrationAction, migration_directory: str) -> None:
         if action == MigrationAction.CAPTURE:

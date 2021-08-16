@@ -32,6 +32,7 @@ def read(file_name):
 settings = dict(
     name="nislmigrate",
     packages=["nislmigrate"],
+    scripts=["main.py"],
     version=__version__,
     author="prestwick",
     author_email="",
