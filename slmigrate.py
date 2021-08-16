@@ -13,7 +13,7 @@ from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 
 
-def main():
+def slmigrate():
     """
     The entry point for the NI SystemLink Migration tool.
     """
@@ -37,4 +37,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    slmigrate()
