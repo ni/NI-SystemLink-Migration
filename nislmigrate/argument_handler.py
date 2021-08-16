@@ -2,9 +2,10 @@ import argparse
 import os
 from typing import List
 
-import nislmigrate.service_plugins
 from nislmigrate.constants import MIGRATION_ACTION_FIELD_NAME
 from nislmigrate.migration_action import MigrationAction
+from nislmigrate import plugins
+from nislmigrate.migration_error import MigrationError
 from nislmigrate.plugin_loader import PluginLoader
 from nislmigrate.service import ServicePlugin
 
@@ -22,7 +23,7 @@ class ArgumentHandler:
     into the properties required by the migration tool.
     """
     parsed_arguments = None
-    plugin_loader = PluginLoader(nislmigrate.service_plugins, ServicePlugin)
+    plugin_loader = PluginLoader(plugins, ServicePlugin)
 
     def __init__(self,  arguments: List[str] = None):
         """
@@ -67,6 +68,8 @@ class ArgumentHandler:
             return MigrationAction.RESTORE
         elif self.parsed_arguments.action == CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
+        else:
+            raise MigrationError("The 'capture' or 'restore' argument must be provided.")
 
     def get_migration_directory(self) -> str:
         """

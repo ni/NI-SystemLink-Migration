@@ -5,8 +5,8 @@ import pytest
 from nislmigrate.argument_handler import ArgumentHandler, CAPTURE_ARGUMENT, RESTORE_ARGUMENT
 import nislmigrate.constants as constants
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.service_plugins.asset import AssetPlugin
-from nislmigrate.service_plugins.tag import TagPlugin
+from nislmigrate.plugins.asset import AssetPlugin
+from nislmigrate.plugins.tag import TagPlugin
 
 
 @pytest.mark.unit
