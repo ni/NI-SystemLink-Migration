@@ -17,12 +17,12 @@
 ### Basic usage
 
 ```bash
-py slmigrate.py capture --tags
+py main.py capture --tags
 ```
 Running `systemlinkmigrate.py` with the above arguments will capture tag and tag history and store this data in `C:\migration`. 
 
 ```bash
-py slmigrate.py restore --tags
+py main.py restore --tags
 ```
 
 Running `systemlinkmigrate.py` with the above arguments will restore tag and tag history data from the directory `C:\migration`.
@@ -34,7 +34,7 @@ The `capture` and `restore` actions determine the directionality of the migratio
 To migrate the data associated with a SystemLink service you must specify the service as an argument. Multiple services may be captured or restored by providing multiple arguments; e.g:
 
 ```bash
-py slmigrate.py capture --tags --opc
+py main.py capture --tags --opc
 ```
 
 #### Supported Services
@@ -64,7 +64,7 @@ The following list of services is explicitly not supported because of issues tha
 ## Specifying a Migration Directory
 By default this tool will migrate data into the directory `C:\migrate`. During *capture* this directory is created. During *restore* this directory is expected to be present. The `--dir` argument allows for other directories and locations to be specified. For example:
 ```bash
-py slmigrate.py --capture --tag --dir="C:\migrate_8-3-2020
+py main.py --capture --tag --dir="C:\migrate_8-3-2020
 ````
 These arguments will capture tag and tag history data and store them in the directory `C:\migrate_8-3-2020`
 
