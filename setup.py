@@ -31,8 +31,8 @@ def read(file_name):
 
 settings = dict(
     name="nislmigrate",
-    packages=["nislmigrate"],
-    scripts=["slmigrate.py"],
+    packages=["nislmigrate", "nislmigrate.plugins"],
+    scripts=["slmigrate"],
     version=__version__,
     author="prestwick",
     author_email="",
