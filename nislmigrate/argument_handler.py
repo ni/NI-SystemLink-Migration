@@ -53,8 +53,8 @@ class ArgumentHandler:
                 (arg == SOURCE_DATABASE_ARGUMENT) and not
                 (arg == MIGRATION_DIRECTORY_ARGUMENT)
             ):
-                plugins = self.plugin_loader.get_plugins().items()
-                for _, plugin in plugins:
+                plugin_list = self.plugin_loader.get_plugins().items()
+                for _, plugin in plugin_list:
                     if arg in plugin.names and plugin not in services_to_migrate:
                         services_to_migrate.append(plugin)
         return services_to_migrate

@@ -1,4 +1,4 @@
 include README.md
 include requirements.txt
 include test-requirements.txt
-include systemlinkmigrate.py
+include slmigrate.py
