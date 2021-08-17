@@ -15,7 +15,7 @@ from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 
 
-def slmigrate():
+def run_migration_tool():
     """
     The entry point for the NI SystemLink Migration tool.
     """
@@ -36,7 +36,3 @@ def slmigrate():
         migration_facilitator.migrate(services_to_migrate, migration_action, migration_directory)
     except MigrationError as e:
         print(e)
-
-
-if __name__ == "__main__":
-    slmigrate()
