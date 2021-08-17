@@ -3,7 +3,7 @@ name = "nislmigrate"
 version = "0.0.10"
 description = "The tool for migrating SystemLink data."
 authors = ["sedwards <shawn.edwards@ni.com>"]
-read_me="README.md"
+readme="README.md"
 documentation="https://operations.systemlink.io/"
 classifiers=[
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -12,10 +12,6 @@ classifiers=[
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "License :: OSI Approved :: MIT License",
-]
-packages = [
-    { include = "nislmigrate" },
-    { include = "nislmigrate.plugins" }
 ]
 
 [tool.poetry.dependencies]
