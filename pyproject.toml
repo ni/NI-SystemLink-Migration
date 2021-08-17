@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nislmigrate"
-version = "0.0.6"
+version = "0.0.7"
 description = "The tool for migrating SystemLink data."
 authors = ["sedwards <shawn.edwards@ni.com>"]
 
