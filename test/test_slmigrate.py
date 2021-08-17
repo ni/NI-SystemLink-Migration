@@ -26,7 +26,7 @@ def test_missing_migration_directory():
 
     migrator_factory = MigratorFactory()
     migrator = MigrationFacilitator(migrator_factory)
-    migrator.service_manager = SystemLinkServiceManager()
+    migrator.service_manager = FakeServiceManager()
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
     migration_action = argument_handler.determine_migration_action()
@@ -52,7 +52,7 @@ def test_missing_service_migration_file():
 
     migrator_factory = MigratorFactory()
     migrator = MigrationFacilitator(migrator_factory)
-    migrator.service_manager = SystemLinkServiceManager()
+    migrator.service_manager = FakeServiceManager()
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
     migration_action = argument_handler.determine_migration_action()
@@ -62,26 +62,11 @@ def test_missing_service_migration_file():
         migrator.migrate(services_to_migrate, migration_action, migration_directory)
 
 
-@pytest.mark.unit
-def test_missing_service_migration_dir():
-    """TODO: Complete documentation.
+class FakeServiceManager(SystemLinkServiceManager):
+    are_services_running = True
 
-    :return:
-    """
-    test_arguments = [
-        RESTORE_ARGUMENT,
-        "--" + constants.fis.arg,
-        "--" + MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
-    ]
-    argument_handler = ArgumentHandler(test_arguments)
+    def stop_all_systemlink_services(self) -> None:
+        self.are_services_running = False
 
-    migrator_factory = MigratorFactory()
-    migrator = MigrationFacilitator(migrator_factory)
-    migrator.service_manager = SystemLinkServiceManager()
-
-    services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
-    migration_action = argument_handler.determine_migration_action()
-    migration_directory = argument_handler.get_migration_directory()
-
-    with pytest.raises(FileNotFoundError):
-        migrator.migrate(services_to_migrate, migration_action, migration_directory)
+    def start_all_systemlink_services(self) -> None:
+        self.are_services_running = True

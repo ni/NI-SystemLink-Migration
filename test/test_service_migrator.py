@@ -66,10 +66,10 @@ class TestMigratorPlugin(ServicePlugin):
 class TestServiceManagerHandler:
     are_services_running = True
 
-    def stop_all_sl_services(self):
+    def stop_all_systemlink_services(self):
         self.are_services_running = False
 
-    def start_all_sl_services(self):
+    def start_all_systemlink_services(self):
         self.are_services_running = True
 
 

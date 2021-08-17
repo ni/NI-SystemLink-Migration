@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nislmigrate"
-version = "0.0.8"
+version = "0.0.9"
 description = "The tool for migrating SystemLink data."
 authors = ["sedwards <shawn.edwards@ni.com>"]
 
@@ -10,7 +10,7 @@ argparse = "^1.4.0"
 pytest = "^6.2.3"
 pymongo = "^3.11.3"
 tox = "^3.23.0"
-bson = "*"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 

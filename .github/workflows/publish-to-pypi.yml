@@ -3,7 +3,7 @@ name: Publish Package to PyPI
 on:
   push:
     paths:
-      - VERSION
+      - pyproject.toml
     branches:
       - main
   release:
@@ -24,10 +24,10 @@ jobs:
           python-version: 3.8
 
       - name: Install setuptools and other tools
-        run: python3 -m pip install setuptools wheel twine
+        run: python3 -m pip install poetry
 
       - name: Build packages
-        run: python3 setup.py bdist_wheel
+        run: poetry build
 
       - name: Publish distribution to Test PyPI
         uses: pypa/gh-action-pypi-publish@master
