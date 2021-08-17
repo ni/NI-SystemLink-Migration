@@ -1,8 +1,22 @@
 [tool.poetry]
 name = "nislmigrate"
-version = "0.0.9"
+version = "0.0.10"
 description = "The tool for migrating SystemLink data."
 authors = ["sedwards <shawn.edwards@ni.com>"]
+read_me="README.md"
+documentation="https://operations.systemlink.io/"
+classifiers=[
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+]
+packages = [
+    { include = "nislmigrate" },
+    { include = "nislmigrate.plugins" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.6.8"
@@ -15,7 +29,7 @@ toml = "^0.10.2"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
-nislmigrate = 'slmigrate:slmigrate'
+nislmigrate = 'nislmigrate.entry:slmigrate'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
