@@ -11,68 +11,85 @@ branch with your changes to your project, and then submit a pull request.
 
 See [GitHub's official documentation](https://help.github.com/articles/using-pull-requests/) for more details.
 
-# Getting Started
+## Development
+### Getting started
+To get the source code for this tool, simply clone this repository:
+```bash
+git clone https://github.com/ni/NI-SystemLink-Migration.git
+cd NI-SystemLink-Migration
+```
+This tool uses poetry to manage project dependencies, install poetry using:
+```bash
+pip install poetry
+```
+To install the dependencies for the migration tool project, run:
+```bash
+poetry install
+```
+Finally, to run the tool while developing, use the poetry `run` command:
+```bash
+poerty run nislmigrate
+```
+### Running tests
+The unit tests in this repository can be executed using `pytest` or `tox`:
+```bash
+# Run all unit tests:
+poerty run pytest
+# Run all unit tests using all supported python versions:
+poerty run tox
+```
+### Code style
+The python code style in this repository adheres to the `flake8` linters default configuration. Linting can be run on the repository using:"
+```bash
+poerty run flake8
+```
 
-Like SystemLink this tool is designed to be developed, tested, and run on Windows. 
+### Extensibility
+Additional backup/restore strategies can be easily added using the `ServicePlugin` abstract base class:
+1. Add a new python class to the `plugins` module that implements the `ServicePlugin` class:
+```python
+from nislmigrate.service import ServicePlugin
+from nislmigrate.migrator_factory import MigratorFactory
 
-1. Clone this repository `git clone https://github.com/ni/NI-SystemLink-Migration.git`.
-2. Install Python3.6, pip, and tox.
-3. Run the tool with `python systemlinkmigrage.py`.
+class CustomMigration(ServicePlugin):
 
-# Testing
+    @property
+    def names(self):
+        return ["custom-migration", "cm"]
 
-1. Install Python3, pip, and tox.
-2. Run `test/dlmongo.ps1`.
-3. Start at the repository root and run `tox` to run all of the unit tests.
-4. If these steps execute/pass you are ready for development.
+    @property
+    def help(self):
+        return "Performs some custom migration action"
 
-# Releasing
-1. On the GitHub project's main page, click Releases (on the right-hand side), and create a new release.
-2. Use a tag and release name based on the migration tool's current version, e.g. "v0.1.0" and "0.1.0", respectively.
-3. Update the version number in the `VERSION` file in the root of this repository and post a PR.
-4. After a sufficient amount of time (minutes), verify that the release shows up on PyPI.
+    def capture(self, migration_directory: str, migrator_factory: MigratorFactory):
+        pass
 
-# Contributing
+    def restore(self, migration_directory: str, migrator_factory: MigratorFactory):
+        pass
+```
+The migration tool will now run the `capture` or `restore` method of your custom migration strategy if run with the custom flag:
+```bash
+poetry run nislmigrate capture --custom-migration
+poetry run nislmigrate restore --custom-migration
+```
+
+## Contributing
 
 After you've verified that you can successfully run the unit tests and they all pass for
 **NI-SystemLink-Migration**, you can begin contributing to to the project.
 
 1. Write a failing test for the new feature / bugfix.
-2. Make your change.
-3. Verify all tests, including the new ones, pass.
-4. Update CHANGELOG.md if applicable.
-5. On GitHub, send a new pull request to the main repository's master branch. GitHub
+1. Make your change.
+1. Verify all tests, including the new ones, pass.
+1. On GitHub, send a new pull request to the main repository's master branch. GitHub
    pull requests are the expected method of code collaboration on this project.
+1. Add at least one reviewer to the pull request and wait for thier approval.
+1. Merge the pull request into master
+   
+## Releasing
+A new version of this tool is released when the `version` property in `pyproject.toml` is changed.
 
-## How to: Add a new service dictionary constant
-Add a new dictionary describing the service in `slmigrate/constants.py`. Existing dictionaries in source can be used as models for new ones. It is assumed all services have data in MongoDB to be migrated. Take note if your service contains one or more files on disk that must be migrated, and include the appropriate key/values in the dictionary as needed. Be sure to use `SimpleNamespace` to enable calling dictionary items in a `dot.deliminted.fashion`. 
-**Example**
-```python
-opc_dict = {
-    'arg': 'opc', # Primary argument. Recommened this to match the variable named assigned with SimpleNamespace
-    'name': "OpcClient", # This is the exact service name as found in JSOJ files in C:\ProgramData\National Instruments\Skyline\Config
-    'directory_migration': True, # True because these service contains data within a directory
-    'singlefile_migration': False, # False because these services does not migrate single files
-    'migration_dir': os.path.join(migration_dir, "OpcClient"), # Name of migration directory for this service
-    'source_dir': os.path.join(program_data_dir, "National Instruments", "Skyline", "Data", "OpcClient") # Directory containing service data to be migrated. 
-}
-opc = SimpleNamespace(**opc_dict) # call dictionary items in a dot.deliminted.fashion rather than access the dictionary directly
-```
-
-## How to: Add new arguments
-A new service will require new arguments to be passed from the command line. This can all be done in `slmigrate/arghander.py/parse_arguments`. Be sure to use the value from the service dictionary for specifying the primary argument as this is used to look up the dictionary in `determiner_migrate_action`. Additional alias arguments may be specified. For example:
-
-```python
-parser.add_argument("--" + constants.opc.arg, "--opcua", "--opcuaclient", help="Migrate OPCUA sessions and certificates", action="store_true")
-    
-```
-
-## How to: Add tests and follow CI guidelines
-By and large tests should be agnostic to a particular service, and use the `test_service` in `slmigrate/test/test_constants.py` whenever possible. 
-
-All tests must pass and all code pass `flake8` linting before new code to be checked into `master`, this is run automatically on each pull request targeted on main. 
-
-# Developer Certificate of Origin (DCO)
+## Developer Certificate of Origin (DCO)
 
    Developer's Certificate of Origin 1.1
 

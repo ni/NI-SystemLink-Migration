@@ -6,7 +6,8 @@ import sys
 from types import SimpleNamespace
 from typing import Dict
 
-import bson
+from bson.codec_options import CodecOptions
+from bson.binary import UUID_SUBTYPE
 from pymongo import errors as mongo_errors
 from pymongo import MongoClient
 
@@ -24,6 +25,7 @@ MONGO_EXECUTABLES_DIRECTORY = os.path.join(os.environ.get("ProgramW6432"), "Nati
 MONGO_DUMP_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongodump.exe")
 MONGO_RESTORE_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongorestore.exe")
 MONGO_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongod.exe")
+
 
 class MongoMigrator:
     is_mongo_process_running = False
@@ -210,7 +212,7 @@ class MongoMigrator:
 
         :param service: The service to migrate.
         """
-        codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
+        codec = CodecOptions(uuid_representation=UUID_SUBTYPE)
         config = service.config
         client = MongoClient(
             host=[config[constants.no_sql.name]["Mongo.Host"]],

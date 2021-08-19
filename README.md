@@ -1,46 +1,58 @@
-# Migrating with systemlinkmigrate.py
-
-## Prerequisites 
-### SystemLink
-- These scripts assume migration from a SystemLink 2020R1 (20.0) to another SystemLink 2020R1 or 2020R2 server 
-    - **We assume the server you are migrating to is clean with no data. Migrating to a server with existing data will result in data loss.**
-    - Not all services can be migrated from a 2020R1 server to a 2020R2 server. Please review **Supported Services** for details
-- These scripts assume a single-box SystemLink installation. 
-- These scripts are designed to run on the same machines as the SystemLink installation. They do not support remote migration.
-
-### Python
-- These scripts require >=Python3 to run. Installers can be found at [python.org](https://www.python.org/downloads/).
-- The documentation in this repository assumes Python has been added to your **PATH**. 
-- Depending on your environment you may invoke python with `python`, `python3`, or `py`. Documentation in this repository use `py`. 
-
-## Running systemlinkmigrate.py
-### Basic usage
-
+# NI-SystemLink-Migration tool `nislmigrate`
+`nislmigrate` is a command line utility for migration, backup, and restore of supported SystemLink services.
+# Installation
+### Prerequisites
+#### 1. SystemLink
+- This tool currently supports migration from a SystemLink 2020R1 server, migration between other versions has not been tested.
+- **We assume the server you are migrating to is clean with no data. Migrating to a server with existing data will result in data loss.**
+- Not all services are supported yet, see **Supported Services** for details.
+- This tool assumes a single-box SystemLink installation. 
+- This tool must be run on the same machines as the SystemLink installations.
+#### 2. Python
+- This tool requires [Python 3.8](https://www.python.org/downloads/release/python-3811/) to run.
+- The documentation in this repository assumes Python has been added to your [**PATH**](https://datatofish.com/add-python-to-windows-path/).
+### Installation
+The latest released version of the tool can be installed by running:
 ```bash
-py main.py capture --tags
+pip install nislmigrate
 ```
-Running `systemlinkmigrate.py` with the above arguments will capture tag and tag history and store this data in `C:\migration`. 
-
+# Usage
+### Backup
+To backup the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `capture` option and the corresponding flag for each of the services you want to back up (e.g. `--tag`):
 ```bash
-py main.py restore --tags
+nislmigrate capture --tag
 ```
-
-Running `systemlinkmigrate.py` with the above arguments will restore tag and tag history data from the directory `C:\migration`.
-
-### Capture and Restore
-The `capture` and `restore` actions determine the directionality of the migration. The `capture` action is used when migrating data FROM an existing SystemLink server. The `restore` action is used when migrating data TO a new SystemLink server. Both actions cannot be used simultaneously. 
-
-### Specifying services to migrate
-To migrate the data associated with a SystemLink service you must specify the service as an argument. Multiple services may be captured or restored by providing multiple arguments; e.g:
-
+This will backup the data corresponding with each service into the default migration directory (`C:\Users\[user]\Documents\migration\`). You can specify a different migration directory using the `--dir [path]` option:
 ```bash
-py main.py capture --tags --opc
+nislmigrate capture --tag --dir C:\custom-backup-location
 ```
 
-#### Supported Services
+### Restore
+To restore the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `restore` option and the corresponding flag for each of the services you want to restore (e.g. `--tag`):
+```bash
+nislmigrate capture --tag
+```
+This will restore the data corresponding with each service from the default migration directory (`C:\Users\[user]\Documents\migration\`). If your captured data is in a different directory that can be specified with the `--dir [path]` option:
+```bash
+nislmigrate capture --tag --dir C:\custom-backup-location
+```
+### Migration
+To migrate from one SystemLink server instance (server A) to a different instance (server B):
+1. Install the migration tool on server A and server B.
+1. Follow the backup instructions to backup the data from server A.
+1. Copy the data produced by the backup of server A on server B.
+1. Ensure server B is a clean SystemLink install with no existing data.
+1. Follow the restore instructions to restore the backed up data onto server B.
+
+# Development
+See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and releasing the tool.
+
+## Supported Services
 The following services can be migrated with this utility:
 
 - Tag Ingestion and Tag History: `--tag`
+
+There are plans to support the following services in the near future:
 - Tag Alarm Rules: `--alarm`
 - OPCUA Client: `--opc`
 - File Ingestion: `--file`
@@ -54,29 +66,6 @@ The following services can be migrated with this utility:
 - States: `--states`
     - Feeds may require additional updates if servers used for migration have different domain names
     - Cannot be migrated between 2020R1 and 2020R2 servers
-
-...with more on the way.
-
-#### Service Not Supported
-The following list of services is explicitly not supported because of issues that arose when developing and testing migrating the service that will require changes to the service rather than the migration utility to enable support. 
+  
+The following list of services is explicitly not supported because of issues that arose when developing and testing migrating the service that will require changes to the service rather than the migration utility to enable support:
 - Cloud Connector
-
-## Specifying a Migration Directory
-By default this tool will migrate data into the directory `C:\migrate`. During *capture* this directory is created. During *restore* this directory is expected to be present. The `--dir` argument allows for other directories and locations to be specified. For example:
-```bash
-py main.py --capture --tag --dir="C:\migrate_8-3-2020
-````
-These arguments will capture tag and tag history data and store them in the directory `C:\migrate_8-3-2020`
-
-## Migrating tag history to nitaghistorian database
-Due to a bug introduced in SystemLink 2020R2 it is possible for tag history data to be stored in the incorrect database within the MongoDB instance. **This bug only affects environments where a remote MongoDB server is used.** To determine if you are in this state connect a MongoShell or visual database tool such as [Mongo Compass](https://www.mongodb.com/products/compass) to your Mongo instance and check if the collections `metadata` and `values` are in the default authentication database (typically the `admin` database).
-- Use the `thdbbug` action to correct this. Cannot be used simultaneously with other actions. 
-- If you are using a database other than `admin` you can specify this with the `--sourcedb` argument For example
-```bash
-py systmelinkmigrate.py thdbbug --sourcedb myadmindb
-```
-
-# Extending systemlinkmigrate.py
-The `systemlinkmigrate.py` utility can be extended to migrate services whose data is within MongoDB, a single file, or directory. For data not covered by these additional changes may be needed that are not covered in this README. 
-
-See `CONTRIBUTING.md` for getting started with developing or extending this tool.

@@ -43,9 +43,10 @@ class SystemLinkServiceManager:
             subprocess.run(command, check=True, capture_output=True)
         except subprocess.CalledProcessError as e:
             descriptions = (str(e), repr(e.stderr).replace("\\n", "\n").replace("\\r", "\r"))
-            raise MigrationError("NISystemLinkServerConfigCmd.exe encountered an error:\n\n%s\n\n%s" % descriptions)
+            error_string = "NISystemLinkServerConfigCmd.exe encountered an error:\n\n%s\n\n%s"
+            raise MigrationError(error_string % descriptions)
 
     def __verify_configuration_tool_is_installed(self):
         if not os.path.exists(CONFIGURATION_EXECUTABLE_PATH):
-            error = "Unable to locate SystemLink server configuration tool at '%s'" % CONFIGURATION_EXECUTABLE_PATH
-            raise MigrationError(error)
+            error_string = "Unable to locate SystemLink server configuration tool at '%s'"
+            raise MigrationError(error_string % CONFIGURATION_EXECUTABLE_PATH)

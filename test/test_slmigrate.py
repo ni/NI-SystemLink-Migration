@@ -1,9 +1,9 @@
-"""Migration tests."""
-
 import pytest
 
 import nislmigrate.constants as constants
-from nislmigrate.argument_handler import ArgumentHandler, RESTORE_ARGUMENT, MIGRATION_DIRECTORY_ARGUMENT
+from nislmigrate.argument_handler import ArgumentHandler
+from nislmigrate.argument_handler import RESTORE_ARGUMENT
+from nislmigrate.argument_handler import MIGRATION_DIRECTORY_ARGUMENT
 from nislmigrate.migrator_factory import MigratorFactory
 from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
