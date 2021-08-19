@@ -1,5 +1,5 @@
-from nislmigrate.file_migrator import FileMigrator
-from nislmigrate.mongo_migrator import MongoMigrator
+from nislmigrate.migrators.file_migrator import FileMigrator
+from nislmigrate.migrators.mongo_migrator import MongoMigrator
 
 
 class MigratorFactory:

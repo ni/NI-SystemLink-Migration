@@ -1,5 +1,5 @@
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.migrators.migrator_factory import MigratorFactory
 from nislmigrate.service import ServicePlugin
 
 
@@ -40,7 +40,7 @@ class MigrationFacilitator:
                 self.__migrate_service(migrator, action, migration_directory)
                 self.__report_migration_finished(migrator.name, action)
         except Exception:
-            print("Error occured while migrating " + migrator.name)
+            print("Error occurred while migrating " + migrator.name)
             raise
         finally:
             self.service_manager.start_all_systemlink_services()
@@ -67,8 +67,9 @@ class MigrationFacilitator:
         print("Migration directory set to '{0}'".format(migration_directory))
 
     def __report_migration_finished(self, migrator_name: str, action: MigrationAction):
-        actionPrettyName = "capturing" if action == MigrationAction.CAPTURE else "restoring"
-        print("Done {0} data using {1} migrator strategy.".format(actionPrettyName, migrator_name))
+        action_pretty_name = "capturing" if action == MigrationAction.CAPTURE else "restoring"
+        print("Done {0} data using {1} migrator strategy.".format(action_pretty_name,
+                                                                  migrator_name))
 
     def __pre_migration_error_check(self,
                                     plugins: list,

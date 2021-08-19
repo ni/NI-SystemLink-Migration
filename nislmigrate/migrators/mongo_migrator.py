@@ -13,7 +13,6 @@ from pymongo import MongoClient
 
 from nislmigrate import constants
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.service import ServicePlugin
 
 MONGO_DATABASE_NAME_CONFIGURATION_KEY = "Mongo.Database"
 MONGO_PORT_NAME_CONFIGURATION_KEY = "Mongo.Port"
@@ -23,10 +22,12 @@ MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY = "Mongo.CustomConnectionString
 
 NI_DIRECTORY = os.path.join(os.environ.get("ProgramW6432"), "National Instruments")
 SKYLINE_DIRECTORY = os.path.join(NI_DIRECTORY, "Shared", "Skyline")
-MONGO_EXECUTABLES_DIRECTORY = os.path.join(SKYLINE_DIRECTORY, "NoSqlDatabase", "bin")
+NO_SQL_DATABASE_SERVICE_DIRECTORY = os.path.join(SKYLINE_DIRECTORY, "NoSqlDatabase")
+MONGO_EXECUTABLES_DIRECTORY = os.path.join(NO_SQL_DATABASE_SERVICE_DIRECTORY, "bin")
 MONGO_DUMP_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongodump.exe")
 MONGO_RESTORE_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongorestore.exe")
 MONGO_EXECUTABLE_PATH = os.path.join(MONGO_EXECUTABLES_DIRECTORY, "mongod.exe")
+MONGO_CONFIGURATION_PATH = os.path.join(NO_SQL_DATABASE_SERVICE_DIRECTORY, "mongodb.conf")
 
 
 class MongoMigrator:
@@ -43,7 +44,7 @@ class MongoMigrator:
         """
         if not self.is_mongo_process_running:
             self.mongo_process_handle = subprocess.Popen(
-                constants.mongod_exe + " --config " + '"' + str(constants.mongo_config) + '"',
+                MONGO_EXECUTABLE_PATH + " --config " + '"' + MONGO_CONFIGURATION_PATH + '"',
                 creationflags=subprocess.CREATE_NEW_CONSOLE,
                 env=os.environ,
             )
@@ -79,14 +80,13 @@ class MongoMigrator:
         # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
         return " --db " + mongo_database_name if action == MigrationAction.RESTORE else ""
 
-    def capture_migration(self, service: ServicePlugin, migration_directory: str):
+    def capture_migration(self, mongo_config: Dict, migration_directory: str):
         """
         Capture the data in mongoDB from the given service.
-        :param service: The service to capture the data for.
+        :param mongo_config: The mongo configuration for a service.
         :param migration_directory: The directory to migrate the service in to.
         """
-        config = service.config
-        connection_arguments = self.__get_mongo_connection_arguments(config,
+        connection_arguments = self.__get_mongo_connection_arguments(mongo_config,
                                                                      MigrationAction.CAPTURE)
         mongo_dump_command = MONGO_DUMP_EXECUTABLE_PATH + " "
         mongo_dump_command += connection_arguments + " "
@@ -94,7 +94,7 @@ class MongoMigrator:
         mongo_dump_command += "--gzip"
         self.__ensure_mongo_process_is_running_and_execute_command(mongo_dump_command)
 
-    def restore_migration(self, service: ServicePlugin, migration_directory: str):
+    def restore_migration(self, mongo_config: Dict, migration_directory: str):
         """
         Restore the data in mongoDB from the given service.
 
@@ -102,12 +102,11 @@ class MongoMigrator:
         :param migration_directory: The directory to restore the service in to.
         :return: None.
         """
-        config = service.config
-        collection_name = config[MONGO_DATABASE_NAME_CONFIGURATION_KEY]
+        collection_name = mongo_config[MONGO_DATABASE_NAME_CONFIGURATION_KEY]
         mongo_dump_file = os.path.join(migration_directory, collection_name)
         if not os.path.exists(mongo_dump_file):
             raise FileNotFoundError("Could not find the captured service at " + mongo_dump_file)
-        connection_arguments = self.__get_mongo_connection_arguments(config,
+        connection_arguments = self.__get_mongo_connection_arguments(mongo_config,
                                                                      MigrationAction.RESTORE)
         mongo_restore_command = MONGO_RESTORE_EXECUTABLE_PATH + " "
         mongo_restore_command += connection_arguments + " "

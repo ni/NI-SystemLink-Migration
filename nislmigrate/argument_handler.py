@@ -2,7 +2,6 @@ import argparse
 import os
 from typing import List
 
-from nislmigrate.constants import MIGRATION_ACTION_FIELD_NAME
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import plugins
 from nislmigrate.migration_error import MigrationError
@@ -15,6 +14,7 @@ THDBBUG_ARGUMENT = "thdbbug"
 SOURCE_DATABASE_ARGUMENT = "sourcedb"
 MIGRATION_DIRECTORY_ARGUMENT = "dir"
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
+MIGRATION_ACTION_FIELD_NAME = "action"
 
 
 class ArgumentHandler:

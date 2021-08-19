@@ -2,7 +2,11 @@ from typing import List
 
 import pytest
 
-from nislmigrate.argument_handler import ArgumentHandler, CAPTURE_ARGUMENT, RESTORE_ARGUMENT
+from nislmigrate.argument_handler import ArgumentHandler
+from nislmigrate.argument_handler import CAPTURE_ARGUMENT
+from nislmigrate.argument_handler import RESTORE_ARGUMENT
+from nislmigrate.argument_handler import DEFAULT_MIGRATION_DIRECTORY
+
 import nislmigrate.constants as constants
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.plugins.asset import AssetPlugin
@@ -89,7 +93,7 @@ def test_get_migration_directory_returns_default():
     arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
     argument_handler = ArgumentHandler(arguments)
 
-    assert argument_handler.get_migration_directory() == constants.DEFAULT_MIGRATION_DIRECTORY
+    assert argument_handler.get_migration_directory() == DEFAULT_MIGRATION_DIRECTORY
 
 
 @pytest.mark.unit

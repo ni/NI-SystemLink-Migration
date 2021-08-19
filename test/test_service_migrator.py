@@ -1,6 +1,6 @@
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.migrator_factory import MigratorFactory
-from nislmigrate.mongo_migrator import MongoMigrator
+from nislmigrate.migrators.migrator_factory import MigratorFactory
+from nislmigrate.migrators.mongo_migrator import MongoMigrator
 from nislmigrate.service import ServicePlugin
 from nislmigrate.migration_facilitator import MigrationFacilitator
 import pytest
@@ -61,6 +61,11 @@ class TestMigratorPlugin(ServicePlugin):
 
     def restore(self, mongo_handler=None, file_handler=None):
         self.restore_count += 1
+
+    def restore_error_check(self,
+                            migration_directory: str,
+                            migrator_factory: MigratorFactory) -> None:
+        pass
 
 
 class TestServiceManagerHandler:
