@@ -73,8 +73,10 @@ def test_restore_two_services_arguments_recognizes_both_services():
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
     assert len(services_to_migrate) == 2
-    assert services_to_migrate[0].name == TagPlugin().name or services_to_migrate[1].name == TagPlugin().name
-    assert services_to_migrate[1].name == AssetPlugin().name or services_to_migrate[0].name == AssetPlugin().name
+    first_service = services_to_migrate[0]
+    second_service = services_to_migrate[1]
+    assert first_service.name == TagPlugin().name or second_service.name == TagPlugin().name
+    assert second_service.name == AssetPlugin().name or first_service.name == AssetPlugin().name
 
 
 @pytest.mark.unit
