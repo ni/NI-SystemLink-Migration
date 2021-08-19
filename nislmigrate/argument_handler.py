@@ -41,7 +41,8 @@ class ArgumentHandler:
 
     def get_list_of_services_to_capture_or_restore(self) -> List[ServicePlugin]:
         """
-        Generate a list of migration strategies to use during migration, based on the given arguments.
+        Generate a list of migration strategies to use during migration,
+        based on the given arguments.
 
         :return: A list of selected migration actions.
         """
@@ -74,14 +75,17 @@ class ArgumentHandler:
     def get_migration_directory(self) -> str:
         """
         Gets the migration directory path based on the parsed arguments.
-        :return: The migration directory path from the arguments, or the default if none was specified.
+        :return: The migration directory path from the arguments,
+                 or the default if none was specified.
         """
-        print(getattr(self.parsed_arguments, MIGRATION_DIRECTORY_ARGUMENT, DEFAULT_MIGRATION_DIRECTORY))
-        return getattr(self.parsed_arguments, MIGRATION_DIRECTORY_ARGUMENT, DEFAULT_MIGRATION_DIRECTORY)
+        argument = MIGRATION_DIRECTORY_ARGUMENT
+        default = DEFAULT_MIGRATION_DIRECTORY
+        return getattr(self.parsed_arguments, argument, default)
 
     def __create_migration_tool_argument_parser(self) -> argparse.ArgumentParser:
         """
-        Creates an argparse parser that knows how to parse the migration tool's command line arguments.
+        Creates an argparse parser that knows how to parse the migration
+        tool's command line arguments.
         :return: The built parser.
         """
         argument_parser = argparse.ArgumentParser(prog="nislmigrate")
@@ -113,7 +117,8 @@ class ArgumentHandler:
 
     def __add_additional_flag_options(self, parser: argparse.ArgumentParser) -> None:
         """
-        Creates an argparse parser that knows how to parse the migration tool's command line arguments.
+        Creates an argparse parser that knows how to parse the migration
+        tool's command line arguments.
         :param parser: The parser to add the flags to.
         """
         parser.add_argument(

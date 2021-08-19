@@ -4,7 +4,8 @@ import os
 from types import SimpleNamespace
 
 # Global Path Constants
-# TODO: Move this to argument_handler. All paths should be relative and combined with the correct base migration directory by plugins.
+# TODO: Move this to argument_handler. All paths should be relative
+#  and combined with the correct base migration directory by plugins.
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
 MONGO_MIGRATION_SUB_DIRECTORY = os.path.join(DEFAULT_MIGRATION_DIRECTORY, "mongo-dump")
 program_file_dir = os.environ.get("ProgramW6432")

@@ -26,7 +26,9 @@ class FileMigrator:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def determine_migration_directory_for_service(self, migration_directory_root: str, service: ServicePlugin):
+    def determine_migration_directory_for_service(self,
+                                                  migration_directory_root: str,
+                                                  service: ServicePlugin):
         """
         Generates the migration directory for a particular service.
 
@@ -44,7 +46,9 @@ class FileMigrator:
         """
         return os.path.isdir(dir_)
 
-    def service_restore_singlefile_exists(self, migration_directory_root: str, service: ServicePlugin):
+    def service_restore_singlefile_exists(self,
+                                          migration_directory_root: str,
+                                          service: ServicePlugin):
         """
         Checks whether the migrated data for a given single file migration
         service exists in the migration directory and can be restored.
@@ -52,22 +56,28 @@ class FileMigrator:
         :param service: The service to verify data has been migrated for.
         :return: True if there is migrated data for a given service
         """
-        return os.path.isfile(
-            os.path.join(self.determine_migration_directory_for_service(migration_directory_root, service), service.config.singlefile_to_migrate)
-        )
+        root = migration_directory_root
+        migration_directory = self.determine_migration_directory_for_service(root, service)
+        path = os.path.join(migration_directory, service.config.singlefile_to_migrate)
+        return os.path.isfile(path)
 
-    def service_restore_dir_exists(self, migration_directory_root: str, service: ServicePlugin):
+    def service_restore_dir_exists(self,
+                                   migration_directory_root: str,
+                                   service: ServicePlugin):
         """
         Checks whether the migrated data for a given directory migration
         service exists in the migration directory and can be restored.
 
+        :param migration_directory_root: The root directory migration is taking place from.
         :param service: The service to verify data has been migrated for.
         :return: True if there is migrated data for a given service.
         """
         if not service.config.directory_migration:
             return True
 
-        return os.path.isdir(self.determine_migration_directory_for_service(self, migration_directory_root, service))
+        root = migration_directory_root
+        migration_directory = self.determine_migration_directory_for_service(self, root, service)
+        return os.path.isdir(migration_directory)
 
     def remove_dir(self, dir_):
         """
@@ -79,17 +89,22 @@ class FileMigrator:
         if os.path.isdir(dir_):
             shutil.rmtree(dir_, onerror=self.remove_readonly)
 
-    def migrate_singlefile(self, migration_directory_root: str, service: ServicePlugin, action: MigrationAction):
+    def migrate_singlefile(self,
+                           migration_directory_root: str,
+                           service: ServicePlugin,
+                           action: MigrationAction):
         """
         Perform a capture or restore the given service.
 
+        :param migration_directory_root: The root directory migration is taking place from.
         :param service: The service to capture or restore.
         :param action: Whether to capture or restore.
         :return: None.
         """
         if not service.singlefile_migration:
             return
-        migration_dir = self.determine_migration_directory_for_service(migration_directory_root, service)
+        root = migration_directory_root
+        migration_dir = self.determine_migration_directory_for_service(root, service)
         if action == MigrationAction.CAPTURE:
             self.remove_dir(migration_dir)
             os.mkdir(migration_dir)
@@ -103,33 +118,48 @@ class FileMigrator:
             singlefile_full_path = os.path.join(migration_dir, service.singlefile_to_migrate)
             shutil.copy(singlefile_full_path, service.singlefile_source_dir)
 
-    def capture_singlefile(self, migration_directory_root: str, service: ServicePlugin, dir, file):
-        migration_dir = self.determine_migration_directory_for_service(migration_directory_root, service)
+    def capture_singlefile(self,
+                           migration_directory_root: str,
+                           service: ServicePlugin,
+                           restore_directory: str,
+                           file: str):
+        root = migration_directory_root
+        migration_dir = self.determine_migration_directory_for_service(root, service)
         self.remove_dir(migration_dir)
         os.mkdir(migration_dir)
         singlefile_full_path = os.path.join(
             constants.program_data_dir,
-            dir,
+            restore_directory,
             file,
         )
         shutil.copy(singlefile_full_path, migration_dir)
 
-    def restore_singlefile(self, migration_directory_root: str, service: ServicePlugin, dir, file) -> None:
-        migration_dir = self.determine_migration_directory_for_service(migration_directory_root, service)
+    def restore_singlefile(self,
+                           migration_directory_root: str,
+                           service: ServicePlugin,
+                           restore_directory: str,
+                           file: str) -> None:
+        root = migration_directory_root
+        migration_dir = self.determine_migration_directory_for_service(root, service)
         singlefile_full_path = os.path.join(migration_dir, file)
-        shutil.copy(singlefile_full_path, dir)
+        shutil.copy(singlefile_full_path, restore_directory)
 
-    def migrate_dir(self, migration_directory_root: str, service: ServicePlugin, action: MigrationAction):
+    def migrate_dir(self,
+                    migration_directory_root: str,
+                    service: ServicePlugin,
+                    action: MigrationAction):
         """
         Perform a capture or restore the given service.
 
+        :param migration_directory_root: The root directory migration is taking place from.
         :param service: The service to capture or restore.
         :param action: Whether to capture or restore.
         :return: None.
         """
         if not service.directory_migration:
             return
-        migration_dir = self.determine_migration_directory_for_service(migration_directory_root, service)
+        root = migration_directory_root
+        migration_dir = self.determine_migration_directory_for_service(root, service)
         if action == MigrationAction.CAPTURE:
             self.remove_dir(migration_dir)
             shutil.copytree(service.source_dir, migration_dir)
