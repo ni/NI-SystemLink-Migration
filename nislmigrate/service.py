@@ -5,7 +5,11 @@ import os
 import json
 import abc
 
-from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.migrators.migrator_factory import MigratorFactory
+
+SERVICE_CONFIGURATION_DIRECTORY = os.path.join(
+    constants.program_data_dir, "National Instruments", "Skyline", "Config"
+)
 
 
 class ServicePlugin(abc.ABC):
@@ -49,7 +53,7 @@ class ServicePlugin(abc.ABC):
         :returns: Gets the configuration dictionary this plugin provides.
         """
         if self.cached_config is None:
-            config_file = os.path.join(constants.service_config_dir, self.name + ".json")
+            config_file = os.path.join(SERVICE_CONFIGURATION_DIRECTORY, self.name + ".json")
             with open(config_file, encoding="utf-8-sig") as json_file:
                 self.cached_config = json.load(json_file)[self.name]
         return self.cached_config
@@ -91,7 +95,7 @@ class ServicePlugin(abc.ABC):
             return
         if not file_handler.migration_dir_exists(migration_directory):
             raise FileNotFoundError(migration_directory + " does not exist")
-        if not file_handler.service_restore_singlefile_exists(migration_directory, self):
+        if not file_handler.does_file_exist(migration_directory, self):
             migration_directory = file_handler.determine_migration_dir(self)
             path = os.path.join(migration_directory, self.singlefile_to_migrate)
             raise FileNotFoundError(self.name + ": " + path + " does not exist")

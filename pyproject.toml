@@ -36,3 +36,20 @@ line-length=100
 
 [tool.flake8]
 max-line-length=100
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py38, py37, py36
+isolated_build = True
+
+[testenv]
+deps = poetry
+whitelist_externals = poetry
+commands =
+    poetry install -v
+    poetry run pytest {posargs}
+passenv =
+    ProgramW6432
+    ProgramData
+"""

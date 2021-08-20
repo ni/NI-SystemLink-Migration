@@ -1,4 +1,4 @@
-from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.migrators.migrator_factory import MigratorFactory
 from nislmigrate.service import ServicePlugin
 
 

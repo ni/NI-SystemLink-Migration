@@ -47,25 +47,27 @@ poerty run flake8
 ### Extensibility
 Additional backup/restore strategies can be easily added using the `ServicePlugin` abstract base class:
 1. Add a new python class to the `plugins` module that implements the `ServicePlugin` class:
+
 ```python
 from nislmigrate.service import ServicePlugin
-from nislmigrate.migrator_factory import MigratorFactory
+from nislmigrate.migrators.migrator_factory import MigratorFactory
+
 
 class CustomMigration(ServicePlugin):
 
-    @property
-    def names(self):
-        return ["custom-migration", "cm"]
+       @property
+       def names(self):
+              return ["custom-migration", "cm"]
 
-    @property
-    def help(self):
-        return "Performs some custom migration action"
+       @property
+       def help(self):
+              return "Performs some custom migration action"
 
-    def capture(self, migration_directory: str, migrator_factory: MigratorFactory):
-        pass
+       def capture(self, migration_directory: str, migrator_factory: MigratorFactory):
+              pass
 
-    def restore(self, migration_directory: str, migrator_factory: MigratorFactory):
-        pass
+       def restore(self, migration_directory: str, migrator_factory: MigratorFactory):
+              pass
 ```
 The migration tool will now run the `capture` or `restore` method of your custom migration strategy if run with the custom flag:
 ```bash

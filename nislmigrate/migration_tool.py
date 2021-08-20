@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Generic migration utility for migrating various data and settings between SystemLink servers.
 
@@ -7,10 +5,10 @@ Not all services will be supported. Additional services will be supported over t
 """
 from nislmigrate import permission_checker
 from nislmigrate.argument_handler import ArgumentHandler
-from nislmigrate.file_migrator import FileMigrator
+from nislmigrate.migrators.file_migrator import FileMigrator
 from nislmigrate.migration_error import MigrationError
-from nislmigrate.migrator_factory import MigratorFactory
-from nislmigrate.mongo_migrator import MongoMigrator
+from nislmigrate.migrators.migrator_factory import MigratorFactory
+from nislmigrate.migrators.mongo_migrator import MongoMigrator
 from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 

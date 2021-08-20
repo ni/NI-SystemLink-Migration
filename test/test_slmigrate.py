@@ -4,8 +4,8 @@ import nislmigrate.constants as constants
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import MIGRATION_DIRECTORY_ARGUMENT
-from nislmigrate.migrator_factory import MigratorFactory
 from nislmigrate.migration_facilitator import MigrationFacilitator
+from nislmigrate.migrators.migrator_factory import MigratorFactory
 from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
 from test import test_constants
 

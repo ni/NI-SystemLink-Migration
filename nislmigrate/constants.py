@@ -3,51 +3,8 @@
 import os
 from types import SimpleNamespace
 
-# Global Path Constants
-# TODO: Move this to argument_handler. All paths should be relative and combined with the correct base migration directory by plugins.
-DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
-MONGO_MIGRATION_SUB_DIRECTORY = os.path.join(DEFAULT_MIGRATION_DIRECTORY, "mongo-dump")
 program_file_dir = os.environ.get("ProgramW6432")
 program_data_dir = os.environ.get("ProgramData")
-
-# Variables for calling EXEs
-mongo_dump = os.path.join(
-    program_file_dir,
-    "National Instruments",
-    "Shared",
-    "Skyline",
-    "NoSqlDatabase",
-    "bin",
-    "mongodump.exe",
-)
-mongo_restore = os.path.join(
-    program_file_dir,
-    "National Instruments",
-    "Shared",
-    "Skyline",
-    "NoSqlDatabase",
-    "bin",
-    "mongorestore.exe",
-)
-mongod_exe = os.path.join(
-    program_file_dir,
-    "National Instruments",
-    "Shared",
-    "Skyline",
-    "NoSqlDatabase",
-    "bin",
-    "mongod.exe",
-)
-mongo_config = os.path.join(
-    program_data_dir, "National Instruments", "Skyline", "NoSqlDatabase", "mongodb.conf"
-)
-
-service_config_dir = config_file = os.path.join(
-    program_data_dir, "National Instruments", "Skyline", "Config"
-)
-
-# Global constants for argparse
-MIGRATION_ACTION_FIELD_NAME = "action"
 
 # Service Dictionaries
 tag_dict = {
@@ -55,7 +12,7 @@ tag_dict = {
     "name": "TagHistorian",
     "directory_migration": False,
     "singlefile_migration": True,
-    "singlefile_migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "keyvaluedb"),
+    "singlefile_migration_dir": "keyvaluedb",
     "singlefile_source_dir": os.path.join(
         program_data_dir, "National Instruments", "Skyline", "KeyValueDatabase"
     ),
@@ -68,7 +25,7 @@ opc_dict = {
     "name": "OpcClient",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "OpcClient"),
+    "migration_dir": "OpcClient",
     "source_dir": os.path.join(
         program_data_dir, "National Instruments", "Skyline", "Data", "OpcClient"
     ),
@@ -80,7 +37,7 @@ fis_dict = {
     "name": "FileIngestion",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "FileIngestion"),
+    "migration_dir": "FileIngestion",
     "source_dir": os.path.join(
         program_data_dir, "National Instruments", "Skyline", "Data", "FileIngestion"
     ),
@@ -116,7 +73,7 @@ repository_dict = {
     "name": "Repository",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "Respository"),
+    "migration_dir": "Respository",
     "source_dir": os.path.join(
         program_file_dir,
         "National Instruments",
@@ -150,7 +107,7 @@ states_dict = {
     "name": "SystemsStateManager",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": os.path.join(DEFAULT_MIGRATION_DIRECTORY, "SystemsStateManager"),
+    "migration_dir": "SystemsStateManager",
     "source_dir": os.path.join(
         program_data_dir,
         "National Instruments",
