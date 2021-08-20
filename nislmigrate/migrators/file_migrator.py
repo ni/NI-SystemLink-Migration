@@ -45,9 +45,8 @@ class FileMigrator:
         return os.path.isdir(dir_)
 
     def does_file_exist(self,
-                        migration_directory_root: str,
-                        file_name: str,
-                        service_name: str):
+                        migration_directory: str,
+                        file_name: str):
         """
         Checks whether the migrated data for a given single file migration
         service exists in the migration directory and can be restored.
@@ -55,8 +54,6 @@ class FileMigrator:
         :param service: The service to verify data has been migrated for.
         :return: True if there is migrated data for a given service
         """
-        root = migration_directory_root
-        migration_directory = self.determine_migration_directory_for_service(root, service_name)
         path = os.path.join(migration_directory, file_name)
         return os.path.isfile(path)
 
@@ -97,7 +94,6 @@ class FileMigrator:
         Perform a capture or restore the given service.
 
         :param migration_directory_root: The root directory migration is taking place from.
-        :param service: The service to capture or restore.
         :param action: Whether to capture or restore.
         :return: None.
         """
@@ -151,7 +147,7 @@ class FileMigrator:
         Perform a capture or restore the given service.
 
         :param migration_directory_root: The root directory migration is taking place from.
-        :param service: The service to capture or restore.
+        :param service_name: The name of the service.
         :param action: Whether to capture or restore.
         :return: None.
         """
