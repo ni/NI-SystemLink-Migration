@@ -1,13 +1,24 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+
+asset_dict = {
+    "arg": "asset",
+    "name": "AssetPerformanceManagement",
+    "directory_migration": False,
+    "singlefile_migration": False,
+}
 
 
 class AssetMigrator(MigratorPlugin):
 
     @property
-    def names(self):
-        return ["AssetPerformanceManagement", "asset", "assets"]
+    def argument(self):
+        return "assets"
+
+    @property
+    def name(self):
+        return "AssetPerformanceManagement"
 
     @property
     def help(self):

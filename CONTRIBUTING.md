@@ -49,25 +49,25 @@ Additional backup/restore strategies can be easily added using the `ServicePlugi
 1. Add a new python class to the `plugins` module that implements the `ServicePlugin` class:
 
 ```python
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.facade_factory import FacadeFactory
 
 
 class CustomMigration(MigratorPlugin):
 
-       @property
-       def names(self):
-              return ["custom-migration", "cm"]
+    @property
+    def names(self):
+        return ["custom-migration", "cm"]
 
-       @property
-       def help(self):
-              return "Performs some custom migration action"
+    @property
+    def help(self):
+        return "Performs some custom migration action"
 
-       def capture(self, migration_directory: str, migrator_factory: FacadeFactory):
-              pass
+    def capture(self, migration_directory: str, migrator_factory: FacadeFactory):
+        pass
 
-       def restore(self, migration_directory: str, migrator_factory: FacadeFactory):
-              pass
+    def restore(self, migration_directory: str, migrator_factory: FacadeFactory):
+        pass
 ```
 The migration tool will now run the `capture` or `restore` method of your custom migration strategy if run with the custom flag:
 ```bash

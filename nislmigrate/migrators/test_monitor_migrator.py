@@ -1,12 +1,23 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+
+test_monitor_dict = {
+    "arg": "testmonitor",
+    "name": "TestMonitor",
+    "directory_migration": False,
+    "singlefile_migration": False,
+}
 
 
-class TestMonitorPlugin(MigratorPlugin):
+class TestMonitorMigrator(MigratorPlugin):
 
     @property
-    def names(self):
-        return ["testmonitor", "test", "tests"]
+    def argument(self):
+        return "tests"
+
+    @property
+    def name(self):
+        return "testmonitor"
 
     @property
     def help(self):

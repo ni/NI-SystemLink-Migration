@@ -1,7 +1,7 @@
 import subprocess
 import os
 import logging
-from nislmigrate.migration_error import MigrationError
+from nislmigrate.logging.migration_error import MigrationError
 
 CONFIGURATION_EXECUTABLE_PATH = os.path.join(
     os.environ.get("ProgramW6432"),

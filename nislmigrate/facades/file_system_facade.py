@@ -5,7 +5,6 @@ import shutil
 import stat
 from distutils import dir_util
 
-from nislmigrate import constants
 from nislmigrate.migration_action import MigrationAction
 
 
@@ -84,6 +83,7 @@ class FileSystemFacade:
         if os.path.isdir(dir_):
             shutil.rmtree(dir_, onerror=self.remove_readonly)
 
+# TODO: make a migrate directory again.
     def migrate_singlefile(self,
                            migration_directory_root: str,
                            service_name: str,
@@ -103,7 +103,6 @@ class FileSystemFacade:
             self.remove_dir(migration_dir)
             os.mkdir(migration_dir)
             singlefile_full_path = os.path.join(
-                constants.program_data_dir,
                 single_file_source_directory,
                 single_file_name,
             )
@@ -122,7 +121,6 @@ class FileSystemFacade:
         self.remove_dir(migration_dir)
         os.mkdir(migration_dir)
         singlefile_full_path = os.path.join(
-            constants.program_data_dir,
             restore_directory,
             file,
         )

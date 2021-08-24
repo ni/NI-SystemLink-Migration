@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict
 
 import os
 import json
@@ -20,21 +20,22 @@ class MigratorPlugin(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def names(self) -> List[str]:
+    def argument(self) -> str:
         """
-        Gets all names for this plugin.
-        :return: The plugin names.
+        Gets the string to be used as the argument for using this migrator from the command line.
+        :return: The argument.
         """
-        return ["service"]
+        return "service"
 
     @property
+    @abc.abstractmethod
     def name(self) -> str:
         """
-        Gets the name of this plugin.
+        Gets the name of this plugin. This needs to be the exact name of the
+        configuration file for this service if it has one.
         :return: The plugin name.
         """
-        # first element of the names list is the default name for argument parsing
-        return self.names[0]
+        return "The full name of the plugin"
 
     @property
     @abc.abstractmethod

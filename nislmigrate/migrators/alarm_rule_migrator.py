@@ -1,10 +1,18 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class AlarmRulePlugin(MigratorPlugin):
+alarm_rule_dict = {
+    "arg": "alarmrule",
+    "name": "TagRuleEngine",
+    "directory_migration": False,
+    "singlefile_migration": False,
+}
+
+
+class AlarmRuleMigrator(MigratorPlugin):
 
     @property
     def names(self):

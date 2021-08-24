@@ -5,7 +5,7 @@ from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import MIGRATION_DIRECTORY_ARGUMENT
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 from test import test_constants
 
 

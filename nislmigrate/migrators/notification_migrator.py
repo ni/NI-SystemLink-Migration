@@ -1,8 +1,16 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class FilePlugin(MigratorPlugin):
+notification_dict = {
+    "arg": "notification",
+    "name": "Notification",
+    "directory_migration": False,
+    "singlefile_migration": False,
+}
+
+
+class NotificationPlugin(MigratorPlugin):
 
     @property
     def names(self):

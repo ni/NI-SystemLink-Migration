@@ -2,7 +2,7 @@
 name = "nislmigrate"
 version = "0.0.15"
 description = "The tool for migrating SystemLink data."
-authors = ["sedwards <shawn.edwards@ni.com>"]
+authors = ["cnunnall <christian.nunnally@ni.com>"]
 readme="README.md"
 documentation="https://github.com/ni/NI-SystemLink-Migration"
 classifiers=[

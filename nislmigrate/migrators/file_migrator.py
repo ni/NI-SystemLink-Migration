@@ -1,8 +1,22 @@
+import os
+
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class FilePlugin(MigratorPlugin):
+fis_dict = {
+    "arg": "fis",
+    "name": "FileIngestion",
+    "directory_migration": True,
+    "singlefile_migration": False,
+    "migration_dir": "FileIngestion",
+    "source_dir": os.path.join(
+        os.environ.get("ProgramData"), "National Instruments", "Skyline", "Data", "FileIngestion"
+    ),
+}
+
+
+class FileMigrator(MigratorPlugin):
 
     @property
     def names(self):

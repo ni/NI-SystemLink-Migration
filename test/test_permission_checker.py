@@ -1,6 +1,6 @@
 from unittest.mock import patch
 import pytest as pytest
-from nislmigrate import permission_checker
+from nislmigrate.utility import permission_checker
 
 
 @pytest.mark.unit

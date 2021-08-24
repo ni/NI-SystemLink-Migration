@@ -3,7 +3,7 @@ import pkgutil
 import inspect
 from types import ModuleType
 
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from typing import List
 from typing import Dict
 

@@ -3,13 +3,14 @@ Generic migration utility for migrating various data and settings between System
 
 Not all services will be supported. Additional services will be supported over time.
 """
-from nislmigrate import permission_checker, logging_setup, migration_error
+from nislmigrate.utility import permission_checker
+from nislmigrate.logging import logging_setup, migration_error
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 
 
 def run_migration_tool():

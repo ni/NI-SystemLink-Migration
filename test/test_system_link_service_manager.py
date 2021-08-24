@@ -1,7 +1,7 @@
-from nislmigrate.migration_error import MigrationError
+from nislmigrate.logging.migration_error import MigrationError
 import pytest
 
-from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 
 
 @pytest.mark.unit

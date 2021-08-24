@@ -1,7 +1,7 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.migrator_plugin import MigratorPlugin
-from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 
 
 class MigrationFacilitator:

@@ -5,15 +5,14 @@ from typing import List
 
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
-from nislmigrate.migration_error import MigrationError
-from nislmigrate.migrator_plugin_loader import MigratorPluginLoader
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.logging.migration_error import MigrationError
+from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 PROGRAM_NAME = "nislmigrate"
 CAPTURE_ARGUMENT = "capture"
 RESTORE_ARGUMENT = "restore"
 ALL_SERVICES_ARGUMENT = "all"
-SOURCE_DATABASE_ARGUMENT = "sourcedb"
 MIGRATION_DIRECTORY_ARGUMENT = "dir"
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
 MIGRATION_ACTION_FIELD_NAME = "action"
@@ -61,7 +60,6 @@ class ArgumentHandler:
             if (
                 getattr(self.parsed_arguments, arg) and not
                 (arg == MIGRATION_ACTION_FIELD_NAME) and not
-                (arg == SOURCE_DATABASE_ARGUMENT) and not
                 (arg == MIGRATION_DIRECTORY_ARGUMENT)
             ):
                 plugin_list = self.plugin_loader.get_plugins().items()
@@ -71,7 +69,7 @@ class ArgumentHandler:
                         services_to_migrate.append(plugin)
                     return services_to_migrate
                 for _, plugin in plugin_list:
-                    if arg in plugin.names and plugin not in services_to_migrate:
+                    if arg == plugin.argument and plugin not in services_to_migrate:
                         services_to_migrate.append(plugin)
 
         if len(services_to_migrate) == 0:
@@ -113,25 +111,31 @@ class ArgumentHandler:
         :return: The built parser.
         """
         argument_parser = argparse.ArgumentParser(prog=PROGRAM_NAME)
-
-        parent_parser = argparse.ArgumentParser(add_help=False)
-        self.__add_plugin_arguments(parent_parser)
-        self.__add_additional_flag_options(parent_parser)
-
-        commands = argument_parser.add_subparsers(dest=MIGRATION_ACTION_FIELD_NAME)
-        commands.add_parser(
-            CAPTURE_ARGUMENT,
-            help="capture is used to pull data and settings off SystemLink server",
-            parents=[parent_parser],
-        )
-        commands.add_parser(
-            RESTORE_ARGUMENT,
-            help="restore is used to push data and settings to a clean SystemLink server. ",
-            parents=[parent_parser],
-        )
+        self.__add_all_flag_options(argument_parser)
+        self.__add_capture_and_restore_commands(argument_parser)
         return argument_parser
 
-    def __add_additional_flag_options(self, parser: argparse.ArgumentParser) -> None:
+    def __add_capture_and_restore_commands(self, argument_parser):
+        parent_parser = argparse.ArgumentParser(add_help=False)
+        self.__add_all_flag_options(parent_parser)
+        sub_parser = argument_parser.add_subparsers(
+            dest=MIGRATION_ACTION_FIELD_NAME)
+        sub_parser.add_parser(
+            CAPTURE_ARGUMENT,
+            help="capture is used to pull data and settings off SystemLink server",
+            parents=[parent_parser])
+        sub_parser.add_parser(
+            RESTORE_ARGUMENT,
+            help="restore is used to push data and settings to a clean SystemLink server. ",
+            parents=[parent_parser])
+
+    def __add_all_flag_options(self, argument_parser):
+        self.__add_logging_flag_options(argument_parser)
+        self.__add_additional_flag_options(argument_parser)
+        self.__add_plugin_arguments(argument_parser)
+
+    @staticmethod
+    def __add_additional_flag_options(parser: argparse.ArgumentParser) -> None:
         """
         Creates an argparse parser that knows how to parse the migration
         tool's command line arguments.
@@ -139,25 +143,28 @@ class ArgumentHandler:
         """
         parser.add_argument(
             "--" + MIGRATION_DIRECTORY_ARGUMENT,
-            help="Specify the directory used for migrated data",
+            help="specify the directory used for migrated data (defaults to documents)",
             action="store",
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
         parser.add_argument(
             "--" + ALL_SERVICES_ARGUMENT,
-            help="Use all provided migrator plugins during a capture or restore operation.",
+            help="use all provided migrator plugins during a capture or restore operation.",
             action="store_true",
             dest=ALL_SERVICES_ARGUMENT
         )
+
+    @staticmethod
+    def __add_logging_flag_options(parser: argparse.ArgumentParser):
         parser.add_argument(
             '-d', '--debug',
-            help="Print all logged information.",
+            help="print all logged information.",
             action="store_const", dest="verbosity", const=logging.DEBUG,
             default=logging.WARNING,
         )
         parser.add_argument(
             '-v', '--verbose',
-            help="Print all logged information except debugging information.",
+            help="print all logged information except debugging information.",
             action="store_const", dest="verbosity", const=logging.INFO,
         )
 
@@ -167,10 +174,8 @@ class ArgumentHandler:
         :param parser: The parser to add the argument flag to.
         """
         for _, plugin in self.plugin_loader.get_plugins().items():
-            for name in plugin.names:
-                parser.add_argument(
-                    "--" + name,
-                    help=plugin.help,
-                    action="store_true",
-                    dest=name
-                )
+            parser.add_argument(
+                "--" + plugin.argument,
+                help=plugin.help,
+                action="store_true",
+                dest=plugin.argument)

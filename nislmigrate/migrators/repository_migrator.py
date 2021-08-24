@@ -1,8 +1,28 @@
+import os
+
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class RepositoryPlugin(MigratorPlugin):
+repository_dict = {
+    "arg": "repository",
+    "name": "Repository",
+    "directory_migration": True,
+    "singlefile_migration": False,
+    "migration_dir": "Respository",
+    "source_dir": os.path.join(
+        os.environ.get("ProgramW6432"),
+        "National Instruments",
+        "Shared",
+        "Web Services",
+        "NI",
+        "repo_webservice",
+        "files",
+    ),
+}
+
+
+class RepositoryMigrator(MigratorPlugin):
 
     @property
     def names(self):

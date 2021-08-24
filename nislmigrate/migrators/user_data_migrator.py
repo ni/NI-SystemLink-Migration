@@ -1,8 +1,16 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class UserDataPlugin(MigratorPlugin):
+userdata_dict = {
+    "arg": "userdata",
+    "name": "UserData",
+    "directory_migration": False,
+    "singlefile_migration": False,
+}
+
+
+class UserDataMigrator(MigratorPlugin):
 
     @property
     def names(self):

@@ -1,18 +1,22 @@
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
-from nislmigrate.migrator_plugin import MigratorPlugin
 import os
 
 
 class TagMigrator(MigratorPlugin):
 
     @property
-    def names(self):
-        return ["TagHistorian", "taghistory", "tags", "tagingestion", "tag"]
+    def name(self):
+        return "TagHistorian"
+
+    @property
+    def argument(self):
+        return "tags"
 
     @property
     def help(self):
-        return "Migrate tags and tag histories"
+        return "migrate tags and tag histories"
 
     __ni_directory = os.path.join(os.environ.get("ProgramData"), "National Instruments")
     __singlefile_dir = os.path.join(__ni_directory, "Skyline", "KeyValueDatabase")

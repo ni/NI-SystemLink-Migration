@@ -1,7 +1,7 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.facades.mongo_facade import MongoFacade
-from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.migration_facilitator import MigrationFacilitator
 import pytest
 
@@ -11,7 +11,7 @@ def test_capture_services_with_restore_action_captures_plugin():
     facade_factory = FacadeFactory()
     service_migrator = MigrationFacilitator(facade_factory, TestServiceManagerHandler())
     service_migrator.mongo_handler = TestMongoMigrator()
-    service = TestMigratorPlugin()
+    service = TestMigrator()
 
     service_migrator.migrate([service], MigrationAction.CAPTURE, "")
 
@@ -23,7 +23,7 @@ def test_capture_services_with_restore_action_restores_plugin():
     facade_factory = FacadeFactory()
     service_migrator = MigrationFacilitator(facade_factory, TestServiceManagerHandler())
     service_migrator.mongo_handler = TestMongoMigrator()
-    service = TestMigratorPlugin()
+    service = TestMigrator()
 
     service_migrator.migrate([service], MigrationAction.RESTORE, "")
 
@@ -35,13 +35,13 @@ def test_capture_services_with_unknown_action_throws_exception():
     facade_factory = FacadeFactory()
     service_migrator = MigrationFacilitator(facade_factory, TestServiceManagerHandler())
     service_migrator.mongo_handler = TestMongoMigrator()
-    service = TestMigratorPlugin()
+    service = TestMigrator()
 
     with pytest.raises(ValueError):
         service_migrator.migrate([service], "unknown", "")
 
 
-class TestMigratorPlugin(MigratorPlugin):
+class TestMigrator(MigratorPlugin):
     capture_count = 0
     restore_count = 0
 
@@ -50,7 +50,11 @@ class TestMigratorPlugin(MigratorPlugin):
         return ""
 
     @property
-    def names(self):
+    def name(self):
+        return "test"
+
+    @property
+    def argument(self):
         return "test"
 
     def capture(self, mongo_handler=None, file_handler=None):
