@@ -1,12 +1,10 @@
-"""Handle Service Manager operations."""
-
 import subprocess
 import os
-from nislmigrate import constants
-from nislmigrate.migration_error import MigrationError
+import logging
+from nislmigrate.logging.migration_error import MigrationError
 
 CONFIGURATION_EXECUTABLE_PATH = os.path.join(
-    constants.program_file_dir,
+    os.environ.get("ProgramW6432"),
     "National Instruments",
     "Shared",
     "Skyline",
@@ -22,23 +20,24 @@ class SystemLinkServiceManager:
     """
     Manages SystemLink services by invoking the SystemLink command line configuration utility.
     """
-    def stop_all_systemlink_services(self) -> None:
+    def stop_all_system_link_services(self) -> None:
         """
         Stops all SystemLink services.
         """
-        print("Stopping all SystemLink services...")
-        self.__verify_configuration_tool_is_installed()
+        log = logging.getLogger(SystemLinkServiceManager.__name__)
+        log.log(logging.INFO, "Stopping all SystemLink services...")
         self.__run_command(STOP_ALL_SERVICES_COMMAND)
 
-    def start_all_systemlink_services(self) -> None:
+    def start_all_system_link_services(self) -> None:
         """
         Starts all SystemLink services.
         """
-        print("Starting all SystemLink services")
-        self.__verify_configuration_tool_is_installed()
+        log = logging.getLogger(SystemLinkServiceManager.__name__)
+        log.log(logging.INFO, "Starting all SystemLink services...")
         self.__run_command(START_ALL_SERVICES_COMMAND)
 
     def __run_command(self, command: str):
+        self.__verify_configuration_tool_is_installed()
         try:
             subprocess.run(command, check=True, capture_output=True)
         except subprocess.CalledProcessError as e:
@@ -46,7 +45,8 @@ class SystemLinkServiceManager:
             error_string = "NISystemLinkServerConfigCmd.exe encountered an error:\n\n%s\n\n%s"
             raise MigrationError(error_string % descriptions)
 
-    def __verify_configuration_tool_is_installed(self):
+    @staticmethod
+    def __verify_configuration_tool_is_installed():
         if not os.path.exists(CONFIGURATION_EXECUTABLE_PATH):
             error_string = "Unable to locate SystemLink server configuration tool at '%s'"
             raise MigrationError(error_string % CONFIGURATION_EXECUTABLE_PATH)

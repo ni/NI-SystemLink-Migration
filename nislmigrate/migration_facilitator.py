@@ -1,6 +1,7 @@
+from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.migrators.migrator_factory import MigratorFactory
-from nislmigrate.service import ServicePlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 
 
 class MigrationFacilitator:
@@ -8,11 +9,10 @@ class MigrationFacilitator:
     Facilitates an entire capture or restore operation from start to finish.
     """
     migration_strategies = []
-    mongo_handler = None
-    migrator_factory = None
 
-    def __init__(self, migrator_factory: MigratorFactory):
-        self.migrator_factory = migrator_factory
+    def __init__(self, facade_factory: FacadeFactory, service_manager: SystemLinkServiceManager):
+        self.facade_factory: FacadeFactory = facade_factory
+        self.service_manager: SystemLinkServiceManager = service_manager
 
     def migrate(self,
                 service_migrators: list,
@@ -33,31 +33,32 @@ class MigrationFacilitator:
                                               service_migrators: list,
                                               action: MigrationAction,
                                               migration_directory: str) -> None:
-        self.service_manager.stop_all_systemlink_services()
+        self.service_manager.stop_all_system_link_services()
         try:
             for migrator in service_migrators:
-                self.__report_migration_starting(migrator.name, action, migration_directory)
-                self.__migrate_service(migrator, action, migration_directory)
-                self.__report_migration_finished(migrator.name, action)
-        except Exception:
-            print("Error occurred while migrating " + migrator.name)
-            raise
+                try:
+                    self.__report_migration_starting(migrator.name, action, migration_directory)
+                    self.__migrate_service(migrator, action, migration_directory)
+                    self.__report_migration_finished(migrator.name, action)
+                except Exception:
+                    print("Error occurred while migrating " + migrator.name)
+                    raise
         finally:
-            self.service_manager.start_all_systemlink_services()
+            self.service_manager.start_all_system_link_services()
 
     def __migrate_service(self,
-                          migrator: ServicePlugin,
+                          migrator: MigratorPlugin,
                           action: MigrationAction,
                           migration_directory: str) -> None:
         if action == MigrationAction.CAPTURE:
-            migrator.capture(migration_directory, self.migrator_factory)
+            migrator.capture(migration_directory, self.facade_factory)
         elif action == MigrationAction.RESTORE:
-            migrator.restore(migration_directory, self.migrator_factory)
+            migrator.restore(migration_directory, self.facade_factory)
         else:
             raise ValueError("Migration action is not the correct type.")
 
-    def __report_migration_starting(self,
-                                    migrator_name: str,
+    @staticmethod
+    def __report_migration_starting(migrator_name: str,
                                     action: MigrationAction,
                                     migration_directory: str):
         action_pretty_name = "capture" if action == MigrationAction.CAPTURE else "restore"
@@ -66,7 +67,8 @@ class MigrationFacilitator:
         print(info)
         print("Migration directory set to '{0}'".format(migration_directory))
 
-    def __report_migration_finished(self, migrator_name: str, action: MigrationAction):
+    @staticmethod
+    def __report_migration_finished(migrator_name: str, action: MigrationAction):
         action_pretty_name = "capturing" if action == MigrationAction.CAPTURE else "restoring"
         print("Done {0} data using {1} migrator strategy.".format(action_pretty_name,
                                                                   migrator_name))
@@ -76,5 +78,6 @@ class MigrationFacilitator:
                                     migration_action: MigrationAction,
                                     migration_directory: str) -> None:
         if migration_action == MigrationAction.RESTORE:
+            plugin: MigratorPlugin
             for plugin in plugins:
-                plugin.restore_error_check(migration_directory, self.migrator_factory)
+                plugin.pre_restore_check(migration_directory, self.facade_factory)

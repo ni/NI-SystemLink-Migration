@@ -4,27 +4,33 @@ from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-fis_dict = {
-    "arg": "fis",
-    "name": "FileIngestion",
+repository_dict = {
+    "arg": "repository",
+    "name": "Repository",
     "directory_migration": True,
     "singlefile_migration": False,
-    "migration_dir": "FileIngestion",
+    "migration_dir": "Respository",
     "source_dir": os.path.join(
-        os.environ.get("ProgramData"), "National Instruments", "Skyline", "Data", "FileIngestion"
+        os.environ.get("ProgramW6432"),
+        "National Instruments",
+        "Shared",
+        "Web Services",
+        "NI",
+        "repo_webservice",
+        "files",
     ),
 }
 
 
-class FileMigrator(MigratorPlugin):
+class RepositoryMigrator(MigratorPlugin):
 
     @property
     def names(self):
-        return ["fis", "file", "files"]
+        return ["repository", "repo"]
 
     @property
     def help(self):
-        return "Migrate ingested files"
+        return "Migrate packages and feeds"
 
     def capture(self, args, mongo_handler=None, file_handler=None):
         pass

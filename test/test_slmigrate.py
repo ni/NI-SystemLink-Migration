@@ -1,32 +1,26 @@
 import pytest
 
-import nislmigrate.constants as constants
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import MIGRATION_DIRECTORY_ARGUMENT
+from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from nislmigrate.migrators.migrator_factory import MigratorFactory
-from nislmigrate.systemlink_service_manager import SystemLinkServiceManager
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 from test import test_constants
 
 
 @pytest.mark.unit
-def test_missing_migration_directory():
-    """TODO: Complete documentation.
-
-    :return:
-    """
+def test_missing_migration_directory() -> None:
     test_arguments = [
         RESTORE_ARGUMENT,
-        "--" + constants.tag.arg,
+        "--tag",
         "--" + MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
     ]
 
     argument_handler = ArgumentHandler(test_arguments)
 
-    migrator_factory = MigratorFactory()
-    migrator = MigrationFacilitator(migrator_factory)
-    migrator.service_manager = FakeServiceManager()
+    migrator_factory = FacadeFactory()
+    migrator = MigrationFacilitator(migrator_factory, FakeServiceManager())
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
     migration_action = argument_handler.determine_migration_action()
@@ -37,22 +31,17 @@ def test_missing_migration_directory():
 
 
 @pytest.mark.unit
-def test_missing_service_migration_file():
-    """TODO: Complete documentation.
-
-    :return:
-    """
+def test_missing_service_migration_file() -> None:
     test_arguments = [
         RESTORE_ARGUMENT,
-        "--" + constants.tag.arg,
+        "--tag",
         "--" + MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
     ]
 
     argument_handler = ArgumentHandler(test_arguments)
 
-    migrator_factory = MigratorFactory()
-    migrator = MigrationFacilitator(migrator_factory)
-    migrator.service_manager = FakeServiceManager()
+    migrator_factory = FacadeFactory()
+    migrator = MigrationFacilitator(migrator_factory, FakeServiceManager())
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
     migration_action = argument_handler.determine_migration_action()
@@ -65,8 +54,8 @@ def test_missing_service_migration_file():
 class FakeServiceManager(SystemLinkServiceManager):
     are_services_running = True
 
-    def stop_all_systemlink_services(self) -> None:
+    def stop_all_system_link_services(self) -> None:
         self.are_services_running = False
 
-    def start_all_systemlink_services(self) -> None:
+    def start_all_system_link_services(self) -> None:
         self.are_services_running = True
