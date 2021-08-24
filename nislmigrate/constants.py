@@ -1,24 +1,4 @@
-"""Application constants."""
-
 import os
-from types import SimpleNamespace
-
-program_file_dir = os.environ.get("ProgramW6432")
-program_data_dir = os.environ.get("ProgramData")
-
-# Service Dictionaries
-tag_dict = {
-    "arg": "tag",
-    "name": "TagHistorian",
-    "directory_migration": False,
-    "singlefile_migration": True,
-    "singlefile_migration_dir": "keyvaluedb",
-    "singlefile_source_dir": os.path.join(
-        program_data_dir, "National Instruments", "Skyline", "KeyValueDatabase"
-    ),
-    "singlefile_to_migrate": "dump.rdb",
-}
-tag = SimpleNamespace(**tag_dict)
 
 opc_dict = {
     "arg": "opc",
@@ -27,10 +7,9 @@ opc_dict = {
     "singlefile_migration": False,
     "migration_dir": "OpcClient",
     "source_dir": os.path.join(
-        program_data_dir, "National Instruments", "Skyline", "Data", "OpcClient"
+        os.environ.get("ProgramData"), "National Instruments", "Skyline", "Data", "OpcClient"
     ),
 }
-opc = SimpleNamespace(**opc_dict)
 
 fis_dict = {
     "arg": "fis",
@@ -39,10 +18,9 @@ fis_dict = {
     "singlefile_migration": False,
     "migration_dir": "FileIngestion",
     "source_dir": os.path.join(
-        program_data_dir, "National Instruments", "Skyline", "Data", "FileIngestion"
+        os.environ.get("ProgramData"), "National Instruments", "Skyline", "Data", "FileIngestion"
     ),
 }
-fis = SimpleNamespace(**fis_dict)
 
 testmonitor_dict = {
     "arg": "testmonitor",
@@ -50,7 +28,6 @@ testmonitor_dict = {
     "directory_migration": False,
     "singlefile_migration": False,
 }
-testmonitor = SimpleNamespace(**testmonitor_dict)
 
 alarmrule_dict = {
     "arg": "alarmrule",
@@ -58,7 +35,6 @@ alarmrule_dict = {
     "directory_migration": False,
     "singlefile_migration": False,
 }
-alarmrule = SimpleNamespace(**alarmrule_dict)
 
 asset_dict = {
     "arg": "asset",
@@ -66,7 +42,6 @@ asset_dict = {
     "directory_migration": False,
     "singlefile_migration": False,
 }
-asset = SimpleNamespace(**asset_dict)
 
 repository_dict = {
     "arg": "repository",
@@ -75,7 +50,7 @@ repository_dict = {
     "singlefile_migration": False,
     "migration_dir": "Respository",
     "source_dir": os.path.join(
-        program_file_dir,
+        os.environ.get("ProgramW6432"),
         "National Instruments",
         "Shared",
         "Web Services",
@@ -84,7 +59,6 @@ repository_dict = {
         "files",
     ),
 }
-repository = SimpleNamespace(**repository_dict)
 
 userdata_dict = {
     "arg": "userdata",
@@ -92,7 +66,6 @@ userdata_dict = {
     "directory_migration": False,
     "singlefile_migration": False,
 }
-userdata = SimpleNamespace(**userdata_dict)
 
 notification_dict = {
     "arg": "notification",
@@ -100,7 +73,6 @@ notification_dict = {
     "directory_migration": False,
     "singlefile_migration": False,
 }
-notification = SimpleNamespace(**notification_dict)
 
 states_dict = {
     "arg": "states",
@@ -109,17 +81,15 @@ states_dict = {
     "singlefile_migration": False,
     "migration_dir": "SystemsStateManager",
     "source_dir": os.path.join(
-        program_data_dir,
+        os.environ.get("ProgramData"),
         "National Instruments",
         "Skyline",
         "Data",
         "SystemsStateManager",
     ),
 }
-states = SimpleNamespace(**states_dict)
 
 no_sql_dict = {"name": "NoSqlDatabase"}
-no_sql = SimpleNamespace(**no_sql_dict)
 
 thdbbug_dict = {
     "arg": "thdbbug",
@@ -131,4 +101,3 @@ thdbbug_dict = {
     "source_db": "admin",
     "destination_db": "nitaghistorian",
 }
-thdbbug = SimpleNamespace(**thdbbug_dict)

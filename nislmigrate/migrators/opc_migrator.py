@@ -1,7 +1,8 @@
-from nislmigrate.service import ServicePlugin
+from nislmigrate.facades.facade_factory import FacadeFactory
+from nislmigrate.migrator_plugin import MigratorPlugin
 
 
-class OPCPlugin(ServicePlugin):
+class OPCPlugin(MigratorPlugin):
 
     @property
     def names(self):
@@ -15,4 +16,7 @@ class OPCPlugin(ServicePlugin):
         pass
 
     def restore(self, args, mongo_handler=None, file_handler=None):
+        pass
+
+    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
         pass

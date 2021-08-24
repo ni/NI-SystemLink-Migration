@@ -7,17 +7,16 @@ from nislmigrate.argument_handler import CAPTURE_ARGUMENT
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import DEFAULT_MIGRATION_DIRECTORY
 
-import nislmigrate.constants as constants
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.plugins.asset import AssetPlugin
-from nislmigrate.plugins.tag import TagPlugin
+from nislmigrate.migrators.asset_migrator import AssetMigrator
+from nislmigrate.migrators.tag_migrator import TagMigrator
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize("arguments", [
     [],
     [CAPTURE_ARGUMENT, RESTORE_ARGUMENT],
-    ["--" + constants.tag.arg],
+    ["--tag"],
     [CAPTURE_ARGUMENT, "--invalid"],
     ["not_capture_or_restore"],
 ])
@@ -29,7 +28,7 @@ def test_invalid_arguments_exits_with_exception(arguments: List[str]):
 
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_capture_action():
-    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [CAPTURE_ARGUMENT, "--tag"]
     argument_handler = ArgumentHandler(arguments)
 
     migration_action = argument_handler.determine_migration_action()
@@ -39,18 +38,18 @@ def test_capture_tag_service_arguments_recognizes_capture_action():
 
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_tag_service():
-    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [CAPTURE_ARGUMENT, "--tag"]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
     assert len(services_to_migrate) == 1
-    assert services_to_migrate[0].name == TagPlugin().name
+    assert services_to_migrate[0].name == TagMigrator().name
 
 
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_restore_action():
-    arguments = [RESTORE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [RESTORE_ARGUMENT, "--tag"]
     argument_handler = ArgumentHandler(arguments)
 
     migration_action = argument_handler.determine_migration_action()
@@ -60,18 +59,18 @@ def test_restore_tag_service_arguments_recognizes_restore_action():
 
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_tag_service():
-    arguments = [RESTORE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [RESTORE_ARGUMENT, "--tag"]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
     assert len(services_to_migrate) == 1
-    assert services_to_migrate[0].name == TagPlugin().name
+    assert services_to_migrate[0].name == TagMigrator().name
 
 
 @pytest.mark.unit
 def test_restore_two_services_arguments_recognizes_both_services():
-    arguments = [RESTORE_ARGUMENT, "--" + constants.tag.arg, "--" + constants.asset.arg]
+    arguments = [RESTORE_ARGUMENT, "--tag", "--asset"]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -79,8 +78,8 @@ def test_restore_two_services_arguments_recognizes_both_services():
     assert len(services_to_migrate) == 2
     first_service = services_to_migrate[0]
     second_service = services_to_migrate[1]
-    assert first_service.name == TagPlugin().name or second_service.name == TagPlugin().name
-    assert second_service.name == AssetPlugin().name or first_service.name == AssetPlugin().name
+    assert first_service.name == TagMigrator().name or second_service.name == TagMigrator().name
+    assert second_service.name == AssetMigrator().name or first_service.name == AssetMigrator().name
 
 
 @pytest.mark.unit
@@ -90,7 +89,7 @@ def test_get_migration_directory_returns_default():
     when: get_migration_directory is called.
     then: the migration directory returned is the default one.
     """
-    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg]
+    arguments = [CAPTURE_ARGUMENT, "--tag"]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == DEFAULT_MIGRATION_DIRECTORY
@@ -103,7 +102,7 @@ def test_get_migration_directory_returns_migration_directory():
     when: get_migration_directory is called.
     then: the migration directory returned is the one specified in the command arguments.
     """
-    arguments = [CAPTURE_ARGUMENT, "--" + constants.tag.arg, "--dir=test"]
+    arguments = [CAPTURE_ARGUMENT, "--tag", "--dir=test"]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == "test"

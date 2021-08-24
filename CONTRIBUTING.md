@@ -49,11 +49,11 @@ Additional backup/restore strategies can be easily added using the `ServicePlugi
 1. Add a new python class to the `plugins` module that implements the `ServicePlugin` class:
 
 ```python
-from nislmigrate.service import ServicePlugin
-from nislmigrate.migrators.migrator_factory import MigratorFactory
+from nislmigrate.migrator_plugin import MigratorPlugin
+from nislmigrate.facades.facade_factory import FacadeFactory
 
 
-class CustomMigration(ServicePlugin):
+class CustomMigration(MigratorPlugin):
 
        @property
        def names(self):
@@ -63,10 +63,10 @@ class CustomMigration(ServicePlugin):
        def help(self):
               return "Performs some custom migration action"
 
-       def capture(self, migration_directory: str, migrator_factory: MigratorFactory):
+       def capture(self, migration_directory: str, migrator_factory: FacadeFactory):
               pass
 
-       def restore(self, migration_directory: str, migrator_factory: MigratorFactory):
+       def restore(self, migration_directory: str, migrator_factory: FacadeFactory):
               pass
 ```
 The migration tool will now run the `capture` or `restore` method of your custom migration strategy if run with the custom flag:
