@@ -1,7 +1,6 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
-
 thdbbug_dict = {
     "arg": "thdbbug",
     "name": "TagHistorian",

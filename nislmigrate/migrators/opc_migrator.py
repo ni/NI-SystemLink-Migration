@@ -9,7 +9,7 @@ class OPCMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "opcuaclient"
+        return "OpcClient"
 
     @property
     def argument(self):
@@ -26,43 +26,33 @@ class OPCMigrator(MigratorPlugin):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        file_migration_directory = os.path.join(migration_directory, "files")
 
         mongo_facade.capture_mongo_collection_to_directory(
             mongo_configuration,
             migration_directory,
             self.name)
-
         file_facade.copy_directory(
             self.__data_directory,
-            migration_directory)
+            file_migration_directory,
+            False)
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        file_migration_directory = os.path.join(migration_directory, "files")
+
         mongo_facade.restore_mongo_collection_from_directory(
             mongo_configuration,
             migration_directory,
             self.name)
         file_facade.copy_directory(
-            migration_directory,
-            self.__data_directory)
+            file_migration_directory,
+            self.__data_directory,
+            True)
 
     def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
         mongo_facade = facade_factory.get_mongo_facade()
         mongo_facade.validate_can_restore_mongo_collection_from_directory(migration_directory,
                                                                           self.name)
-
-
-"""
-opc_dict = {
-    "arg": "opc",
-    "name": "OpcClient",
-    "directory_migration": True,
-    "singlefile_migration": False,
-    "migration_dir": "OpcClient",
-    "source_dir": os.path.join(
-        os.environ.get("ProgramData"), "National Instruments", "Skyline", "Data", "OpcClient"
-    ),
-}
-"""

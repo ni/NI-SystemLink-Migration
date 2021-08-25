@@ -1,3 +1,5 @@
+import os
+
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
@@ -36,13 +38,10 @@ class MigrationFacilitator:
         self.service_manager.stop_all_system_link_services()
         try:
             for migrator in service_migrators:
-                try:
-                    self.__report_migration_starting(migrator.name, action, migration_directory)
-                    self.__migrate_service(migrator, action, migration_directory)
-                    self.__report_migration_finished(migrator.name, action)
-                except Exception:
-                    print("Error occurred while migrating " + migrator.name)
-                    raise
+                migrator_directory = os.path.join(migration_directory, migrator.name)
+                self.__report_migration_starting(migrator.name, action, migrator_directory)
+                self.__migrate_service(migrator, action, migrator_directory)
+                self.__report_migration_finished(migrator.name, action)
         finally:
             self.service_manager.start_all_system_link_services()
 

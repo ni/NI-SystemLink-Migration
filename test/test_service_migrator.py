@@ -1,4 +1,5 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
+from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
@@ -67,7 +68,7 @@ class TestMigrator(MigratorPlugin):
         pass
 
 
-class TestServiceManagerHandler():
+class TestServiceManagerHandler(SystemLinkServiceManager):
     are_services_running = True
 
     def stop_all_system_link_services(self):
