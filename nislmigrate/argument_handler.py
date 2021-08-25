@@ -45,9 +45,6 @@ class ArgumentHandler:
         else:
             self.parsed_arguments = argument_parser.parse_args(arguments)
 
-    def validate_arguments(self):
-        pass
-
     def get_list_of_services_to_capture_or_restore(self) -> List[MigratorPlugin]:
         """
         Generate a list of migration strategies to use during migration,
@@ -55,26 +52,43 @@ class ArgumentHandler:
 
         :return: A list of selected migration actions.
         """
-        services_to_migrate = []
-        for arg in vars(self.parsed_arguments):
-            if (
-                getattr(self.parsed_arguments, arg) and not
-                (arg == MIGRATION_ACTION_FIELD_NAME) and not
-                (arg == MIGRATION_DIRECTORY_ARGUMENT)
-            ):
-                plugin_list = self.plugin_loader.get_plugins().items()
-                if arg == ALL_SERVICES_ARGUMENT:
-                    services_to_migrate = []
-                    for _, plugin in plugin_list:
-                        services_to_migrate.append(plugin)
-                    return services_to_migrate
-                for _, plugin in plugin_list:
-                    if arg == plugin.argument and plugin not in services_to_migrate:
-                        services_to_migrate.append(plugin)
-
-        if len(services_to_migrate) == 0:
+        if self.__is_all_service_migration_flag_present():
+            return self.plugin_loader.get_plugins()
+        enabled_plugins = self.__get_enabled_plugins()
+        if len(enabled_plugins) == 0:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
-        return services_to_migrate
+        return enabled_plugins
+
+    def __get_enabled_plugins(self) -> List[str]:
+        arguments: List[str] = self.__get_enabled_plugin_arguments()
+        return [self.__find_plugin_for_argument(argument) for argument in arguments]
+
+    def __get_enabled_plugin_arguments(self) -> List[str]:
+        arguments = vars(self.parsed_arguments)
+        plugin_arguments: List[str] = self.__remove_non_plugin_arguments(arguments)
+        return [argument for argument in plugin_arguments if self.__is_plugin_enabled(argument)]
+
+    def __find_plugin_for_argument(self, argument: str) -> MigratorPlugin:
+        plugins = self.plugin_loader.get_plugins()
+        plugin = [plugin for plugin in plugins if plugin.argument == argument][0]
+        return plugin
+
+    def __is_plugin_enabled(self, plugin_argument: str) -> bool:
+        return getattr(self.parsed_arguments, plugin_argument)
+
+    def __is_all_service_migration_flag_present(self) -> bool:
+        arguments = vars(self.parsed_arguments)
+        return ALL_SERVICES_ARGUMENT in arguments
+
+    @staticmethod
+    def __remove_non_plugin_arguments(arguments: List[str]) -> List[str]:
+        return [
+            argument 
+            for argument in arguments 
+            if not argument == MIGRATION_ACTION_FIELD_NAME
+            and not argument == MIGRATION_DIRECTORY_ARGUMENT
+            and not argument == ALL_SERVICES_ARGUMENT
+        ]
 
     def determine_migration_action(self) -> MigrationAction:
         """

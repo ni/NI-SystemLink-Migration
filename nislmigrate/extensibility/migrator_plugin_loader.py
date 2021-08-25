@@ -5,14 +5,13 @@ from types import ModuleType
 
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from typing import List
-from typing import Dict
 
 
 class MigratorPluginLoader:
     """
     Capable of loading all migrators of a particular type from a python package.
     """
-    cached_loaded_plugins: Dict[str, MigratorPlugin] = None
+    cached_loaded_plugins: List[MigratorPlugin] = None
     plugin_package: ModuleType = None
     plugin_type: type = None
 
@@ -34,13 +33,13 @@ class MigratorPluginLoader:
     def __instantiate_plugins_from_module(self, module: ModuleType):
         return [cls() for _, cls in module.__dict__.items() if self.__is_class_a_plugin(cls)]
 
-    def __load_plugins(self) -> Dict[str, MigratorPlugin]:
+    def __load_plugins(self) -> List[MigratorPlugin]:
         plugin_modules: List[ModuleType] = self.__get_discovered_plugin_modules()
         plugin_classes = []
         for module in plugin_modules:
             instantiated_plugins = self.__instantiate_plugins_from_module(module)
             plugin_classes.extend(instantiated_plugins)
-        return {plugin.name: plugin for plugin in plugin_classes}
+        return plugin_classes
 
     def __is_class_a_plugin(self, cls: any) -> bool:
         is_instance: bool = isinstance(cls, type)
@@ -50,7 +49,7 @@ class MigratorPluginLoader:
             return is_subclass_of_plugin_interface
         return False
 
-    def get_plugins(self) -> Dict[str, MigratorPlugin]:
+    def get_plugins(self) -> List[MigratorPlugin]:
         """
         Gets the list of migrators loaded by this plugin loader.
         :return: List of all loaded migrators.
