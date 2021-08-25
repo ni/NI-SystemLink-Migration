@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nislmigrate"
-version = "0.0.15"
+version = "0.0.16"
 description = "The tool for migrating SystemLink data."
 authors = ["cnunnall <christian.nunnally@ni.com>"]
 readme="README.md"
@@ -18,7 +18,6 @@ classifiers=[
 python = "^3.6.8"
 argparse = "^1.4.0"
 pymongo = "^3.12.0"
-logging = "*"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.2"
@@ -32,9 +31,6 @@ nislmigrate = 'nislmigrate.migration_tool:run_migration_tool'
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length=100
 
 [tool.flake8]
 max-line-length=100

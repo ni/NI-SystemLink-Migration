@@ -3,13 +3,14 @@
 import os
 import subprocess
 import sys
-from types import SimpleNamespace
-from typing import List
+from typing import List, Dict
 
 from bson.codec_options import CodecOptions
 from bson.binary import UUID_SUBTYPE
 from pymongo import errors as mongo_errors
 from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.database import Database
 
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 
@@ -118,7 +119,8 @@ class MongoFacade:
     @staticmethod
     def validate_can_restore_mongo_collection_from_directory(
             directory: str,
-            dump_name: str) -> None:
+            dump_name: str,
+    ) -> None:
         """
         Throws an exception is restore from the given service is predicted to fail.
 
@@ -133,7 +135,9 @@ class MongoFacade:
 
     @staticmethod
     def migrate_document(
-            destination_collection, document) -> None:
+            destination_collection: Collection,
+            document: Dict[str, any],
+    ) -> None:
         """
         Inserts a document into a collection.
 
@@ -148,36 +152,29 @@ class MongoFacade:
             print("Document " + str(document["_id"]) + " already exists. Skipping")
 
     @staticmethod
-    def identify_metadata_conflict(
-            destination_collection, source_document) -> SimpleNamespace:
+    def get_conflicting_document(
+            collection: Collection,
+            document: Dict[str, any],
+    ) -> Dict[str, any]:
         """
-        Gets any conflicts that would occur if adding source_document to a document collection.
+        Gets any conflicts that would occur if adding document to a collection.
 
-        :param destination_collection: The collection to see if there are conflicts in.
-        :param source_document: The document to test if it conflicts.
-        :return: The conflicts, if there are any.
+        :param collection: The collection to see if there are conflicts in.
+        :param document: The document to test if it conflicts.
+        :return: The document that would conflict, or none if no document conflicts.
         """
-        destination_query = {
-            "$and": [
-                {"workspace": source_document["workspace"]},
-                {"path": source_document["path"]},
-            ]
-        }
-        destination_document = destination_collection.find_one(destination_query)
-        if destination_document:
-            return SimpleNamespace(
-                **{
-                    "source_id": source_document["_id"],
-                    "destination_id": destination_document["_id"],
-                }
-            )
-        return None
+        workspace_field = {"workspace": document["workspace"]}
+        path_field = {"path": document["path"]}
+        query_parameters = [workspace_field, path_field]
+        conflict_search_query = {"$and": query_parameters}
+        return collection.find_one(conflict_search_query)
 
     @staticmethod
     def merge_history_document(
             source_id,
             destination_id,
-            destination_db) -> None:
+            destination_db,
+    ) -> None:
         """
         Merges the contents of one document into another document.
 
@@ -186,15 +183,16 @@ class MongoFacade:
         :param destination_db: The database to merge the history document in.
         :return: None.
         """
-        destination_collection = destination_db.get_collection("values")
+        destination_collection: Collection = destination_db.get_collection("values")
         destination_collection.update_one(
             {"metadataId": source_id}, {"$set": {"metadataId": destination_id}}
         )
 
     def migrate_metadata_collection(
             self,
-            source_db,
-            destination_db) -> None:
+            source_db: Database,
+            destination_db: Database,
+    ) -> None:
         """
         Migrates a collection with the name "metadata" from the source database
         to the destination database.
@@ -208,22 +206,18 @@ class MongoFacade:
         source_collection_iterable = source_collection.find()
         destination_collection = destination_db.get_collection(collection_name)
         for source_document in source_collection_iterable:
-            conflict = self.identify_metadata_conflict(destination_collection, source_document)
-            if conflict:
-                message = "Conflict Found! " + "source_id=" + str(conflict.source_id)
-                message += " destination_id=" + str(conflict.destination_id)
-                print(message)
-
-                source_id = conflict.source_id
-                destination_id = conflict.destination_id
+            conflicting_document = self.get_conflicting_document(destination_collection, source_document)
+            if conflicting_document:
+                source_id = source_document["_id"]
+                destination_id = conflicting_document["_id"]
                 self.merge_history_document(source_id, destination_id, destination_db)
             else:
                 self.migrate_document(destination_collection, source_document)
 
     def migrate_values_collection(
             self,
-            source_db,
-            destination_db) -> None:
+            source_db: Database,
+            destination_db: Database) -> None:
         """
         Migrates a collection with the name "values" from the source database
         to the destination database.
@@ -239,7 +233,7 @@ class MongoFacade:
             self.migrate_document(destination_collection, document)
 
     @staticmethod
-    def check_merge_history_readiness(destination_db) -> None:
+    def check_merge_history_readiness(destination_db: Database) -> None:
         """
         Checks whether a database is ready for data to be migrated to it.
         :param destination_db: The database to check and see if it is ready
@@ -261,7 +255,8 @@ class MongoFacade:
     def migrate_within_instance(
             self,
             configuration: MongoConfiguration,
-            destination_collection_name: str) -> None:
+            destination_collection_name: str,
+    ) -> None:
         """
         Migrates the data for a service from one mongo database to another mongo database.
 
@@ -276,16 +271,23 @@ class MongoFacade:
             username=configuration.user,
             password=configuration.password,
         )
-        source_db = client.get_database(name=configuration.collection_name, codec_options=codec)
-        destination_db = client.get_database(name=destination_collection_name, codec_options=codec)
+        source_db: Database = client.get_database(name=configuration.collection_name, codec_options=codec)
+        destination_db: Database = client.get_database(name=destination_collection_name, codec_options=codec)
         self.check_merge_history_readiness(destination_db)
         self.migrate_values_collection(source_db, destination_db)
         self.migrate_metadata_collection(source_db, destination_db)
 
-    def __ensure_mongo_process_is_running_and_execute_command(self, arguments: List[str]) -> None:
-        self.__start_mongo()
-        print(arguments)
+    def __ensure_mongo_process_is_running_and_execute_command(
+            self,
+            arguments: List[str],
+    ) -> None:
+        """
+        Ensures the mongo service is running and executed the given command in a subprocess.
+
+        :param arguments: The list of arguments to execute in a subprocess.
+        """
         try:
+            self.__start_mongo()
             subprocess.run(arguments, check=True)
         except subprocess.CalledProcessError as e:
             print(e.stderr)

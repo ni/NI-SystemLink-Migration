@@ -1,1 +1,0 @@
-These scripts are left here for reference when implementing these migrations as ServicePlugin implementations.
