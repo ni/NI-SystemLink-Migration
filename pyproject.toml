@@ -23,6 +23,7 @@ pymongo = "^3.12.0"
 tox = "^3.24.2"
 pytest = "^6.2.4"
 pyproject-flake8 = "^0.0.1a2"
+testfixtures = "^6.18.1"
 
 [tool.poetry.scripts]
 nislmigrate = 'nislmigrate.migration_tool:run_migration_tool'

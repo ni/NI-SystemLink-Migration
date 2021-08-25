@@ -3,7 +3,6 @@
 import os
 import shutil
 import stat
-from distutils import dir_util
 
 from nislmigrate.migration_action import MigrationAction
 
@@ -136,24 +135,14 @@ class FileSystemFacade:
         singlefile_full_path = os.path.join(migration_dir, file)
         shutil.copy(singlefile_full_path, restore_directory)
 
-    def migrate_dir(self,
-                    migration_directory_root: str,
-                    service_name: str,
-                    source_directory: str,
-                    action: MigrationAction):
+    def copy_directory(self,
+                       from_directory: str,
+                       to_directory: str):
         """
-        Perform a capture or restore the given service.
+        Copy an entire directory from one location to another.
 
-        :param migration_directory_root: The root directory migration is taking place from.
-        :param service_name: The name of the service.
-        :param action: Whether to capture or restore.
-        :return: None.
+        :param from_directory: The name of the service.
+        :param to_directory: Whether to capture or restore.
         """
-        root = migration_directory_root
-        migration_dir = self.determine_migration_directory_for_service(root, service_name)
-        if action == MigrationAction.CAPTURE:
-            self.remove_dir(migration_dir)
-            shutil.copytree(source_directory, migration_dir)
-        elif action == MigrationAction.RESTORE:
-            self.remove_dir(source_directory)
-            dir_util.copy_tree(migration_dir, source_directory)
+        self.remove_dir(to_directory)
+        shutil.copytree(from_directory, to_directory)
