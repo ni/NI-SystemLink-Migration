@@ -1,7 +1,7 @@
 import argparse
 import logging
 import os
-from typing import List
+from typing import List, Dict
 
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
@@ -59,7 +59,7 @@ class ArgumentHandler:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
         return enabled_plugins
 
-    def __get_enabled_plugins(self) -> List[str]:
+    def __get_enabled_plugins(self) -> List[MigratorPlugin]:
         arguments: List[str] = self.__get_enabled_plugin_arguments()
         return [self.__find_plugin_for_argument(argument) for argument in arguments]
 
@@ -81,7 +81,7 @@ class ArgumentHandler:
         return ALL_SERVICES_ARGUMENT in arguments
 
     @staticmethod
-    def __remove_non_plugin_arguments(arguments: List[str]) -> List[str]:
+    def __remove_non_plugin_arguments(arguments: Dict[str, any]) -> List[str]:
         return [
             argument 
             for argument in arguments 
@@ -187,7 +187,7 @@ class ArgumentHandler:
         Adds expected arguments to the parser for all migrators.
         :param parser: The parser to add the argument flag to.
         """
-        for _, plugin in self.plugin_loader.get_plugins().items():
+        for plugin in self.plugin_loader.get_plugins():
             parser.add_argument(
                 "--" + plugin.argument,
                 help=plugin.help,
