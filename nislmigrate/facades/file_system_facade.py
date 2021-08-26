@@ -165,4 +165,4 @@ class FileSystemFacade:
             raise MigrationError("No data found at: '%s'" % from_directory)
 
         self.remove_dir(to_directory)
-        shutil.copytree(from_directory, to_directory, dirs_exist_ok=False)
+        shutil.copytree(from_directory, to_directory)

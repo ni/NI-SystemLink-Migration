@@ -1,21 +1,23 @@
-import argparse
 import logging
 import os
 from typing import List, Dict
 
+from argparse import ArgumentParser
+from argparse import Namespace
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
 from nislmigrate.logging.migration_error import MigrationError
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
+ACTION_ARGUMENT = "action"
 PROGRAM_NAME = "nislmigrate"
 CAPTURE_ARGUMENT = "capture"
 RESTORE_ARGUMENT = "restore"
 ALL_SERVICES_ARGUMENT = "all"
+VERBOSITY_ARGUMENT = "verbosity"
 MIGRATION_DIRECTORY_ARGUMENT = "dir"
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
-MIGRATION_ACTION_FIELD_NAME = "action"
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 Must specify at least one service to migrate, or migrate all services with the `--all` flag.
@@ -25,13 +27,17 @@ Run `nislmigrate capture/restore --help` to list all supported services."""
 CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = """
 The 'capture' or 'restore' argument must be provided."""
 
+CAPTURE_COMMAND_HELP = "use capture to pull data and settings off of a SystemLink server."
+RESTORE_COMMAND_HELP = "use restore to push captured data and settings to a clean SystemLink server. "
+DIRECTORY_ARGUMENT_HELP = "specify the directory used for migrated data (defaults to documents)"
+ALL_SERVICES_ARGUMENT_HELP = "use all provided migrator plugins during a capture or restore operation."
 
 class ArgumentHandler:
     """
     Processes arguments either from the command line or just a list of arguments and breaks them
     into the properties required by the migration tool.
     """
-    parsed_arguments: argparse.Namespace = None
+    parsed_arguments: Namespace = None
     plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)
 
     def __init__(self,  arguments: List[str] = None):
@@ -77,22 +83,22 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, plugin_argument)
 
     def __is_all_service_migration_flag_present(self) -> bool:
-        arguments = vars(self.parsed_arguments)
-        return ALL_SERVICES_ARGUMENT in arguments
+        return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, any]) -> List[str]:
         return [
-            argument 
-            for argument in arguments 
-            if not argument == MIGRATION_ACTION_FIELD_NAME
+            argument
+            for argument in arguments
+            if not argument == ACTION_ARGUMENT
             and not argument == MIGRATION_DIRECTORY_ARGUMENT
             and not argument == ALL_SERVICES_ARGUMENT
+            and not argument == VERBOSITY_ARGUMENT
         ]
 
-    def determine_migration_action(self) -> MigrationAction:
-        """
-        Determines whether to capture or restore based on the arguments.
+    def get_migration_action(self) -> MigrationAction:
+        """Determines whether to capture or restore based on the arguments.
+
         :return: MigrationAction.RESTORE or MigrationAction.CAPTURE.
         """
         if self.parsed_arguments.action == RESTORE_ARGUMENT:
@@ -103,8 +109,8 @@ class ArgumentHandler:
             raise MigrationError(CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT)
 
     def get_migration_directory(self) -> str:
-        """
-        Gets the migration directory path based on the parsed arguments.
+        """Gets the migration directory path based on the parsed arguments.
+
         :return: The migration directory path from the arguments,
                  or the default if none was specified.
         """
@@ -112,77 +118,65 @@ class ArgumentHandler:
         default = DEFAULT_MIGRATION_DIRECTORY
         return getattr(self.parsed_arguments, argument, default)
 
-    def get_logging_verbosity(self):
-        """
-        Gets the level with which to logged based on the parsed command line arguments.
+    def get_logging_verbosity(self) -> int:
+        """Gets the level with which to logged based on the parsed command line arguments.
+
+        :return: The configured verbosity as an integer.
         """
         return self.parsed_arguments.verbosity
 
-    def __create_migration_tool_argument_parser(self) -> argparse.ArgumentParser:
-        """
-        Creates an argparse parser that knows how to parse the migration
-        tool's command line arguments.
+    def __create_migration_tool_argument_parser(self) -> ArgumentParser:
+        """Creates an argparse parser that knows how to parse the migration
+           tool's command line arguments.
+
         :return: The built parser.
         """
-        argument_parser = argparse.ArgumentParser(prog=PROGRAM_NAME)
+        argument_parser = ArgumentParser(prog=PROGRAM_NAME)
         self.__add_all_flag_options(argument_parser)
         self.__add_capture_and_restore_commands(argument_parser)
         return argument_parser
 
-    def __add_capture_and_restore_commands(self, argument_parser):
-        parent_parser = argparse.ArgumentParser(add_help=False)
+    def __add_capture_and_restore_commands(self, argument_parser: ArgumentParser):
+        parent_parser: ArgumentParser = ArgumentParser(add_help=False)
         self.__add_all_flag_options(parent_parser)
-        sub_parser = argument_parser.add_subparsers(
-            dest=MIGRATION_ACTION_FIELD_NAME)
-        sub_parser.add_parser(
-            CAPTURE_ARGUMENT,
-            help="capture is used to pull data and settings off SystemLink server",
-            parents=[parent_parser])
-        sub_parser.add_parser(
-            RESTORE_ARGUMENT,
-            help="restore is used to push data and settings to a clean SystemLink server. ",
-            parents=[parent_parser])
+        sub_parser: ArgumentParser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT)
+        sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
+        sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
 
-    def __add_all_flag_options(self, argument_parser):
+    def __add_all_flag_options(self, argument_parser: ArgumentParser):
         self.__add_logging_flag_options(argument_parser)
         self.__add_additional_flag_options(argument_parser)
         self.__add_plugin_arguments(argument_parser)
 
     @staticmethod
-    def __add_additional_flag_options(parser: argparse.ArgumentParser) -> None:
-        """
-        Creates an argparse parser that knows how to parse the migration
-        tool's command line arguments.
-        :param parser: The parser to add the flags to.
-        """
+    def __add_additional_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
             "--" + MIGRATION_DIRECTORY_ARGUMENT,
-            help="specify the directory used for migrated data (defaults to documents)",
+            help=DIRECTORY_ARGUMENT_HELP,
             action="store",
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
         parser.add_argument(
             "--" + ALL_SERVICES_ARGUMENT,
-            help="use all provided migrator plugins during a capture or restore operation.",
+            help=ALL_SERVICES_ARGUMENT_HELP,
             action="store_true",
-            dest=ALL_SERVICES_ARGUMENT
-        )
+            dest=ALL_SERVICES_ARGUMENT)
 
     @staticmethod
-    def __add_logging_flag_options(parser: argparse.ArgumentParser):
+    def __add_logging_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
             '-d', '--debug',
             help="print all logged information.",
-            action="store_const", dest="verbosity", const=logging.DEBUG,
+            action="store_const", dest=VERBOSITY_ARGUMENT, const=logging.DEBUG,
             default=logging.WARNING,
         )
         parser.add_argument(
             '-v', '--verbose',
             help="print all logged information except debugging information.",
-            action="store_const", dest="verbosity", const=logging.INFO,
+            action="store_const", dest=VERBOSITY_ARGUMENT, const=logging.INFO,
         )
 
-    def __add_plugin_arguments(self, parser: argparse.ArgumentParser) -> None:
+    def __add_plugin_arguments(self, parser: ArgumentParser) -> None:
         """
         Adds expected arguments to the parser for all migrators.
         :param parser: The parser to add the argument flag to.

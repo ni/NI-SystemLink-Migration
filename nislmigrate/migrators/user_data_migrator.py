@@ -28,7 +28,7 @@ class UserDataMigrator(MigratorPlugin):
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
-        mongo_facade.capture_mongo_collection_to_directory(
+        mongo_facade.capture_database_to_directory(
             mongo_configuration,
             migration_directory,
             self.name)
@@ -36,12 +36,13 @@ class UserDataMigrator(MigratorPlugin):
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
-        mongo_facade.restore_mongo_collection_from_directory(
+        mongo_facade.restore_database_from_directory(
             mongo_configuration,
             migration_directory,
             self.name)
 
     def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
-        mongo_facade.validate_can_restore_mongo_collection_from_directory(migration_directory,
-                                                                          self.name)
+        mongo_facade.validate_can_restore_database_from_directory(
+            migration_directory,
+            self.name)
