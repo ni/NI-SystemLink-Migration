@@ -28,17 +28,17 @@ def test_invalid_arguments_exits_with_exception(arguments: List[str]):
 
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_capture_action():
-    arguments = [CAPTURE_ARGUMENT, "--tag"]
+    arguments = [CAPTURE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
-    migration_action = argument_handler.determine_migration_action()
+    migration_action = argument_handler.get_migration_action()
 
     assert migration_action == MigrationAction.CAPTURE
 
 
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_tag_service():
-    arguments = [CAPTURE_ARGUMENT, "--tag"]
+    arguments = [CAPTURE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -49,17 +49,17 @@ def test_capture_tag_service_arguments_recognizes_tag_service():
 
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_restore_action():
-    arguments = [RESTORE_ARGUMENT, "--tag"]
+    arguments = [RESTORE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
-    migration_action = argument_handler.determine_migration_action()
+    migration_action = argument_handler.get_migration_action()
 
     assert migration_action == MigrationAction.RESTORE
 
 
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_tag_service():
-    arguments = [RESTORE_ARGUMENT, "--tag"]
+    arguments = [RESTORE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -70,7 +70,7 @@ def test_restore_tag_service_arguments_recognizes_tag_service():
 
 @pytest.mark.unit
 def test_restore_two_services_arguments_recognizes_both_services():
-    arguments = [RESTORE_ARGUMENT, "--tag", "--asset"]
+    arguments = [RESTORE_ARGUMENT, "--tags", "--assets"]
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -89,7 +89,7 @@ def test_get_migration_directory_returns_default():
     when: get_migration_directory is called.
     then: the migration directory returned is the default one.
     """
-    arguments = [CAPTURE_ARGUMENT, "--tag"]
+    arguments = [CAPTURE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == DEFAULT_MIGRATION_DIRECTORY
@@ -102,7 +102,7 @@ def test_get_migration_directory_returns_migration_directory():
     when: get_migration_directory is called.
     then: the migration directory returned is the one specified in the command arguments.
     """
-    arguments = [CAPTURE_ARGUMENT, "--tag", "--dir=test"]
+    arguments = [CAPTURE_ARGUMENT, "--tags", "--dir=test"]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == "test"

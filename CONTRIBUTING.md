@@ -31,17 +31,14 @@ Finally, to run the tool while developing, use the poetry `run` command:
 poerty run nislmigrate
 ```
 ### Running tests
-The unit tests in this repository can be executed using `pytest` or `tox`:
+The unit tests in this repository can be executed using:
 ```bash
-# Run all unit tests:
-poerty run pytest
-# Run all unit tests using all supported python versions:
-poerty run tox
+poetry run task test
 ```
 ### Code style
-The python code style in this repository adheres to the `flake8` linters default configuration. Linting can be run on the repository using:"
+The python code style in this repository adheres to the `flake8` linters default and uses `mypy` to check types hints. Linting can be run on the repository using:"
 ```bash
-poerty run flake8
+poerty run task lint
 ```
 
 ### Extensibility
@@ -53,7 +50,7 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.facade_factory import FacadeFactory
 
 
-class CustomMigration(MigratorPlugin):
+class CustomMigrator(MigratorPlugin):
 
     @property
     def names(self):

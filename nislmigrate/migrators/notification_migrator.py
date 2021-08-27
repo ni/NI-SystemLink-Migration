@@ -1,30 +1,41 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
-
-
-notification_dict = {
-    "arg": "notification",
-    "name": "Notification",
-    "directory_migration": False,
-    "singlefile_migration": False,
-}
+from nislmigrate.facades.mongo_configuration import MongoConfiguration
+from nislmigrate.facades.mongo_facade import MongoFacade
 
 
 class NotificationPlugin(MigratorPlugin):
 
     @property
-    def names(self):
-        return ["notification", "notifications", ]
+    def name(self):
+        return "Notification"
+
+    @property
+    def argument(self):
+        return "notification"
 
     @property
     def help(self):
         return "Migrate notifications strategies, templates, and groups"
 
-    def capture(self, args, mongo_handler=None, file_handler=None):
-        pass
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory):
+        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_facade.capture_database_to_directory(
+            mongo_configuration,
+            migration_directory,
+            self.name)
 
-    def restore(self, args, mongo_handler=None, file_handler=None):
-        pass
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory):
+        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_facade.restore_database_from_directory(
+            mongo_configuration,
+            migration_directory,
+            self.name)
 
     def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
-        pass
+        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
+        mongo_facade.validate_can_restore_database_from_directory(
+            migration_directory,
+            self.name)

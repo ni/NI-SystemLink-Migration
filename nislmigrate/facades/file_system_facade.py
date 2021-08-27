@@ -3,8 +3,8 @@
 import os
 import shutil
 import stat
-from distutils import dir_util
 
+from nislmigrate.logging.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 
 
@@ -56,23 +56,6 @@ class FileSystemFacade:
         path = os.path.join(migration_directory, file_name)
         return os.path.isfile(path)
 
-    def service_restore_dir_exists(self,
-                                   migration_directory_root: str,
-                                   service_name: str):
-        """
-        Checks whether the migrated data for a given directory migration
-        service exists in the migration directory and can be restored.
-
-        :param migration_directory_root: The root directory migration is taking place from.
-        :param service: The service to verify data has been migrated for.
-        :return: True if there is migrated data for a given service.
-        """
-        root = migration_directory_root
-        migration_directory = self.determine_migration_directory_for_service(self,
-                                                                             root,
-                                                                             service_name)
-        return os.path.isdir(migration_directory)
-
     def remove_dir(self, dir_):
         """
         Deletes the given directory and its children.
@@ -83,7 +66,6 @@ class FileSystemFacade:
         if os.path.isdir(dir_):
             shutil.rmtree(dir_, onerror=self.remove_readonly)
 
-# TODO: make a migrate directory again.
     def migrate_singlefile(self,
                            migration_directory_root: str,
                            service_name: str,
@@ -136,24 +118,33 @@ class FileSystemFacade:
         singlefile_full_path = os.path.join(migration_dir, file)
         shutil.copy(singlefile_full_path, restore_directory)
 
-    def migrate_dir(self,
-                    migration_directory_root: str,
-                    service_name: str,
-                    source_directory: str,
-                    action: MigrationAction):
+    @staticmethod
+    def copy_file(from_directory: str, to_directory: str, file_name: str) -> None:
         """
-        Perform a capture or restore the given service.
+        Copy an entire directory from one location to another.
 
-        :param migration_directory_root: The root directory migration is taking place from.
-        :param service_name: The name of the service.
-        :param action: Whether to capture or restore.
-        :return: None.
+        :param from_directory: The directory the file to copy exists in.
+        :param to_directory: The directory to copy the file into.
+        :param file_name: The name of the file to copy.
         """
-        root = migration_directory_root
-        migration_dir = self.determine_migration_directory_for_service(root, service_name)
-        if action == MigrationAction.CAPTURE:
-            self.remove_dir(migration_dir)
-            shutil.copytree(source_directory, migration_dir)
-        elif action == MigrationAction.RESTORE:
-            self.remove_dir(source_directory)
-            dir_util.copy_tree(migration_dir, source_directory)
+        if not os.path.exists(to_directory):
+            os.mkdir(to_directory)
+        file_path = os.path.join(from_directory, file_name)
+        shutil.copy(file_path, to_directory)
+
+    def copy_directory(self, from_directory: str, to_directory: str, force: bool):
+        """
+        Copy an entire directory from one location to another.
+
+        :param from_directory: The directory whose contents to copy.
+        :param to_directory: The directory to put the copied contents.
+        :param force: Whether to delete existing content in to_directory before copying.
+        """
+        if os.path.exists(to_directory) and os.listdir(to_directory) and not force:
+            error = "The tool can not copy to the non empty directory: '%s'" % to_directory
+            raise MigrationError(error)
+        if not os.path.exists(from_directory):
+            raise MigrationError("No data found at: '%s'" % from_directory)
+
+        self.remove_dir(to_directory)
+        shutil.copytree(from_directory, to_directory)

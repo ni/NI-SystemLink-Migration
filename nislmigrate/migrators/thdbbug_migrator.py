@@ -1,6 +1,7 @@
+from nislmigrate.facades.mongo_configuration import MongoConfiguration
+from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
-
 
 thdbbug_dict = {
     "arg": "thdbbug",
@@ -22,7 +23,7 @@ class THDBBugMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "THDBBugFixer"
+        return "TagHistorian"
 
     @property
     def help(self):
@@ -30,7 +31,9 @@ class THDBBugMigrator(MigratorPlugin):
                " in SystemLink 2020R2 when using a remote Mongo instance."
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
-        pass
+        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_facade.migrate_within_instance(mongo_configuration, "admin")
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
         pass

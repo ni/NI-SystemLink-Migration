@@ -18,23 +18,23 @@ pip install nislmigrate
 ```
 # Usage
 ### Backup
-To backup the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `capture` option and the corresponding flag for each of the services you want to back up (e.g. `--tag`):
+To backup the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `capture` option and the corresponding flag for each of the services you want to back up (e.g. `--tags`):
 ```bash
-nislmigrate capture --tag
+nislmigrate capture --tags
 ```
 This will backup the data corresponding with each service into the default migration directory (`C:\Users\[user]\Documents\migration\`). You can specify a different migration directory using the `--dir [path]` option:
 ```bash
-nislmigrate capture --tag --dir C:\custom-backup-location
+nislmigrate capture --tags --dir C:\custom-backup-location
 ```
 
 ### Restore
-To restore the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `restore` option and the corresponding flag for each of the services you want to restore (e.g. `--tag`):
+To restore the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `restore` option and the corresponding flag for each of the services you want to restore (e.g. `--tags`):
 ```bash
-nislmigrate capture --tag
+nislmigrate capture --tags
 ```
 This will restore the data corresponding with each service from the default migration directory (`C:\Users\[user]\Documents\migration\`). If your captured data is in a different directory that can be specified with the `--dir [path]` option:
 ```bash
-nislmigrate capture --tag --dir C:\custom-backup-location
+nislmigrate capture --tags --dir C:\custom-backup-location
 ```
 ### Migration
 To migrate from one SystemLink server instance (server A) to a different instance (server B):
@@ -47,17 +47,17 @@ To migrate from one SystemLink server instance (server A) to a different instanc
 # Development
 See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and releasing the tool.
 
-## Supported Services
+# Supported Services
 The following services can be migrated with this utility:
 
-- Tag Ingestion and Tag History: `--tag`
+- Tag Ingestion and Tag History: `--tags`
 
 There are plans to support the following services in the near future:
-- Tag Alarm Rules: `--alarm`
+- Tag Alarm Rules: `--alarms`
 - OPCUA Client: `--opc`
-- File Ingestion: `--file`
-- Test Monitor: `--test`
-- Asset Management: `--asset`
+- File Ingestion: `--files`
+- Test Monitor: `--tests`
+- Asset Management: `--assets`
     - Cannot be migrated between 2020R1 and 2020R2 servers
 - Repository: `--repo`
     - Feeds may require additional updates if servers used for migration have different domain names

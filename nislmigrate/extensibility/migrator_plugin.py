@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any
 
 import os
 import json
@@ -7,8 +7,10 @@ import abc
 from nislmigrate.facades.facade_factory import FacadeFactory
 
 SERVICE_CONFIGURATION_DIRECTORY = os.path.join(
-    os.environ.get("ProgramData"), "National Instruments", "Skyline", "Config"
-)
+    str(os.environ.get("ProgramData")),
+    "National Instruments",
+    "Skyline",
+    "Config")
 
 
 class MigratorPlugin(abc.ABC):
@@ -16,7 +18,7 @@ class MigratorPlugin(abc.ABC):
     Base class for creating a plugin capable of migrating a SystemLink service.
     """
 
-    cached_config: Dict[str, any] = None
+    cached_config: Dict[str, Any] = {}
 
     @property
     @abc.abstractmethod
@@ -47,7 +49,7 @@ class MigratorPlugin(abc.ABC):
         return "A short sentence describing the operation of the plugin"
 
     @property
-    def config(self) -> Dict[str, object]:
+    def config(self) -> Dict[str, Any]:
         """
         Gets the configuration dictionary this plugin provides.
         :returns: Gets the configuration dictionary this plugin provides.
