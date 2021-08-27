@@ -127,7 +127,6 @@ class FileSystemFacade:
         :param to_directory: The directory to copy the file into.
         :param file_name: The name of the file to copy.
         """
-        # TODO: Might not need this if copy creates a directory.
         if not os.path.exists(to_directory):
             os.mkdir(to_directory)
         file_path = os.path.join(from_directory, file_name)

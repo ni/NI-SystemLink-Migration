@@ -47,7 +47,7 @@ To migrate from one SystemLink server instance (server A) to a different instanc
 # Development
 See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and releasing the tool.
 
-## Supported Services
+# Supported Services
 The following services can be migrated with this utility:
 
 - Tag Ingestion and Tag History: `--tags`
