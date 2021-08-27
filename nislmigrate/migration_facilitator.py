@@ -59,14 +59,14 @@ class MigrationFacilitator:
     def __report_migration_starting(migrator_name: str, action: MigrationAction):
         action_pretty_name = "capture" if action == MigrationAction.CAPTURE else "restore"
         migrator_names = (action_pretty_name, migrator_name)
-        info = "Starting to %s data using %s migrator strategy ..." % migrator_names
+        info = f"Starting to %s data using {migrator_names} migrator strategy ..."
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
 
     @staticmethod
     def __report_migration_finished(migrator_name: str, action: MigrationAction):
         action_pretty_name = "capturing" if action == MigrationAction.CAPTURE else "restoring"
-        info = "Done %s data using %s migrator strategy." % (action_pretty_name, migrator_name)
+        info = f"Done {action_pretty_name} data using {migrator_name} migrator strategy."
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
 
