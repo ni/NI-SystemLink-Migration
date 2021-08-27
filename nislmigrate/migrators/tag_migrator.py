@@ -23,7 +23,7 @@ class TagMigrator(MigratorPlugin):
 
     __file_to_migrate = "dump.rdb"
     __file_to_migrate_directory = os.path.join(
-        os.environ.get("ProgramData"),
+        str(os.environ.get("ProgramData")),
         "National Instruments",
         "Skyline",
         "KeyValueDatabase")

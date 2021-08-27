@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nislmigrate"
-version = "0.0.16"
+version = "0.0.18"
 description = "The tool for migrating SystemLink data."
 authors = ["cnunnall <christian.nunnally@ni.com>"]
 readme="README.md"
@@ -24,6 +24,8 @@ tox = "^3.24.2"
 pytest = "^6.2.4"
 pyproject-flake8 = "^0.0.1a2"
 testfixtures = "^6.18.1"
+mypy = "^0.910"
+taskipy = "^1.8.1"
 
 [tool.poetry.scripts]
 nislmigrate = 'nislmigrate.migration_tool:run_migration_tool'
@@ -33,7 +35,18 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.flake8]
-max-line-length=100
+max-line-length=120
+
+[tool.mypy]
+ignore_missing_imports ="True"
+
+[tool.taskipy.tasks]
+test_pytest = { cmd = "pytest", help = "runs all unit tests" }
+lint_flake8 = { cmd = "pflake8", help = "runs pflake8 linter" }
+lint_mypy = { cmd = "mypy .", help = "runs mypy linter" }
+lint = { cmd = "task lint_flake8 && task lint_mypy", help = "runs all linters" }
+test = { cmd = "pytest", help = "runs all tests." }
+verify = { cmd = "task lint && task test", help = "Run all linters and then all tests." }
 
 [tool.tox]
 legacy_tox_ini = """

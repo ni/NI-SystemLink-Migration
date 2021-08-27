@@ -1,5 +1,6 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.facades.systemlink_service_manager import SystemLinkServiceManager
+from nislmigrate.facades.file_system_facade import FileSystemFacade
+from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
@@ -9,9 +10,8 @@ import pytest
 
 @pytest.mark.unit
 def test_capture_services_with_restore_action_captures_plugin():
-    facade_factory = FacadeFactory()
-    service_migrator = MigrationFacilitator(facade_factory, TestServiceManagerHandler())
-    service_migrator.mongo_handler = TestMongoMigrator()
+    facade_factory = FakeFacadeFactory()
+    service_migrator = MigrationFacilitator(facade_factory)
     service = TestMigrator()
 
     service_migrator.migrate([service], MigrationAction.CAPTURE, "")
@@ -21,9 +21,8 @@ def test_capture_services_with_restore_action_captures_plugin():
 
 @pytest.mark.unit
 def test_capture_services_with_restore_action_restores_plugin():
-    facade_factory = FacadeFactory()
-    service_migrator = MigrationFacilitator(facade_factory, TestServiceManagerHandler())
-    service_migrator.mongo_handler = TestMongoMigrator()
+    facade_factory = FakeFacadeFactory()
+    service_migrator = MigrationFacilitator(facade_factory)
     service = TestMigrator()
 
     service_migrator.migrate([service], MigrationAction.RESTORE, "")
@@ -33,9 +32,8 @@ def test_capture_services_with_restore_action_restores_plugin():
 
 @pytest.mark.unit
 def test_capture_services_with_unknown_action_throws_exception():
-    facade_factory = FacadeFactory()
-    service_migrator = MigrationFacilitator(facade_factory, TestServiceManagerHandler())
-    service_migrator.mongo_handler = TestMongoMigrator()
+    facade_factory = FakeFacadeFactory()
+    service_migrator = MigrationFacilitator(facade_factory)
     service = TestMigrator()
 
     with pytest.raises(ValueError):
@@ -68,7 +66,7 @@ class TestMigrator(MigratorPlugin):
         pass
 
 
-class TestServiceManagerHandler(SystemLinkServiceManager):
+class TestSystemLinkServiceManagerFacade(SystemLinkServiceManagerFacade):
     are_services_running = True
 
     def stop_all_system_link_services(self):
@@ -78,7 +76,7 @@ class TestServiceManagerHandler(SystemLinkServiceManager):
         self.are_services_running = True
 
 
-class TestMongoMigrator(MongoFacade):
+class TestMongoFacade(MongoFacade):
     is_mongo_running = True
 
     def start_mongo(self):
@@ -86,3 +84,24 @@ class TestMongoMigrator(MongoFacade):
 
     def stop_mongo(self):
         self.is_mongo_running = False
+
+
+class TestFileSystemFacade(FileSystemFacade):
+    pass
+
+
+class FakeFacadeFactory(FacadeFactory):
+    def __init__(self):
+        super().__init__()
+        self.mongo_facade: TestMongoFacade = TestMongoFacade()
+        self.file_system_facade: TestFileSystemFacade = TestFileSystemFacade()
+        self.system_link_service_manager_facade: SystemLinkServiceManagerFacade = TestSystemLinkServiceManagerFacade()
+
+    def get_mongo_facade(self) -> MongoFacade:
+        return self.mongo_facade
+
+    def get_file_system_facade(self) -> FileSystemFacade:
+        return self.file_system_facade
+
+    def get_system_link_service_manager_facade(self) -> SystemLinkServiceManagerFacade:
+        return self.system_link_service_manager_facade

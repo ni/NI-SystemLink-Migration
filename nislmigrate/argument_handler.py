@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from argparse import ArgumentParser
 from argparse import Namespace
@@ -24,20 +24,21 @@ Must specify at least one service to migrate, or migrate all services with the `
 
 Run `nislmigrate capture/restore --help` to list all supported services."""
 
-CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = """
-The 'capture' or 'restore' argument must be provided."""
-
+CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = "The 'capture' or 'restore' argument must be provided."
 CAPTURE_COMMAND_HELP = "use capture to pull data and settings off of a SystemLink server."
 RESTORE_COMMAND_HELP = "use restore to push captured data and settings to a clean SystemLink server. "
 DIRECTORY_ARGUMENT_HELP = "specify the directory used for migrated data (defaults to documents)"
 ALL_SERVICES_ARGUMENT_HELP = "use all provided migrator plugins during a capture or restore operation."
+DEBUG_VERBOSITY_ARGUMENT_HELP = "print all logged information and stack trace information in case an error occurs."
+VERBOSE_VERBOSITY_ARGUMENT_HELP = "print all logged information except debugging information."
+
 
 class ArgumentHandler:
     """
     Processes arguments either from the command line or just a list of arguments and breaks them
     into the properties required by the migration tool.
     """
-    parsed_arguments: Namespace = None
+    parsed_arguments: Namespace = Namespace()
     plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)
 
     def __init__(self,  arguments: List[str] = None):
@@ -86,7 +87,7 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
     @staticmethod
-    def __remove_non_plugin_arguments(arguments: Dict[str, any]) -> List[str]:
+    def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:
         return [
             argument
             for argument in arguments
@@ -139,7 +140,7 @@ class ArgumentHandler:
     def __add_capture_and_restore_commands(self, argument_parser: ArgumentParser):
         parent_parser: ArgumentParser = ArgumentParser(add_help=False)
         self.__add_all_flag_options(parent_parser)
-        sub_parser: ArgumentParser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT)
+        sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT)
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
         sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
 
@@ -153,32 +154,34 @@ class ArgumentHandler:
         parser.add_argument(
             "--" + MIGRATION_DIRECTORY_ARGUMENT,
             help=DIRECTORY_ARGUMENT_HELP,
-            action="store",
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
         parser.add_argument(
             "--" + ALL_SERVICES_ARGUMENT,
             help=ALL_SERVICES_ARGUMENT_HELP,
-            action="store_true",
-            dest=ALL_SERVICES_ARGUMENT)
+            action="store_true")
 
     @staticmethod
     def __add_logging_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
-            '-d', '--debug',
-            help="print all logged information.",
-            action="store_const", dest=VERBOSITY_ARGUMENT, const=logging.DEBUG,
-            default=logging.WARNING,
-        )
+            '-d',
+            '--debug',
+            help=DEBUG_VERBOSITY_ARGUMENT_HELP,
+            action="store_const",
+            dest=VERBOSITY_ARGUMENT,
+            const=logging.DEBUG,
+            default=logging.WARNING)
         parser.add_argument(
-            '-v', '--verbose',
-            help="print all logged information except debugging information.",
-            action="store_const", dest=VERBOSITY_ARGUMENT, const=logging.INFO,
-        )
+            '-v',
+            '--verbose',
+            help=VERBOSE_VERBOSITY_ARGUMENT_HELP,
+            action="store_const",
+            dest=VERBOSITY_ARGUMENT,
+            const=logging.INFO)
 
     def __add_plugin_arguments(self, parser: ArgumentParser) -> None:
-        """
-        Adds expected arguments to the parser for all migrators.
+        """Adds expected arguments to the parser for all migrators.
+
         :param parser: The parser to add the argument flag to.
         """
         for plugin in self.plugin_loader.get_plugins():

@@ -19,7 +19,7 @@ class OPCMigrator(MigratorPlugin):
     def help(self):
         return "Migrate OPCUA sessions and certificates"
 
-    __ni_directory = os.path.join(os.environ.get("ProgramData"), "National Instruments")
+    __ni_directory = os.path.join(str(os.environ.get("ProgramData")), "National Instruments")
     __data_directory = os.path.join(__ni_directory, "Skyline", "Data", "OpcClient")
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):

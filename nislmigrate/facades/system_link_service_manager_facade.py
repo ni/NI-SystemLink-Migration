@@ -4,7 +4,7 @@ import logging
 from nislmigrate.logging.migration_error import MigrationError
 
 CONFIGURATION_EXECUTABLE_PATH = os.path.join(
-    os.environ.get("ProgramW6432"),
+    str(os.environ.get("ProgramW6432")),
     "National Instruments",
     "Shared",
     "Skyline",
@@ -16,7 +16,7 @@ STOP_SERVICE_COMMAND = CONFIGURATION_EXECUTABLE_PATH + " stop-service "
 START_SERVICE_COMMAND = CONFIGURATION_EXECUTABLE_PATH + " start-service "
 
 
-class SystemLinkServiceManager:
+class SystemLinkServiceManagerFacade:
     """
     Manages SystemLink services by invoking the SystemLink command line configuration utility.
     """
@@ -24,7 +24,7 @@ class SystemLinkServiceManager:
         """
         Stops all SystemLink services.
         """
-        log = logging.getLogger(SystemLinkServiceManager.__name__)
+        log = logging.getLogger(SystemLinkServiceManagerFacade.__name__)
         log.log(logging.INFO, "Stopping all SystemLink services...")
         self.__run_command(STOP_ALL_SERVICES_COMMAND)
 
@@ -32,7 +32,7 @@ class SystemLinkServiceManager:
         """
         Starts all SystemLink services.
         """
-        log = logging.getLogger(SystemLinkServiceManager.__name__)
+        log = logging.getLogger(SystemLinkServiceManagerFacade.__name__)
         log.log(logging.INFO, "Starting all SystemLink services...")
         self.__run_command(START_ALL_SERVICES_COMMAND)
 

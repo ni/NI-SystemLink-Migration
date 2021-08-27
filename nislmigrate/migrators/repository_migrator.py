@@ -22,7 +22,7 @@ class RepositoryMigrator(MigratorPlugin):
         return "Migrate packages and feeds"
 
     __data_directory = os.path.join(
-        os.environ.get("ProgramW6432"),
+        str(os.environ.get("ProgramW6432")),
         "National Instruments",
         "Shared",
         "Web Services",

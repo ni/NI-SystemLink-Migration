@@ -22,7 +22,7 @@ class StatesMigrator(MigratorPlugin):
         return "Migrate system states"
 
     __data_directory = os.path.join(
-        os.environ.get("ProgramData"),
+        str(os.environ.get("ProgramData")),
         "National Instruments",
         "Skyline",
         "Data",

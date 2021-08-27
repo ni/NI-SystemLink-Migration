@@ -56,23 +56,6 @@ class FileSystemFacade:
         path = os.path.join(migration_directory, file_name)
         return os.path.isfile(path)
 
-    def service_restore_dir_exists(self,
-                                   migration_directory_root: str,
-                                   service_name: str):
-        """
-        Checks whether the migrated data for a given directory migration
-        service exists in the migration directory and can be restored.
-
-        :param migration_directory_root: The root directory migration is taking place from.
-        :param service: The service to verify data has been migrated for.
-        :return: True if there is migrated data for a given service.
-        """
-        root = migration_directory_root
-        migration_directory = self.determine_migration_directory_for_service(self,
-                                                                             root,
-                                                                             service_name)
-        return os.path.isdir(migration_directory)
-
     def remove_dir(self, dir_):
         """
         Deletes the given directory and its children.

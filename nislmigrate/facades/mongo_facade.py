@@ -4,7 +4,7 @@ from nislmigrate.logging.migration_error import MigrationError
 import os
 import subprocess
 import logging
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Optional, Any
 
 from bson.codec_options import CodecOptions
 from bson.binary import UUID_SUBTYPE
@@ -15,25 +15,26 @@ from pymongo.database import Database
 
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 
-MONGO_CONFIGURATION_PATH: str = os.path.join(os.environ.get("ProgramData"),
-                                             "National Instruments",
-                                             "Skyline",
-                                             "NoSqlDatabase",
-                                             "mongodb.conf")
-MONGO_BINARIES_DIRECTORY: str = os.path.join(os.environ.get("ProgramW6432"),
-                                             "National Instruments",
-                                             "Shared",
-                                             "Skyline",
-                                             "NoSqlDatabase",
-                                             "bin")
+MONGO_CONFIGURATION_PATH: str = os.path.join(
+    str(os.environ.get("ProgramData")),
+    "National Instruments",
+    "Skyline",
+    "NoSqlDatabase",
+    "mongodb.conf")
+MONGO_BINARIES_DIRECTORY: str = os.path.join(
+    str(os.environ.get("ProgramW6432")),
+    "National Instruments",
+    "Shared",
+    "Skyline",
+    "NoSqlDatabase",
+    "bin")
 MONGO_DUMP_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongodump.exe")
 MONGO_RESTORE_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongorestore.exe")
 MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongod.exe")
 
 
 class MongoFacade:
-    is_mongo_process_running: bool = False
-    mongo_process_handle: subprocess.Popen = None
+    mongo_process_handle: Optional[subprocess.Popen] = None
 
     def capture_database_to_directory(
             self,
@@ -60,7 +61,7 @@ class MongoFacade:
             configuration: MongoConfiguration,
             directory: str,
             dump_name: str,
-            ) -> None:
+    ) -> None:
         """
         Restore the data in mongoDB from the given service.
 
@@ -75,7 +76,7 @@ class MongoFacade:
         # We need to provide the db option (even though it's redundant with the uri)
         # because of a bug with mongoDB 4.2
         # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
-        connection_arguments.extend(["--db", configuration.collection_name])
+        connection_arguments.extend(["--db", configuration.database_name])
         mongo_restore_command.extend(connection_arguments)
         mongo_restore_command.append("--gzip")
         mongo_restore_command.append("--archive=" + dump_path)
@@ -89,7 +90,6 @@ class MongoFacade:
         """
         Throws an exception is restore from the given service is predicted to fail.
 
-        :param configuration: The mongo configuration for a service.
         :param directory: The directory to test restore the service from.
         :param dump_name: The name of the dump that resides in the directory
         `                 to test restoring the service from.
@@ -99,7 +99,7 @@ class MongoFacade:
             raise FileNotFoundError("Could not find the captured service at " + dump_path)
 
     @staticmethod
-    def migrate_document(collection: Collection, document: Dict[str, any]) -> None:
+    def migrate_document(collection: Collection, document: Dict[str, Any]) -> None:
         """
         Inserts a document into a collection.
 
@@ -117,7 +117,7 @@ class MongoFacade:
     @staticmethod
     def __get_conflicting_document_id(
             collection: Collection,
-            document: Dict[str, any],
+            document: Dict[str, Any],
     ) -> str:
         """
         Gets any conflicts that would occur if adding document to a collection.
@@ -156,7 +156,8 @@ class MongoFacade:
             name: str,
             source_database: Database,
             destination_database: Database,
-            on_conflict: Callable[[str, str, Database], None]) -> None:
+            on_conflict: Optional[Callable[[str, str, Database], None]],
+    ) -> None:
         """
         Migrates a collection with the name "values" from the source database
         to the destination database.
@@ -230,10 +231,7 @@ class MongoFacade:
             destination_database,
             self.__merge_history_document)
 
-    def __ensure_mongo_process_is_running_and_execute_command(
-            self,
-            arguments: List[str],
-    ) -> None:
+    def __ensure_mongo_process_is_running_and_execute_command(self, arguments: List[str]) -> None:
         """
         Ensures the mongo service is running and executed the given command in a subprocess.
 
@@ -243,20 +241,20 @@ class MongoFacade:
             self.__start_mongo()
             subprocess.run(arguments, check=True)
         except subprocess.CalledProcessError as e:
-            print(e.stderr)
+            log = logging.getLogger(MongoFacade.__name__)
+            log.error(e.stderr)
 
     def __start_mongo(self) -> None:
         """
         Begins the mongo DB subprocess on this computer.
         :return: The started subprocess handling mongo DB.
         """
-        if self.is_mongo_process_running:
-            return
-        arguments = [MONGO_EXECUTABLE_PATH, "--config", MONGO_CONFIGURATION_PATH]
-        self.mongo_process_handle = subprocess.Popen(arguments,
-                                                     creationflags=subprocess.CREATE_NEW_CONSOLE,
-                                                     env=os.environ)
-        self.is_mongo_process_running = True
+        if not self.mongo_process_handle:
+            arguments = [MONGO_EXECUTABLE_PATH, "--config", MONGO_CONFIGURATION_PATH]
+            self.mongo_process_handle = subprocess.Popen(
+                arguments,
+                env=os.environ,
+                creationflags=subprocess.CREATE_NEW_CONSOLE)
 
     def __del__(self):
         self.__stop_mongo()
@@ -266,9 +264,10 @@ class MongoFacade:
         Stops the mongo process.
         :return: None.
         """
-        if self.is_mongo_process_running:
-            subprocess.Popen.kill(self.mongo_process_handle)
-            self.is_mongo_process_running = False
+        if self.mongo_process_handle:
+            actual_handle: subprocess.Popen = self.mongo_process_handle
+            subprocess.Popen.kill(actual_handle)
+            self.mongo_process_handle = None
 
     @staticmethod
     def __get_mongo_connection_arguments(mongo_configuration: MongoConfiguration) -> List[str]:
@@ -277,7 +276,7 @@ class MongoFacade:
         return ["--port",
                 str(mongo_configuration.port),
                 "--db",
-                mongo_configuration.collection_name,
+                mongo_configuration.database_name,
                 "--username",
                 mongo_configuration.user,
                 "--password",

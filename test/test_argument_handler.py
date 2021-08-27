@@ -31,7 +31,7 @@ def test_capture_tag_service_arguments_recognizes_capture_action():
     arguments = [CAPTURE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
-    migration_action = argument_handler.determine_migration_action()
+    migration_action = argument_handler.get_migration_action()
 
     assert migration_action == MigrationAction.CAPTURE
 
@@ -52,7 +52,7 @@ def test_restore_tag_service_arguments_recognizes_restore_action():
     arguments = [RESTORE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
-    migration_action = argument_handler.determine_migration_action()
+    migration_action = argument_handler.get_migration_action()
 
     assert migration_action == MigrationAction.RESTORE
 

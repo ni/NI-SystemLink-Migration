@@ -29,7 +29,7 @@ class MongoConfiguration:
         return self.service_config[MONGO_PORT_NAME_CONFIGURATION_KEY]
 
     @property
-    def collection_name(self) -> str:
+    def database_name(self) -> str:
         return self.service_config[MONGO_DATABASE_NAME_CONFIGURATION_KEY]
 
     @property

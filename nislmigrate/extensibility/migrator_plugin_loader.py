@@ -1,19 +1,21 @@
 import importlib
+import os
 import pkgutil
 import inspect
 from types import ModuleType
 
+from nislmigrate import migrators
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
-from typing import List
+from typing import List, Any
 
 
 class MigratorPluginLoader:
     """
     Capable of loading all migrators of a particular type from a python package.
     """
-    cached_loaded_plugins: List[MigratorPlugin] = None
-    plugin_package: ModuleType = None
-    plugin_type: type = None
+    cached_loaded_plugins: List[MigratorPlugin] = []
+    plugin_package: ModuleType = migrators
+    plugin_type: type = type(int)
 
     def __init__(self, plugin_package: ModuleType, plugin_type: type):
         """
@@ -22,12 +24,12 @@ class MigratorPluginLoader:
         :param plugin_type: The plugin base class type.
         """
         self.plugin_package = plugin_package
+        self.package_name = plugin_package.__name__
         self.plugin_type = plugin_type
 
     def __get_discovered_plugin_modules(self) -> List[ModuleType]:
-        package_path = self.plugin_package.__path__
-        package_name = self.plugin_package.__name__ + "."
-        module_info_list = pkgutil.iter_modules(package_path, package_name)
+        package_path = str(os.path.dirname(os.path.abspath(inspect.getfile(self.plugin_package))))
+        module_info_list = pkgutil.iter_modules([package_path], self.package_name + ".")
         return [importlib.import_module(name) for _, name, _ in module_info_list]
 
     def __instantiate_plugins_from_module(self, module: ModuleType):
@@ -41,7 +43,7 @@ class MigratorPluginLoader:
             plugin_classes.extend(instantiated_plugins)
         return plugin_classes
 
-    def __is_class_a_plugin(self, cls: any) -> bool:
+    def __is_class_a_plugin(self, cls: Any) -> bool:
         is_instance: bool = isinstance(cls, type)
         is_abstract: bool = inspect.isabstract(cls)
         if is_instance and not is_abstract:
@@ -54,6 +56,6 @@ class MigratorPluginLoader:
         Gets the list of migrators loaded by this plugin loader.
         :return: List of all loaded migrators.
         """
-        if self.cached_loaded_plugins is None:
+        if not self.cached_loaded_plugins:
             self.cached_loaded_plugins = self.__load_plugins()
         return self.cached_loaded_plugins
