@@ -19,9 +19,19 @@ class ManualTestBase:
         self._auth = HTTPBasicAuth(username, password)
 
     def populate_data(self):
+        """
+        Derived class should override to populate the SystemLink server with test data.
+        """
+
         raise NotImplementedError
 
     def validate_data(self):
+        """
+        Derived class should override to validate the SystemLink server containst the test
+        data added by populate_data. validate_data and populate_data can be called from
+        separate processes, so cannot depend on state to validate data.
+        """
+
         raise NotImplementedError
 
     def request(self, method, route, **kwargs):
