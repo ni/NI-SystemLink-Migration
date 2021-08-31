@@ -44,18 +44,18 @@ class ManualTestBase:
         Sends a get request. See self.request for parameter details.
         """
 
-        return self.request("GET", route, kwargs)
+        return self.request("GET", route, **kwargs)
 
     def post(self, route, **kwargs):
         """
         Sends a post request. See self.request for parameter details.
         """
 
-        return self.request("POST", route, kwargs)
+        return self.request("POST", route, **kwargs)
 
     def put(self, route, **kwargs):
         """
         Sends a put request. See self.request for parameter details.
         """
 
-        return self.request("PUT", route, kwargs)
+        return self.request("PUT", route, **kwargs)
