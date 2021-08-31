@@ -1,6 +1,5 @@
 import argparse
-import requests
-from requests.auth import HTTPBasicAuth
+from manual_test_base import ManualTestBase
 
 files = [
             {
@@ -13,49 +12,60 @@ upload_route = '/nifile/v1/service-groups/Default/upload-files'
 get_route = '/nifile/v1/service-groups/Default/files'
 
 
-def raise_if_existing_data(server, user, password):
-    url = server + get_route
-    response = requests.get(url, params={'take': 1}, auth=HTTPBasicAuth(user, password), verify=False)
-    if response.status_code == 404:
-        return
+class TestFile(ManualTestBase):
+    def __raise_if_existing_data(self):
+        response = self.get(get_route, params={'take': 1})
+        if response.status_code == 404:
+            return
 
-    response.raise_for_status()
-    data = response.json()
-    if data['availableFiles']:
-        raise Exception('There is existing file data on the server')
+        response.raise_for_status()
+        data = response.json()
+        if data['availableFiles']:
+            raise Exception('There is existing file data on the server')
 
+    def populate_data(self):
+        self.__raise_if_existing_data()
+        url = server + upload_route
+        for f in files:
+            response = self.post(url, files=f)
+            response.raise_for_status()
 
-def populate_data(server, user, password):
-    raise_if_existing_data(server, user, password)
-    url = server + upload_route
-    for f in files:
-        response = requests.post(url, files=f, auth=HTTPBasicAuth(user, password), verify=False)
+    def __extract_single_file_details(self, availableFile):
+        dataUrl = availableFile['_links']['data']['href']
+        filename = availableFile['properties']['Name']
+        properties = {k: v for k, v in availableFile['properties'].items() if k != 'Name'}
+        return (filename, {'dataUrl': dataUrl, 'properties': properties})
+
+    def __extract_file_details(self, data):
+        availableFiles = data['availableFiles']
+        return {filename: properties
+                for filename, properties
+                in [self.__extract_single_file_details(availableFile)
+                    for availableFile in availableFiles]}
+
+    def __assert_file_count(self, data):
+        totalFiles = data['totalCount']
+        actualFiles = data['availableFiles']
+
+        expectedCount = len(files)
+
+        if totalFiles != expectedCount:
+            raise Exception(f'Expected {expectedCount} files but total on server i {totalFiles}')
+        if len(actualFiles) != expectedCount:
+            raise Exception(f'Expected {expectedCount} files but response contained {len(actualFiles)}')
+
+    def __get_files(self):
+        response = self.get(get_route, params={'take': len(files)})
         response.raise_for_status()
 
+        return response.json()
 
-def validate_data(server, user, password):
-    print('todo: validate')
-    pass
+    def validate_data(self):
+        data = self.__get_files()
+        self.__assert_file_count(data)
+
+        # actual_files = self.__extract_file_details(data)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--server', '-s', required=True, help='systemlink server url. eg https://server')
-    parser.add_argument('--username', '-u', required=True, help='server username')
-    parser.add_argument('--password', '-p', required=True, help='server password.')
-    subparsers = parser.add_subparsers(dest='command', required=True)
-    subparsers.add_parser('populate', help='populate the server with test data')
-    subparsers.add_parser('validate', help='validate the data on the server matches the test data')
-
-    options = parser.parse_args()
-    print(options)
-    server = options.server
-    username = options.username
-    password = options.password
-
-    if 'populate' == options.command:
-        populate_data(server, username, password)
-    elif 'validate' == options.command:
-        validate_data(server, username, password)
-
-
+    ManualTestBase.handle_command_line(TestFile)
