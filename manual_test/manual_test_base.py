@@ -1,6 +1,6 @@
 from requests.auth import HTTPBasicAuth
 import requests
-import urllib
+from urllib.parse import urljoin
 
 
 class ManualTestBase:
@@ -27,7 +27,8 @@ class ManualTestBase:
         """
 
         return requests.request(
-                urllib.join(self._server, route),
+                method,
+                urljoin(self._server, route),
                 auth=kwargs.pop('auth', self._auth),
                 verify=kwargs.pop('verify', False),
                 **kwargs)
