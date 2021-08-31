@@ -1,4 +1,3 @@
-import argparse
 from manual_test_base import ManualTestBase
 
 files = [
@@ -25,9 +24,8 @@ class TestFile(ManualTestBase):
 
     def populate_data(self):
         self.__raise_if_existing_data()
-        url = server + upload_route
         for f in files:
-            response = self.post(url, files=f)
+            response = self.post(upload_route, files=f)
             response.raise_for_status()
 
     def __extract_single_file_details(self, availableFile):
