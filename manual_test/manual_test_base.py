@@ -17,6 +17,12 @@ class ManualTestBase:
         self._server = server
         self._auth = HTTPBasicAuth(username, password)
 
+    def populate_data(self):
+        raise NotImplementedError
+
+    def validate_data(self):
+        raise NotImplementedError
+
     def request(self, method, route, **kwargs):
         """
         Sends a request.
