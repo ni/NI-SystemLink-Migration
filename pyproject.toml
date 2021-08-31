@@ -26,6 +26,7 @@ pyproject-flake8 = "^0.0.1a2"
 testfixtures = "^6.18.1"
 mypy = "^0.910"
 taskipy = "^1.8.1"
+types-requests = "^2.25.6"
 
 [tool.poetry.scripts]
 nislmigrate = 'nislmigrate.migration_tool:run_migration_tool'
