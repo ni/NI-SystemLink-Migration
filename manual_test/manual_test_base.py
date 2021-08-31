@@ -61,6 +61,7 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
+    @staticmethod
     def handle_command_line(derived_class):
         """
         Parses command line arguments, instantiates a test class,
