@@ -12,6 +12,18 @@ get_route = '/nifile/v1/service-groups/Default/files'
 
 
 class TestFile(ManualTestBase):
+    def populate_data(self):
+        self.__raise_if_existing_data()
+        for f in files:
+            response = self.post(upload_route, files=f)
+            response.raise_for_status()
+
+    def validate_data(self):
+        data = self.__get_files()
+        self.__assert_file_count(data)
+
+        # actual_files = self.__extract_file_details(data)
+
     def __raise_if_existing_data(self):
         response = self.get(get_route, params={'take': 1})
         if response.status_code == 404:
@@ -22,17 +34,11 @@ class TestFile(ManualTestBase):
         if data['availableFiles']:
             raise Exception('There is existing file data on the server')
 
-    def populate_data(self):
-        self.__raise_if_existing_data()
-        for f in files:
-            response = self.post(upload_route, files=f)
-            response.raise_for_status()
+    def __get_files(self):
+        response = self.get(get_route, params={'take': len(files)})
+        response.raise_for_status()
 
-    def __extract_single_file_details(self, availableFile):
-        dataUrl = availableFile['_links']['data']['href']
-        filename = availableFile['properties']['Name']
-        properties = {k: v for k, v in availableFile['properties'].items() if k != 'Name'}
-        return (filename, {'dataUrl': dataUrl, 'properties': properties})
+        return response.json()
 
     def __extract_file_details(self, data):
         availableFiles = data['availableFiles']
@@ -40,6 +46,12 @@ class TestFile(ManualTestBase):
                 for filename, properties
                 in [self.__extract_single_file_details(availableFile)
                     for availableFile in availableFiles]}
+
+    def __extract_single_file_details(self, availableFile):
+        dataUrl = availableFile['_links']['data']['href']
+        filename = availableFile['properties']['Name']
+        properties = {k: v for k, v in availableFile['properties'].items() if k != 'Name'}
+        return (filename, {'dataUrl': dataUrl, 'properties': properties})
 
     def __assert_file_count(self, data):
         totalFiles = data['totalCount']
@@ -51,18 +63,6 @@ class TestFile(ManualTestBase):
             raise Exception(f'Expected {expectedCount} files but total on server i {totalFiles}')
         if len(actualFiles) != expectedCount:
             raise Exception(f'Expected {expectedCount} files but response contained {len(actualFiles)}')
-
-    def __get_files(self):
-        response = self.get(get_route, params={'take': len(files)})
-        response.raise_for_status()
-
-        return response.json()
-
-    def validate_data(self):
-        data = self.__get_files()
-        self.__assert_file_count(data)
-
-        # actual_files = self.__extract_file_details(data)
 
 
 if __name__ == '__main__':
