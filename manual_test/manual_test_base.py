@@ -1,3 +1,4 @@
+import argparse
 from requests.auth import HTTPBasicAuth
 import requests
 from urllib.parse import urljoin
@@ -59,3 +60,32 @@ class ManualTestBase:
         """
 
         return self.request("PUT", route, **kwargs)
+
+    def handle_command_line(derived_class):
+        """
+        Parses command line arguments, instantiates a test class,
+        and populates or verifies data.
+
+        :param derived_class: The test class to instantiate
+        """
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--server', '-s', required=True, help='systemlink server url. eg https://server')
+        parser.add_argument('--username', '-u', required=True, help='server username')
+        parser.add_argument('--password', '-p', required=True, help='server password.')
+        subparsers = parser.add_subparsers(dest='command', required=True)
+        subparsers.add_parser('populate', help='populate the server with test data')
+        subparsers.add_parser('validate', help='validate the data on the server matches the test data')
+
+        options = parser.parse_args()
+        print(options)
+        server = options.server
+        username = options.username
+        password = options.password
+
+        test = derived_class(server, username, password)
+
+        if 'populate' == options.command:
+            test.populate_data()
+        elif 'validate' == options.command:
+            test.validate_data()
