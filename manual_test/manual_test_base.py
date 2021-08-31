@@ -29,6 +29,7 @@ class ManualTestBase:
         return requests.request(
                 urllib.join(self._server, route),
                 auth=kwargs.pop('auth', self._auth),
+                verify=kwargs.pop('verify', False),
                 **kwargs)
 
     def get(self, route, **kwargs):
