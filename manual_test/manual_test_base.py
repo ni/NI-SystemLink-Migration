@@ -89,7 +89,6 @@ class ManualTestBase:
         subparsers.add_parser('validate', help='validate the data on the server matches the test data')
 
         options = parser.parse_args()
-        print(options)
         server = options.server
         username = options.username
         password = options.password
