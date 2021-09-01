@@ -34,7 +34,7 @@ class TestFile(ManualTestBase):
         response.raise_for_status()
         data = response.json()
         if data['availableFiles']:
-            raise Exception('There is existing file data on the server')
+            raise RuntimeError('There is exising file data on the server')
 
     def __upload_files(self):
         for filename, data in file_data.items():
@@ -77,14 +77,11 @@ class TestFile(ManualTestBase):
 
         expectedCount = len(file_data)
 
-        if totalFiles != expectedCount:
-            raise Exception(f'Expected {expectedCount} files but total on server i {totalFiles}')
-        if len(actualFiles) != expectedCount:
-            raise Exception(f'Expected {expectedCount} files but response contained {len(actualFiles)}')
+        assert totalFiles == expectedCount
+        assert len(actualFiles) == expectedCount
 
     def __assert_files_match(self, actual_files):
-        if actual_files != file_data:
-            raise Exception('They did not match')
+        assert actual_files == file_data
 
 
 if __name__ == '__main__':
