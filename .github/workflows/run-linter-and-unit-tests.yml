@@ -24,8 +24,6 @@ jobs:
       run: pip install poetry
     - name: Install nislmigrate dependencies
       run: poetry install
-    - name: Install MongoDB
-      run: test/dlmongo.ps1
     - name: Run all linters
       run: poetry run task lint
     - name: Run all tests
