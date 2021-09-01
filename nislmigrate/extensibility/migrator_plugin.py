@@ -48,10 +48,10 @@ class MigratorPlugin(abc.ABC):
         """
         return "A short sentence describing the operation of the plugin"
 
-    @property
-    def config(self) -> Dict[str, Any]:
+    def config(self, facade_factory: FacadeFactory) -> Dict[str, Any]:
         """
         Gets the configuration dictionary this plugin provides.
+        :param facade_factory: Factory that produces objects abstracing away operations.
         :returns: Gets the configuration dictionary this plugin provides.
         """
         if self.cached_config is None:

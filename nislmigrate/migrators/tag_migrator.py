@@ -31,7 +31,7 @@ class TagMigrator(MigratorPlugin):
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
             migration_directory,
@@ -44,7 +44,7 @@ class TagMigrator(MigratorPlugin):
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         mongo_facade.restore_database_from_directory(
             mongo_configuration,
             migration_directory,
