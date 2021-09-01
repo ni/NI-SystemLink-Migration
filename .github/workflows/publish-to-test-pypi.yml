@@ -1,11 +1,7 @@
 name: Publish Package to Test PyPI
 
 on:
-  push:
-    paths:
-      - pyproject.toml
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
@@ -22,6 +18,9 @@ jobs:
 
       - name: Install setuptools and other tools
         run: python3 -m pip install poetry
+
+      - name: Update nislmigrate release version
+        run: poetry version $(git describe --tags --abbrev=0)
 
       - name: Build packages
         run: poetry build
