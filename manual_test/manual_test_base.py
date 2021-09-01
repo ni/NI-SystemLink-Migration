@@ -3,9 +3,13 @@ from requests.auth import HTTPBasicAuth
 import requests
 from typing import Type
 from urllib.parse import urljoin
+from urllib3 import disable_warnings, exceptions
 
 
 class ManualTestBase:
+
+    disable_warnings(exceptions.InsecureRequestWarning)
+
     def __init__(self, server: str, username: str, password: str) -> None:
         """
         Constructs the manual test base class.
