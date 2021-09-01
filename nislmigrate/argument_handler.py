@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 from argparse import Namespace
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
-from nislmigrate.logging.migration_error import MigrationError
+from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 

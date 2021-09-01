@@ -2,7 +2,7 @@ import os
 import pytest
 from testfixtures import tempdir, TempDirectory
 from nislmigrate.facades.file_system_facade import FileSystemFacade
-from nislmigrate.logging.migration_error import MigrationError
+from nislmigrate.logs.migration_error import MigrationError
 
 
 @pytest.mark.unit

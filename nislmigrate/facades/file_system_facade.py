@@ -4,7 +4,7 @@ import os
 import shutil
 import stat
 
-from nislmigrate.logging.migration_error import MigrationError
+from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 
 

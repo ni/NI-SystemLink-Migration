@@ -1,6 +1,6 @@
 """Handle Mongo operations."""
 
-from nislmigrate.logging.migration_error import MigrationError
+from nislmigrate.logs.migration_error import MigrationError
 import os
 import subprocess
 import logging
