@@ -1,7 +1,6 @@
 from typing import Dict, Any
 
 import os
-import json
 import abc
 
 from nislmigrate.facades.facade_factory import FacadeFactory
@@ -56,8 +55,8 @@ class MigratorPlugin(abc.ABC):
         """
         if self.cached_config is None:
             config_file = os.path.join(SERVICE_CONFIGURATION_DIRECTORY, self.name + ".json")
-            with open(config_file, encoding="utf-8-sig") as json_file:
-                self.cached_config = json.load(json_file)[self.name]
+            filesystem_facade = facade_factory.get_file_system_facade()
+            self.cached_config = filesystem_facade.read_json_file(config_file)[self.name]
         return self.cached_config
 
     @abc.abstractmethod
