@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import os
 import abc
@@ -17,7 +17,7 @@ class MigratorPlugin(abc.ABC):
     Base class for creating a plugin capable of migrating a SystemLink service.
     """
 
-    cached_config: Dict[str, Any] = {}
+    cached_config: Optional[Dict[str, Any]] = None
 
     @property
     @abc.abstractmethod
