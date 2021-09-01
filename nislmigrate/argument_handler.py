@@ -133,7 +133,7 @@ class ArgumentHandler:
         :return: The built parser.
         """
         argument_parser = ArgumentParser(prog=PROGRAM_NAME)
-        self.__add_all_flag_options(argument_parser)
+
         self.__add_capture_and_restore_commands(argument_parser)
         return argument_parser
 
