@@ -1,0 +1,34 @@
+name: Publish Package to Test PyPI
+
+on:
+  push:
+    paths:
+      - pyproject.toml
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    if: github.repository == 'ni/NI-SystemLink-Migrationp
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install setuptools and other tools
+        run: python3 -m pip install poetry
+
+      - name: Build packages
+        run: poetry build
+
+      - name: Publish distribution to Test PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.test_pypi_password }}
+          repository_url: https://test.pypi.org/legacy/
