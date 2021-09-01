@@ -40,6 +40,16 @@ def test_capture_services_with_unknown_action_throws_exception():
         service_migrator.migrate([service], "unknown", "")
 
 
+@pytest.mark.unit
+def test_migrator_reads_configuration():
+    facade_factory = FakeFacadeFactory()
+    migrator = TestMigrator()
+
+    actual_config = migrator.config(facade_factory)
+
+    assert actual_config == TestFileSystemFacade.config[migrator.name]
+
+
 class TestMigrator(MigratorPlugin):
     capture_count = 0
     restore_count = 0
@@ -87,7 +97,15 @@ class TestMongoFacade(MongoFacade):
 
 
 class TestFileSystemFacade(FileSystemFacade):
-    pass
+    config = {
+            "test": {
+                "key1": "value1",
+                "key2": "value2"
+            }
+        }
+
+    def read_json_file(self, path):
+        return self.config
 
 
 class FakeFacadeFactory(FacadeFactory):
