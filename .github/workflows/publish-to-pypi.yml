@@ -1,11 +1,6 @@
 name: Publish Package to PyPI
 
 on:
-  push:
-    paths:
-      - pyproject.toml
-    branches:
-      - main
   release:
     types:
       - published
@@ -14,7 +9,6 @@ jobs:
   build-and-publish:
     if: github.repository == 'ni/NI-SystemLink-Migration'
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@master
 
@@ -28,14 +22,6 @@ jobs:
 
       - name: Build packages
         run: poetry build
-
-      - name: Publish distribution to Test PyPI
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.test_pypi_password }}
-          repository_url: https://test.pypi.org/legacy/
-        continue-on-error: true
 
       - name: Publish distribution to PyPI
         if: github.event.action == 'published'
