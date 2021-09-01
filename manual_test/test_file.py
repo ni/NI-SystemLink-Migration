@@ -1,5 +1,5 @@
 import json
-from manual_test_base import ManualTestBase
+from manual_test_base import ManualTestBase, handle_command_line
 
 file_data = {
         f'File {i}.txt': {
@@ -88,4 +88,4 @@ class TestFile(ManualTestBase):
 
 
 if __name__ == '__main__':
-    ManualTestBase.handle_command_line(TestFile)
+    handle_command_line(TestFile)
