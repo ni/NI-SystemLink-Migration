@@ -17,7 +17,7 @@ class MigratorPlugin(abc.ABC):
     Base class for creating a plugin capable of migrating a SystemLink service.
     """
 
-    cached_config: Optional[Dict[str, Any]] = None
+    __cached_config: Optional[Dict[str, Any]] = None
 
     @property
     @abc.abstractmethod
@@ -53,11 +53,11 @@ class MigratorPlugin(abc.ABC):
         :param facade_factory: Factory that produces objects abstracing away operations.
         :returns: Gets the configuration dictionary this plugin provides.
         """
-        if self.cached_config is None:
+        if self.__cached_config is None:
             config_file = os.path.join(SERVICE_CONFIGURATION_DIRECTORY, self.name + ".json")
             filesystem_facade = facade_factory.get_file_system_facade()
-            self.cached_config = filesystem_facade.read_json_file(config_file)[self.name]
-        return self.cached_config
+            self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
+        return self.__cached_config
 
     @abc.abstractmethod
     def capture(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
