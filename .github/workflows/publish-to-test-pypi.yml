@@ -5,8 +5,8 @@ on:
 
 jobs:
   build-and-publish:
-    if: github.repository == 'ni/NI-SystemLink-Migration
-    runs-on: ubuntu-latest
+    if: github.repository == 'ni/NI-SystemLink-Migration'
+    runs-on: windows-2019
 
     steps:
       - uses: actions/checkout@master

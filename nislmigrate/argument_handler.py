@@ -132,15 +132,16 @@ class ArgumentHandler:
 
         :return: The built parser.
         """
-        argument_parser = ArgumentParser(prog=PROGRAM_NAME)
-        self.__add_all_flag_options(argument_parser)
+        description = "Run `nislmigrate {command} -h` to list additional options."
+        argument_parser = ArgumentParser(prog=PROGRAM_NAME, description=description)
+
         self.__add_capture_and_restore_commands(argument_parser)
         return argument_parser
 
     def __add_capture_and_restore_commands(self, argument_parser: ArgumentParser):
         parent_parser: ArgumentParser = ArgumentParser(add_help=False)
         self.__add_all_flag_options(parent_parser)
-        sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT)
+        sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT, metavar="command")
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
         sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
 
