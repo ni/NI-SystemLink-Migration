@@ -32,7 +32,7 @@ class THDBBugMigrator(MigratorPlugin):
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         mongo_facade.migrate_within_instance(mongo_configuration, "admin")
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
