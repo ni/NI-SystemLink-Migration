@@ -25,7 +25,7 @@ class OPCMigrator(MigratorPlugin):
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         file_migration_directory = os.path.join(migration_directory, "files")
 
         mongo_facade.capture_database_to_directory(
@@ -40,7 +40,7 @@ class OPCMigrator(MigratorPlugin):
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config)
+        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         file_migration_directory = os.path.join(migration_directory, "files")
 
         mongo_facade.restore_database_from_directory(
