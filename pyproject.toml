@@ -29,7 +29,7 @@ taskipy = "^1.8.1"
 types-requests = "^2.25.6"
 
 [tool.poetry.scripts]
-nislmigrate = 'nislmigrate.migration_tool:run_migration_tool'
+nislmigrate = 'nislmigrate.migration_tool:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
