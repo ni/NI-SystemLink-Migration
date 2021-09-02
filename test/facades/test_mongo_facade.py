@@ -34,6 +34,27 @@ def test_mongo_facade_capture_migration_directory_created_when_it_does_not_exist
 @tempdir()
 @patch('subprocess.run')
 @patch('subprocess.Popen')
+def test_mongo_facade_capture_migration_nested_directory_created_when_it_does_not_exist(
+        process_open: Mock,
+        run: Mock,
+        temp_directory: TempDirectory,
+) -> None:
+    migration_directory = os.path.join(temp_directory.path, "migration", "other")
+    assert not os.path.exists(migration_directory)
+    configuration = get_fake_mongo_configuration()
+    mongo_facade = MongoFacade()
+
+    mongo_facade.capture_database_to_directory(configuration, migration_directory, "testname.gz")
+
+    assert os.path.exists(migration_directory)
+    run.verify_called()
+    process_open.verify_called()
+
+
+@pytest.mark.unit
+@tempdir()
+@patch('subprocess.run')
+@patch('subprocess.Popen')
 def test_mongo_facade_capture_migration_directory_already_exists_and_empty(
         process_open: Mock,
         run: Mock,
