@@ -1,5 +1,6 @@
 """Handle file and directory operations."""
 
+import json
 import os
 import shutil
 import stat
@@ -117,6 +118,17 @@ class FileSystemFacade:
         migration_dir = self.determine_migration_directory_for_service(root, service_name)
         singlefile_full_path = os.path.join(migration_dir, file)
         shutil.copy(singlefile_full_path, restore_directory)
+
+    def read_json_file(self, path: str) -> dict:
+        """
+        Reads json from a file.
+
+        :param path: The path to the json file to read.
+        :return: The parsed json from the file.
+        """
+
+        with open(path, encoding="utf-8-sig") as json_file:
+            return json.load(json_file)
 
     @staticmethod
     def copy_file(from_directory: str, to_directory: str, file_name: str) -> None:

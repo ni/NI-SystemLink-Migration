@@ -1,7 +1,6 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import os
-import json
 import abc
 
 from nislmigrate.facades.facade_factory import FacadeFactory
@@ -18,7 +17,7 @@ class MigratorPlugin(abc.ABC):
     Base class for creating a plugin capable of migrating a SystemLink service.
     """
 
-    cached_config: Dict[str, Any] = {}
+    __cached_config: Optional[Dict[str, Any]] = None
 
     @property
     @abc.abstractmethod
@@ -48,17 +47,17 @@ class MigratorPlugin(abc.ABC):
         """
         return "A short sentence describing the operation of the plugin"
 
-    @property
-    def config(self) -> Dict[str, Any]:
+    def config(self, facade_factory: FacadeFactory) -> Dict[str, Any]:
         """
         Gets the configuration dictionary this plugin provides.
+        :param facade_factory: Factory that produces objects abstracing away operations.
         :returns: Gets the configuration dictionary this plugin provides.
         """
-        if self.cached_config is None:
+        if self.__cached_config is None:
             config_file = os.path.join(SERVICE_CONFIGURATION_DIRECTORY, self.name + ".json")
-            with open(config_file, encoding="utf-8-sig") as json_file:
-                self.cached_config = json.load(json_file)[self.name]
-        return self.cached_config
+            filesystem_facade = facade_factory.get_file_system_facade()
+            self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
+        return self.__cached_config
 
     @abc.abstractmethod
     def capture(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
