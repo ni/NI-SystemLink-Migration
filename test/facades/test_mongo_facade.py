@@ -12,7 +12,9 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 @pytest.mark.unit
 @tempdir()
 @patch('subprocess.run')
+@patch('subprocess.Popen')
 def test_mongo_facade_capture_migration_directory_created_when_it_does_not_exist(
+        process_open: Mock,
         run: Mock,
         temp_directory: TempDirectory,
 ) -> None:
@@ -25,12 +27,15 @@ def test_mongo_facade_capture_migration_directory_created_when_it_does_not_exist
 
     assert os.path.exists(migration_directory)
     run.verify_called()
+    process_open.verify_called()
 
 
 @pytest.mark.unit
 @tempdir()
 @patch('subprocess.run')
+@patch('subprocess.Popen')
 def test_mongo_facade_capture_migration_directory_already_exists_and_empty(
+        process_open: Mock,
         run: Mock,
         temp_directory: TempDirectory,
 ) -> None:
@@ -43,6 +48,7 @@ def test_mongo_facade_capture_migration_directory_already_exists_and_empty(
 
     assert os.path.exists(migration_directory)
     run.verify_called()
+    process_open.verify_called()
 
 
 def make_directory(temp_directory: TempDirectory, name: str) -> str:
