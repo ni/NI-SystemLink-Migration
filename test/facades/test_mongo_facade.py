@@ -47,8 +47,8 @@ def test_mongo_facade_capture_migration_nested_directory_created_when_it_does_no
     mongo_facade.capture_database_to_directory(configuration, migration_directory, "testname.gz")
 
     assert os.path.exists(migration_directory)
-    run.verify_called()
-    process_open.verify_called()
+    run.assert_called()
+    process_open.assert_called()
 
 
 @pytest.mark.unit
