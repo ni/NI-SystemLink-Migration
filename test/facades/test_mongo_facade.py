@@ -23,6 +23,7 @@ def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
     mongo_facade.capture_database_to_directory(mongo_configuration, migration_directory, "testname.gz")
 
     assert os.path.exists(migration_directory)
+    run.verify_called()
 
 
 @pytest.mark.unit
@@ -38,6 +39,7 @@ def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
     mongo_facade.capture_database_to_directory(mongo_configuration, migration_directory, "testname.gz")
 
     assert os.path.exists(migration_directory)
+    run.verify_called()
 
 
 def make_directory(temp_directory: TempDirectory, name: str) -> str:
