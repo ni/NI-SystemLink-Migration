@@ -28,17 +28,13 @@ MONGO_BINARIES_DIRECTORY: str = os.path.join(
     "Skyline",
     "NoSqlDatabase",
     "bin")
-DEFAULT_MONGO_DUMP_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongodump.exe")
-DEFAULT_MONGO_RESTORE_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongorestore.exe")
+MONGO_DUMP_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongodump.exe")
+MONGO_RESTORE_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongorestore.exe")
 MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongod.exe")
 
 
 class MongoFacade:
     mongo_process_handle: Optional[subprocess.Popen] = None
-
-    mongo_dump_executable_path: str = DEFAULT_MONGO_DUMP_EXECUTABLE_PATH
-    mongo_restore_executable_path: str = DEFAULT_MONGO_RESTORE_EXECUTABLE_PATH
-    start_mongo: bool = True
 
     def capture_database_to_directory(
             self,
@@ -55,7 +51,7 @@ class MongoFacade:
         if not os.path.exists(directory):
             os.makedirs(directory)
         dump_path = os.path.join(directory, dump_name)
-        mongo_dump_command = [self.mongo_dump_executable_path]
+        mongo_dump_command = [MONGO_DUMP_EXECUTABLE_PATH]
         connection_arguments = self.__get_mongo_connection_arguments(configuration)
         mongo_dump_command.extend(connection_arguments)
         mongo_dump_command.append("--archive=" + dump_path)
@@ -77,7 +73,7 @@ class MongoFacade:
         """
         dump_path = os.path.join(directory, dump_name)
         self.validate_can_restore_database_from_directory(directory, dump_name)
-        mongo_restore_command = [self.mongo_restore_executable_path]
+        mongo_restore_command = [MONGO_RESTORE_EXECUTABLE_PATH]
         connection_arguments = self.__get_mongo_connection_arguments(configuration)
         # We need to provide the db option (even though it's redundant with the uri)
         # because of a bug with mongoDB 4.2
@@ -255,7 +251,7 @@ class MongoFacade:
         Begins the mongo DB subprocess on this computer.
         :return: The started subprocess handling mongo DB.
         """
-        if self.start_mongo and not self.mongo_process_handle:
+        if not self.mongo_process_handle:
             arguments = [MONGO_EXECUTABLE_PATH, "--config", MONGO_CONFIGURATION_PATH]
             self.mongo_process_handle = subprocess.Popen(
                 arguments,
