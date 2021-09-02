@@ -49,7 +49,7 @@ class MongoFacade:
         :param dump_name: The name of the file to dump to.
         """
         if not os.path.exists(directory):
-            os.mkdir(directory)
+            os.makedirs(directory)
         dump_path = os.path.join(directory, dump_name)
         mongo_dump_command = [MONGO_DUMP_EXECUTABLE_PATH]
         connection_arguments = self.__get_mongo_connection_arguments(configuration)

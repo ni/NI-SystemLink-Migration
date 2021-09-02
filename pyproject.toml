@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nislmigrate"
-version = "0.0.19"
+version = "0.0.0"
 description = "The tool for migrating SystemLink data."
 authors = ["cnunnall <christian.nunnally@ni.com>"]
 readme="README.md"
@@ -29,7 +29,7 @@ taskipy = "^1.8.1"
 types-requests = "^2.25.6"
 
 [tool.poetry.scripts]
-nislmigrate = 'nislmigrate.migration_tool:run_migration_tool'
+nislmigrate = 'nislmigrate.migration_tool:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

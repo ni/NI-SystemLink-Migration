@@ -1,4 +1,4 @@
- This contribution adheres to CONTRIBUTING.md.
+- [] This contribution adheres to CONTRIBUTING.md.
 TODO: Check the above box with an 'x' indicating you've read and followed CONTRIBUTING.md.
 
 What does this Pull Request accomplish?
