@@ -2,7 +2,6 @@
 
 from nislmigrate.logs.migration_error import MigrationError
 import os
-import subprocess
 import logging
 from typing import Callable, List, Dict, Optional, Any
 
@@ -14,6 +13,7 @@ from pymongo.collection import Collection
 from pymongo.database import Database
 
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
+from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
 
 MONGO_CONFIGURATION_PATH: str = os.path.join(
     str(os.environ.get("ProgramData")),
@@ -34,7 +34,10 @@ MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongod.exe"
 
 
 class MongoFacade:
-    mongo_process_handle: Optional[subprocess.Popen] = None
+    __mongo_process_handle: Optional[BackgroundProcess] = None
+
+    def __init__(self, process_facade: ProcessFacade):
+        self.process_facade: ProcessFacade = process_facade
 
     def capture_database_to_directory(
             self,
@@ -239,37 +242,32 @@ class MongoFacade:
 
         :param arguments: The list of arguments to execute in a subprocess.
         """
+
+        self.__start_mongo()
         try:
-            self.__start_mongo()
-            subprocess.run(arguments, check=True)
-        except subprocess.CalledProcessError as e:
+            self.process_facade.run_process(arguments)
+        except ProcessError as e:
             log = logging.getLogger(MongoFacade.__name__)
-            log.error(e.stderr)
+            log.error(e.error)
 
     def __start_mongo(self) -> None:
         """
         Begins the mongo DB subprocess on this computer.
         :return: The started subprocess handling mongo DB.
         """
-        if not self.mongo_process_handle:
+        if not self.__mongo_process_handle:
             arguments = [MONGO_EXECUTABLE_PATH, "--config", MONGO_CONFIGURATION_PATH]
-            self.mongo_process_handle = subprocess.Popen(
-                arguments,
-                env=os.environ,
-                creationflags=subprocess.CREATE_NEW_CONSOLE)
-
-    def __del__(self):
-        self.__stop_mongo()
+            self.__mongo_process_handle = self.process_facade.run_background_process(arguments)
 
     def __stop_mongo(self) -> None:
         """
         Stops the mongo process.
         :return: None.
         """
-        if self.mongo_process_handle:
-            actual_handle: subprocess.Popen = self.mongo_process_handle
-            subprocess.Popen.kill(actual_handle)
-            self.mongo_process_handle = None
+        if self.__mongo_process_handle:
+            actual_handle: BackgroundProcess = self.__mongo_process_handle
+            self.__mongo_process_handle = None
+            actual_handle.stop()
 
     @staticmethod
     def __get_mongo_connection_arguments(mongo_configuration: MongoConfiguration) -> List[str]:
