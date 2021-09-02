@@ -13,7 +13,10 @@ connection_string = "mongodb://127.17.0.5:27017/?gssapiServiceName=mongodb"
 @pytest.mark.unit
 @tempdir()
 @patch('subprocess.run')
-def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
+def test_mongo_facade_capture_migration_directory_created_when_it_does_not_exist(
+        run: Mock,
+        temp_directory: TempDirectory,
+) -> None:
     migration_directory = os.path.join(temp_directory.path, "migration")
     assert not os.path.exists(migration_directory)
     mongo_configuration = FakeMongoConfiguration()
@@ -29,7 +32,10 @@ def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
 @pytest.mark.unit
 @tempdir()
 @patch('subprocess.run')
-def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
+def test_mongo_facade_capture_migration_directory_already_exists_and_empty(
+        run: Mock,
+        temp_directory: TempDirectory,
+) -> None:
     migration_directory = make_directory(temp_directory, "migration")
     assert os.path.exists(migration_directory)
     mongo_configuration = FakeMongoConfiguration()
