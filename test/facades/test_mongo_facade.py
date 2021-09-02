@@ -1,4 +1,8 @@
+import os
+from unittest.mock import patch, Mock
+
 import pytest as pytest
+from testfixtures import tempdir, TempDirectory
 
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
@@ -7,37 +11,44 @@ connection_string = "mongodb://127.17.0.5:27017/?gssapiServiceName=mongodb"
 
 
 @pytest.mark.unit
-def test_mongo_facade_capture() -> None:
-    if True:
-        return
-    mongo_facade = MongoFacade()
+@tempdir()
+@patch('subprocess.run')
+def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
+    migration_directory = os.path.join(temp_directory.path, "migration")
+    assert not os.path.exists(migration_directory)
     mongo_configuration = FakeMongoConfiguration()
     mongo_configuration.custom_connection_string = connection_string
-    mongo_configuration.custom_host_name = "127.0.0.1"
-    mongo_configuration.custom_port = "27017"
-    mongo_facade.capture_mongo_collection_to_directory(
-        mongo_configuration,
-        "C:\\Users\\cnunnall\\Documents\\migration",
-        "testname.gz")
+    mongo_facade = MongoFacade()
+
+    mongo_facade.capture_database_to_directory(mongo_configuration, migration_directory, "testname.gz")
+
+    assert os.path.exists(migration_directory)
 
 
 @pytest.mark.unit
-def test_mongo_facade_restore() -> None:
-    if True:
-        return
-    mongo_facade = MongoFacade()
+@tempdir()
+@patch('subprocess.run')
+def test_mongo_facade_capture(run: Mock, temp_directory: TempDirectory) -> None:
+    migration_directory = make_directory(temp_directory, "migration")
+    assert os.path.exists(migration_directory)
     mongo_configuration = FakeMongoConfiguration()
     mongo_configuration.custom_connection_string = connection_string
-    mongo_configuration.custom_host_name = "127.0.0.1"
-    mongo_configuration.custom_port = "27017"
-    mongo_facade.restore_mongo_collection_from_directory(
-        mongo_configuration,
-        "C:\\Users\\cnunnall\\Documents\\migration",
-        "testname.gz")
+    mongo_facade = MongoFacade()
+
+    mongo_facade.capture_database_to_directory(mongo_configuration, migration_directory, "testname.gz")
+
+    assert os.path.exists(migration_directory)
+
+
+def make_directory(temp_directory: TempDirectory, name: str) -> str:
+    path = os.path.join(temp_directory.path, name)
+    os.mkdir(path)
+    return path
 
 
 class FakeMongoConfiguration(MongoConfiguration):
     def __init__(self):
+        super().__init__({})
         self.custom_password = ""
         self.custom_user = ""
         self.custom_connection_string = ""

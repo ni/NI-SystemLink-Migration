@@ -48,6 +48,8 @@ class MongoFacade:
         :param directory: The directory to migrate the service in to.
         :param dump_name: The name of the file to dump to.
         """
+        if not os.path.exists(directory):
+            os.mkdir(directory)
         dump_path = os.path.join(directory, dump_name)
         mongo_dump_command = [MONGO_DUMP_EXECUTABLE_PATH]
         connection_arguments = self.__get_mongo_connection_arguments(configuration)
