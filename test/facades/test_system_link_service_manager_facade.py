@@ -18,15 +18,19 @@ def test_stop_all_system_link_services_when_configuration_tool_not_installed(exi
 
 
 @pytest.mark.unit
-@patch('os.path.exists')
 @patch('subprocess.run')
+@patch('os.path.exists')
 def test_stop_all_system_link_services_when_configuration_tool_installed(exists: Mock, run: Mock) -> None:
     service_manager = SystemLinkServiceManagerFacade()
     exists.return_value = True
 
     service_manager.stop_all_system_link_services()
 
-    run.verify_called(system_link_service_manager_facade.STOP_ALL_SERVICES_COMMAND)
+    run.assert_called_with(
+        system_link_service_manager_facade.STOP_ALL_SERVICES_COMMAND,
+        check=True,
+        capture_output=True,
+    )
 
 
 @pytest.mark.unit
@@ -40,12 +44,16 @@ def test_start_all_system_link_services_when_configuration_tool_not_installed(ex
 
 
 @pytest.mark.unit
-@patch('os.path.exists')
 @patch('subprocess.run')
+@patch('os.path.exists')
 def test_start_all_system_link_services_when_configuration_tool_installed(exists: Mock, run: Mock) -> None:
     service_manager = SystemLinkServiceManagerFacade()
     exists.return_value = True
 
     service_manager.start_all_system_link_services()
 
-    run.verify_called(system_link_service_manager_facade.START_ALL_SERVICES_COMMAND)
+    run.assert_called_with(
+        system_link_service_manager_facade.START_ALL_SERVICES_COMMAND,
+        check=True,
+        capture_output=True,
+    )
