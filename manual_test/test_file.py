@@ -54,7 +54,7 @@ class TestFile(ManualTestBase):
         response.raise_for_status()
 
         auth = response.json()
-        workspaces = [ workspace['id'] for workspace in auth['workspaces'] if workspace['enabled'] ]
+        workspaces = [workspace['id'] for workspace in auth['workspaces'] if workspace['enabled']]
         if len(workspaces) < 2:
             raise RuntimeError('User needs access to at least 2 workspaces')
 
