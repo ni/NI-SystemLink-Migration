@@ -27,6 +27,7 @@ testfixtures = "^6.18.1"
 mypy = "^0.910"
 taskipy = "^1.8.1"
 types-requests = "^2.25.6"
+requests = "^2.26.0"
 
 [tool.poetry.scripts]
 nislmigrate = 'nislmigrate.migration_tool:main'
