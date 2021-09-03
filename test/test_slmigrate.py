@@ -5,7 +5,6 @@ from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import MIGRATION_DIRECTORY_ARGUMENT
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 from test import test_constants
 
 
@@ -49,13 +48,3 @@ def test_missing_service_migration_file() -> None:
 
     with pytest.raises(FileNotFoundError):
         migrator.migrate(services_to_migrate, migration_action, migration_directory)
-
-
-class FakeServiceManager(SystemLinkServiceManagerFacade):
-    are_services_running = True
-
-    def stop_all_system_link_services(self) -> None:
-        self.are_services_running = False
-
-    def start_all_system_link_services(self) -> None:
-        self.are_services_running = True
