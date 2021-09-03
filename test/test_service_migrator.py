@@ -52,6 +52,7 @@ def test_migrator_reads_configuration():
 
     assert actual_config == TestFileSystemFacade.config[migrator.name]
 
+
 @pytest.mark.unit
 def test_migrator_reads_configuration_from_default_location():
     facade_factory = FakeFacadeFactory()
