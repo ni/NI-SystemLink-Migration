@@ -5,7 +5,7 @@ import abc
 
 from nislmigrate.facades.facade_factory import FacadeFactory
 
-SERVICE_CONFIGURATION_DIRECTORY = os.path.join(
+DEFAULT_SERVICE_CONFIGURATION_DIRECTORY: str = os.path.join(
     str(os.environ.get("ProgramData")),
     "National Instruments",
     "Skyline",
@@ -17,6 +17,7 @@ class MigratorPlugin(abc.ABC):
     Base class for creating a plugin capable of migrating a SystemLink service.
     """
 
+    service_configuration_directory: str = DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
     __cached_config: Optional[Dict[str, Any]] = None
 
     @property
@@ -54,7 +55,7 @@ class MigratorPlugin(abc.ABC):
         :returns: Gets the configuration dictionary this plugin provides.
         """
         if self.__cached_config is None:
-            config_file = os.path.join(SERVICE_CONFIGURATION_DIRECTORY, self.name + ".json")
+            config_file = os.path.join(self.service_configuration_directory, self.name + ".json")
             filesystem_facade = facade_factory.get_file_system_facade()
             self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
         return self.__cached_config
