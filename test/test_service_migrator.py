@@ -4,9 +4,11 @@ from nislmigrate.facades.system_link_service_manager_facade import SystemLinkSer
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade
-from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
 from nislmigrate.migration_facilitator import MigrationFacilitator
+from pathlib import Path
 import pytest
+from typing import Optional
 
 
 @pytest.mark.unit
@@ -49,6 +51,31 @@ def test_migrator_reads_configuration():
     actual_config = migrator.config(facade_factory)
 
     assert actual_config == TestFileSystemFacade.config[migrator.name]
+
+@pytest.mark.unit
+def test_migrator_reads_configuration_from_default_location():
+    facade_factory = FakeFacadeFactory()
+    file_system_facade = facade_factory.get_file_system_facade()
+    migrator = TestMigrator()
+    expected_configuration_file = str(Path(DEFAULT_SERVICE_CONFIGURATION_DIRECTORY) / f'{migrator.name}.json')
+
+    _ = migrator.config(facade_factory)
+
+    assert expected_configuration_file == file_system_facade.last_read_json_file_path
+
+
+@pytest.mark.unit
+def test_migrator_reads_configuration_from_configured_location():
+    facade_factory = FakeFacadeFactory()
+    file_system_facade = facade_factory.get_file_system_facade()
+    migrator = TestMigrator()
+    configured_location = Path('C:') / '/Test' / 'Config' / 'Dir'
+    migrator.service_configuration_directory = str(configured_location)
+    expected_configuration_file = str(configured_location / f'{migrator.name}.json')
+
+    _ = migrator.config(facade_factory)
+
+    assert expected_configuration_file == file_system_facade.last_read_json_file_path
 
 
 class TestMigrator(MigratorPlugin):
@@ -108,7 +135,11 @@ class TestFileSystemFacade(FileSystemFacade):
             }
         }
 
+    def __init__(self):
+        self.last_read_json_file_path: Optional[str] = None
+
     def read_json_file(self, path):
+        self.last_read_json_file_path = path
         return self.config
 
 
