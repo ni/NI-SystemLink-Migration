@@ -1,30 +1,26 @@
 import json
 from manual_test_base import ManualTestBase, handle_command_line
 
-file_data = {
-        f'File {i}.txt': {
-            'contents': f'Contents {i}',
-            'properties': {
-                f'key{i}': f'value{i}'
-            }
-        } for i in range(1, 100)
-    }
 
 upload_route = '/nifile/v1/service-groups/Default/upload-files'
 get_route = '/nifile/v1/service-groups/Default/files'
+auth_route = '/niauth/v1/auth'
 
 
 class TestFile(ManualTestBase):
     def populate_data(self):
         self.__raise_if_existing_data()
-        self.__upload_files()
+        workspaces = self.__get_workspaces()
+        self.__upload_files(workspaces)
 
     def validate_data(self):
-        data = self.__get_files()
-        self.__assert_file_count(data)
+        workspaces = self.__get_workspaces()
+        expected_files = self.__get_expected_files(workspaces)
+        data = self.__get_files(len(expected_files))
+        self.__assert_file_count(data, len(expected_files))
 
         actual_files = self.__extract_file_details(data)
-        self.__assert_files_match(actual_files)
+        self.__assert_files_match(actual_files, expected_files)
 
     def __raise_if_existing_data(self):
         response = self.get(get_route, params={'take': 1})
@@ -36,25 +32,38 @@ class TestFile(ManualTestBase):
         if data['availableFiles']:
             raise RuntimeError('There is exising file data on the server')
 
-    def __upload_files(self):
+    def __upload_files(self, workspaces):
+        file_data = self.__get_expected_files(workspaces)
         for filename, data in file_data.items():
             file = {
                     'file': (filename, data['contents']),
                     'metadata': json.dumps(data['properties'])
                    }
-            response = self.post(upload_route, files=file)
+            workspace = data['workspace']
+            response = self.post(upload_route, params={'workspace': workspace}, files=file)
             response.raise_for_status()
 
-    def __get_files(self):
-        response = self.get(get_route, params={'take': len(file_data)})
+    def __get_files(self, expected_count):
+        response = self.get(get_route, params={'take': expected_count})
         response.raise_for_status()
 
         return response.json()
 
+    def __get_workspaces(self):
+        response = self.get(auth_route)
+        response.raise_for_status()
+
+        auth = response.json()
+        workspaces = [workspace['id'] for workspace in auth['workspaces'] if workspace['enabled']]
+        if len(workspaces) < 2:
+            raise RuntimeError('User needs access to at least 2 workspaces')
+
+        return workspaces
+
     def __extract_file_details(self, data):
         availableFiles = data['availableFiles']
-        return {filename: properties
-                for filename, properties
+        return {filename: file_data
+                for filename, file_data
                 in [self.__extract_single_file_details(availableFile)
                     for availableFile in availableFiles]}
 
@@ -63,7 +72,8 @@ class TestFile(ManualTestBase):
         contents = self.__download_file_contents(dataUrl)
         filename = availableFile['properties']['Name']
         properties = {k: v for k, v in availableFile['properties'].items() if k != 'Name'}
-        return (filename, {'contents': contents, 'properties': properties})
+        workspace = availableFile['workspace']
+        return (filename, {'contents': contents, 'properties': properties, 'workspace': workspace})
 
     def __download_file_contents(self, url):
         response = self.get(url)
@@ -71,17 +81,30 @@ class TestFile(ManualTestBase):
 
         return response.text
 
-    def __assert_file_count(self, data):
+    def __assert_file_count(self, data, expected_count):
         totalFiles = data['totalCount']
         actualFiles = data['availableFiles']
 
-        expectedCount = len(file_data)
+        assert totalFiles == expected_count
+        assert len(actualFiles) == expected_count
 
-        assert totalFiles == expectedCount
-        assert len(actualFiles) == expectedCount
+    def __assert_files_match(self, actual_files, expected_files):
+        assert actual_files == expected_files
 
-    def __assert_files_match(self, actual_files):
-        assert actual_files == file_data
+    def __get_expected_files(self, workspaces):
+        files = {}
+        for i in range(len(workspaces)):
+            for j in range(10):
+                count = i * 10 + j
+                files[f'File {count}.txt'] = {
+                    'contents': f'Contents {count}',
+                    'properties': {
+                        f'key{count}': f'value{count}'
+                    },
+                    'workspace': workspaces[i]
+                }
+
+        return files
 
 
 if __name__ == '__main__':
