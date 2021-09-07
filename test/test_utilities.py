@@ -1,3 +1,4 @@
+from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
@@ -41,3 +42,11 @@ class FakeMongoFacade(MongoFacade):
 
     def stop_mongo(self):
         self.is_mongo_running = False
+
+
+class FakeFacadeFactory(FacadeFactory):
+    def __init__(self):
+        super().__init__()
+        self.process_facade = FakeProcessFacade()
+        self.mongo_facade = FakeMongoFacade(self.process_facade)
+        self.system_link_service_manager_facade = FakeServiceManager()
