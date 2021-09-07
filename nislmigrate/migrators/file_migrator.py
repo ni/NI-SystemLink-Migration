@@ -6,6 +6,13 @@ from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 
+DEFAULT_DATA_DIRECTORY = os.path.join(
+    str(os.environ.get("ProgramData")),
+    "National Instruments",
+    "Skyline",
+    "Data",
+    "FileIngestion")
+
 
 class FileMigrator(MigratorPlugin):
 
@@ -21,12 +28,7 @@ class FileMigrator(MigratorPlugin):
     def help(self):
         return "Migrate ingested files"
 
-    __data_directory = os.path.join(
-        str(os.environ.get("ProgramData")),
-        "National Instruments",
-        "Skyline",
-        "Data",
-        "FileIngestion")
+    __data_directory = DEFAULT_DATA_DIRECTORY
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

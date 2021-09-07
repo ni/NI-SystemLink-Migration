@@ -43,6 +43,13 @@ class FakeMongoFacade(MongoFacade):
     def stop_mongo(self):
         self.is_mongo_running = False
 
+    @staticmethod
+    def validate_can_restore_database_from_directory(
+            directory: str,
+            dump_name: str,
+    ) -> None:
+        pass
+
 
 class FakeFacadeFactory(FacadeFactory):
     def __init__(self):
