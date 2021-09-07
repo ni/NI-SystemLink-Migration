@@ -54,7 +54,7 @@ The following services can be migrated with this utility:
 
 There are plans to support the following services in the near future:
 - Tag Alarm Rules: `--tagrule`
-- OPCUA Client: `--opc`
+- OPC UA Client: `--opc`
 - File Ingestion: `--files`
 - Test Monitor: `--tests`
 - Asset Management: `--assets`
