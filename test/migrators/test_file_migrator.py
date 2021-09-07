@@ -1,5 +1,5 @@
 from nislmigrate.facades.file_system_facade import FileSystemFacade
-from nislmigrate.migrators.file_migrator import FileMigrator, DEFAULT_DATA_DIRECTORY
+from nislmigrate.migrators.file_migrator import FileMigrator, DEFAULT_DATA_DIRECTORY, PATH_CONFIGURATION_KEY
 import pytest
 from test.test_utilities import FakeFacadeFactory
 from typing import Optional
@@ -19,6 +19,21 @@ def test_file_migrator_captures_from_default_location_when_unconfigured():
 
 
 @pytest.mark.unit
+def test_file_migrator_captures_from_configured_location():
+
+    facade_factory = FakeFacadeFactory()
+    file_system_facade = FakeFileSystemFacade()
+    facade_factory.file_system_facade = file_system_facade
+    migrator = FileMigrator()
+    expected_directory = 'custom/directory'
+    file_system_facade.config[PATH_CONFIGURATION_KEY] = expected_directory
+
+    migrator.capture('data_dir', facade_factory)
+
+    assert file_system_facade.last_from_directory == expected_directory
+
+
+@pytest.mark.unit
 def test_file_migrator_restores_to_default_location_when_unconfigured():
 
     facade_factory = FakeFacadeFactory()
@@ -31,19 +46,34 @@ def test_file_migrator_restores_to_default_location_when_unconfigured():
     assert file_system_facade.last_to_directory == DEFAULT_DATA_DIRECTORY
 
 
+@pytest.mark.unit
+def test_file_migrator_resteores_to_configured_location():
+
+    facade_factory = FakeFacadeFactory()
+    file_system_facade = FakeFileSystemFacade()
+    facade_factory.file_system_facade = file_system_facade
+    migrator = FileMigrator()
+    expected_directory = 'custom/directory'
+    file_system_facade.config[PATH_CONFIGURATION_KEY] = expected_directory
+
+    migrator.restore('data_dir', facade_factory)
+
+    assert file_system_facade.last_to_directory == expected_directory
+
+
 class FakeFileSystemFacade(FileSystemFacade):
     def __init__(self):
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
+
+        self.config = {
+                'Mongo.CustomConnectionString': 'mongodb://localhost',
+                'Mongo.Database': 'file'
+            }
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
         self.last_from_directory = from_directory
         self.last_to_directory = to_directory
 
     def read_json_file(self, path: str) -> dict:
-        return {
-            'FileIngestion': {
-                'Mongo.CustomConnectionString': 'mongodb://localhost',
-                'Mongo.Database': 'file'
-            }
-        }
+        return {'FileIngestion': self.config}

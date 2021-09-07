@@ -13,6 +13,8 @@ DEFAULT_DATA_DIRECTORY = os.path.join(
     "Data",
     "FileIngestion")
 
+PATH_CONFIGURATION_KEY = 'OutputPath'
+
 
 class FileMigrator(MigratorPlugin):
 
