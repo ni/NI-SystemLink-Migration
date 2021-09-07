@@ -53,8 +53,8 @@ The following services can be migrated with this utility:
 - Tag Ingestion and Tag History: `--tags`
 
 There are plans to support the following services in the near future:
-- Tag Alarm Rules: `--alarms`
-- OPCUA Client: `--opc`
+- Tag Alarm Rules: `--tagrule`
+- OPC UA Client: `--opc`
 - File Ingestion: `--files`
 - Test Monitor: `--tests`
 - Asset Management: `--assets`
