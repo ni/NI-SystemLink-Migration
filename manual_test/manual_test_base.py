@@ -5,8 +5,6 @@ from typing import Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 
-auth_route = '/niauth/v1/auth'
-
 
 class ManualTestBase:
 
@@ -78,24 +76,13 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
-    def __get_workspaces(self):
-        response = self.get(auth_route)
-        response.raise_for_status()
-
-        auth = response.json()
-        workspaces = [workspace['id'] for workspace in auth['workspaces'] if workspace['enabled']]
-        if len(workspaces) < 2:
-            raise RuntimeError('User needs access to at least 2 workspaces')
-
-        return workspaces
-
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     """
     Parses command line arguments, instantiates a test class,
     and populates or verifies data.
 
-    :param derived_class: The test class to instantiate
+    :param test_class: The test class to instantiate
     """
 
     parser = argparse.ArgumentParser()

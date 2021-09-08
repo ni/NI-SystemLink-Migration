@@ -2,12 +2,12 @@ import datetime
 from typing import List, Dict
 
 from manual_test.manual_test_base import ManualTestBase, handle_command_line
+from manual_test.test_workspace import TestWorkspace
 from nislmigrate.logs.migration_error import MigrationError
 
 TEST_WORKSPACE_NAME = "CustomWorkspaceForManualTagMigrationTest"
 CREATE_ROUTE = '/nitag/v2/tags/'
 GET_ROUTE = '/nitag/v2/tags-with-values/'
-WORKSPACES_ROUTE = '/niuser/v1/workspaces'
 data_types = ["INT", "DOUBLE", "DATE_TIME", "U_INT64", "BOOLEAN", "STRING"]
 data_type_values_1 = {
     "INT": 0,
@@ -59,7 +59,7 @@ expected_counts = {
 }
 
 
-class TestTag(ManualTestBase):
+class TestTag(ManualTestBase, TestWorkspace):
 
     def populate_data(self) -> None:
         self.__create_workspace(TEST_WORKSPACE_NAME)
@@ -132,17 +132,6 @@ class TestTag(ManualTestBase):
         response = self.put(url, json=json)
         response.raise_for_status()
         print("Done updating tag value")
-
-    def __get_workspace_id(self, workspace_name: str):
-        result = self.get(WORKSPACES_ROUTE)
-        workspaces = result.json()["workspaces"]
-        for workspace in workspaces:
-            if workspace["name"] == workspace_name:
-                return workspace["id"]
-        return None
-
-    def __create_workspace(self, workspace_name: str):
-        self.post(WORKSPACES_ROUTE, json={"name": workspace_name})
 
     def __get_tag_json_from_server(self, tag):
         url = CREATE_ROUTE + tag["workspace"] + "/" + tag["path"]
