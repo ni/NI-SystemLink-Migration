@@ -35,6 +35,7 @@ MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongod.exe"
 
 class MongoFacade:
     __mongo_process_handle: Optional[BackgroundProcess] = None
+    __drop_collections_on_restore = False
 
     def __init__(self, process_facade: ProcessFacade):
         self.process_facade: ProcessFacade = process_facade
@@ -86,6 +87,8 @@ class MongoFacade:
         mongo_restore_command.extend(connection_arguments)
         mongo_restore_command.append("--gzip")
         mongo_restore_command.append("--archive=" + dump_path)
+        if self.__drop_collections_on_restore:
+            mongo_restore_command.append("--drop")
         output = self.__ensure_mongo_process_is_running_and_execute_command(mongo_restore_command)
         self.__check_mongo_output_for_errors(output)
 
@@ -251,6 +254,7 @@ class MongoFacade:
         except ProcessError as e:
             log = logging.getLogger(MongoFacade.__name__)
             log.error(e.error)
+        return ""
 
     def __start_mongo(self) -> None:
         """
@@ -286,9 +290,16 @@ class MongoFacade:
 
     @staticmethod
     def __check_mongo_output_for_errors(output: str):
-        lines = output.splitlines()
+        if not output:
+            return
+        raw_lines = output.splitlines()
+        lines = [line.split("\t")[1] for line in raw_lines if len(line.split("\t")) > 1]
         for line in lines:
-            print(line)
-            if "error: E" in line:
-                log = logging.getLogger(MongoFacade.__name__)
-                log.error(f"Mongo reported the following warning: {MongoFacade}")
+            if "error:" in line:
+                raise MigrationError(f"Mongo reported the following error: {line}")
+            else:
+                log = logging.getLogger("MongoProcess")
+                log.info(f"{line}")
+
+    def set_drop_collections_on_restore(self, should_drop: bool):
+        self.__drop_collections_on_restore = should_drop
