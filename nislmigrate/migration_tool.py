@@ -1,4 +1,3 @@
-from nislmigrate.logs.migration_error import MigrationWarning
 from nislmigrate.utility import permission_checker
 from nislmigrate.logs import logging_setup, migration_error
 from nislmigrate.argument_handler import ArgumentHandler
