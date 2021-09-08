@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 import os
 
 from nislmigrate.facades.facade_factory import FacadeFactory
@@ -68,3 +69,10 @@ class FileMigrator(MigratorPlugin):
 
     def __data_directory(self, facade_factory):
         return self.config(facade_factory).get(PATH_CONFIGURATION_KEY, DEFAULT_DATA_DIRECTORY)
+
+    def add_additional_arguments(self, parser: ArgumentParser) -> None:
+        parser.add_argument('--files-metadata-only',
+            help='Capture/restore the file metadata only, not the files themselves.',
+            action='store_true')
+
+

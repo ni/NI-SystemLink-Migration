@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from typing import Dict, Any, Optional
 
 import os
@@ -88,5 +89,15 @@ class MigratorPlugin(abc.ABC):
         :param migration_directory: The directory to migrate to.
         :param facade_factory: Factory that produces objects capable of doing
                          actual restore operations.
+        """
+        pass
+
+    @abc.abstractmethod
+    def add_additional_arguments(parser: ArgumentParser) -> None:
+        """
+        Adds additional command line arguments to control the behavior of the migration.
+        Arguments names must be unique across all migrators.
+
+        :param parser: The parser used for command line arguments.
         """
         pass
