@@ -15,15 +15,15 @@ class TestNotification(ManualTestBase):
         message_templates = self.__populate_message_templates()
         self.__populate_notification_strategies(address_groups, message_templates)
 
-    def capture_initial_data(self):
-        self.write_capture_file(service_name, 'address_groups', self.__get_all_address_groups())
-        self.write_capture_file(service_name, 'message_templates', self.__get_all_message_templates())
-        self.write_capture_file(service_name, 'notification_strategies', self.__get_all_notification_strategies())
+    def record_initial_data(self):
+        self.record_data(service_name, 'address_groups', self.__get_all_address_groups())
+        self.record_data(service_name, 'message_templates', self.__get_all_message_templates())
+        self.record_data(service_name, 'notification_strategies', self.__get_all_notification_strategies())
 
     def validate_data(self):
-        initial_address_groups = self.read_capture_file(service_name, 'address_groups')
-        initial_message_templates = self.read_capture_file(service_name, 'message_templates')
-        initial_notification_strategies = self.read_capture_file(service_name, 'notification_strategies')
+        initial_address_groups = self.read_recorded_data(service_name, 'address_groups')
+        initial_message_templates = self.read_recorded_data(service_name, 'message_templates')
+        initial_notification_strategies = self.read_recorded_data(service_name, 'notification_strategies')
 
         address_groups_to_validate = self.__get_all_address_groups()
         self.__validate_address_groups(address_groups_to_validate, initial_address_groups)

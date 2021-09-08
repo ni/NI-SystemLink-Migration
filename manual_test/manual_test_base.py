@@ -32,10 +32,10 @@ class ManualTestBase:
 
         raise NotImplementedError
 
-    def capture_initial_data(self) -> None:
+    def record_initial_data(self) -> None:
         """
-        Derived class should ovveride to capture the initial state of the SystemLink server prior
-        to running a restore operation. Captured data should be used by the validate_data() method.
+        Derived class should ovveride to record the initial state of the SystemLink server prior
+        to running a restore operation. Recorded data should be used by the validate_data() method.
         """
 
         raise NotImplementedError
@@ -86,22 +86,22 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
-    def read_capture_file(self, category: str, collection: str) -> dict:
-        file_path = self.__build_capture_file_path(category, collection, create_folder_if_missing=False)
+    def read_recorded_data(self, category: str, collection: str) -> dict:
+        file_path = self.__build_recording_file_path(category, collection, create_folder_if_missing=False)
 
         try:
             with open(file_path, 'r') as file:
                 return json.load(file)
         except Exception:
-            msg = f'Unable to read capture file found for category=\'{category}\'; collection=\'{collection}\''
+            msg = f'Unable to read recording file for category=\'{category}\'; collection=\'{collection}\''
             raise RuntimeError(msg)
 
-    def write_capture_file(self, category: str, collection: str, data) -> None:
-        file_path = self.__build_capture_file_path(category, collection, create_folder_if_missing=True)
+    def record_data(self, category: str, collection: str, data) -> None:
+        file_path = self.__build_recording_file_path(category, collection, create_folder_if_missing=True)
         with open(file_path, 'w') as file:
             json.dump(data, file)
 
-    def __build_capture_file_path(self, category: str, collection: str, create_folder_if_missing: bool) -> str:
+    def __build_recording_file_path(self, category: str, collection: str, create_folder_if_missing: bool) -> str:
         folder_path = os.path.join(os.getcwd(), '.test', category)
         if create_folder_if_missing:
             os.makedirs(folder_path, exist_ok=True)
@@ -124,8 +124,8 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     subparsers = parser.add_subparsers(dest='command', required=True)
     subparsers.add_parser('populate', help='populate the server with test data')
     subparsers.add_parser(
-        'capture',
-        help='capture the initial state of the server prior to running a restore operation')
+        'record',
+        help='record the initial state of the server prior to running a restore operation')
     subparsers.add_parser('validate', help='validate the data on the server matches the test data')
 
     options = parser.parse_args()
@@ -137,7 +137,7 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
 
     if 'populate' == options.command:
         test.populate_data()
-    elif 'capture' == options.command:
-        test.capture_initial_data()
+    elif 'record' == options.command:
+        test.record_initial_data()
     elif 'validate' == options.command:
         test.validate_data()

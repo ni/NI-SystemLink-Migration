@@ -16,7 +16,7 @@ class TestFile(ManualTestBase, TestWorkspace):
         workspaces = self.__get_workspaces()
         self.__upload_files(workspaces)
 
-    def capture_initial_data(self):
+    def record_initial_data(self):
         """The file service should not be populated with initial data."""
         pass
 
