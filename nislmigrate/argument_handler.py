@@ -191,4 +191,4 @@ class ArgumentHandler:
                 help=plugin.help,
                 action="store_true",
                 dest=plugin.argument)
-            # plugin.add_additional_arguments(parser)
+            plugin.add_additional_arguments(parser)

@@ -72,7 +72,7 @@ class FileMigrator(MigratorPlugin):
 
     def add_additional_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument('--files-metadata-only',
-            help='Capture/restore the file metadata only, not the files themselves.',
+            help='Capture/restore the file metadata only, not the files themselves. Ignored without --files or --all.',
             action='store_true')
 
 

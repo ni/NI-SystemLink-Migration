@@ -92,8 +92,7 @@ class MigratorPlugin(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
-    def add_additional_arguments(parser: ArgumentParser) -> None:
+    def add_additional_arguments(self, parser: ArgumentParser) -> None:
         """
         Adds additional command line arguments to control the behavior of the migration.
         Arguments names must be unique across all migrators.
@@ -101,3 +100,7 @@ class MigratorPlugin(abc.ABC):
         :param parser: The parser used for command line arguments.
         """
         pass
+
+    @property
+    def arguments(self) -> Namespace:
+        return __arguments
