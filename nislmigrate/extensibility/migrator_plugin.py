@@ -62,7 +62,7 @@ class MigratorPlugin(abc.ABC):
         return self.__cached_config
 
     @abc.abstractmethod
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
         """
         Captures the given service from SystemLink.
         :param migration_directory: the root path to perform the capture to.
@@ -72,7 +72,7 @@ class MigratorPlugin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
         """
         Restores the given service to SystemLink.
         :param migration_directory: the root path to perform the restore from.
@@ -95,12 +95,8 @@ class MigratorPlugin(abc.ABC):
     def add_additional_arguments(self, parser: ArgumentParser) -> None:
         """
         Adds additional command line arguments to control the behavior of the migration.
-        Arguments names must be unique across all migrators.
+        Arguments names must begin with '--<plugin name>-'.
 
         :param parser: The parser used for command line arguments.
         """
         pass
-
-    @property
-    def arguments(self) -> Namespace:
-        return __arguments

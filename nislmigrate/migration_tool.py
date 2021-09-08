@@ -12,7 +12,8 @@ def run_migration_tool(
         facade_factory: FacadeFactory,
         services_to_migrate: List[MigratorPlugin],
         migration_action: MigrationAction,
-        migration_directory: str) -> None:
+        migration_directory: str,
+        migrator_arguments: dict) -> None:
     """
     Runs the migration.
 
@@ -22,7 +23,7 @@ def run_migration_tool(
     """
 
     migration_facilitator = MigrationFacilitator(facade_factory)
-    migration_facilitator.migrate(services_to_migrate, migration_action, migration_directory)
+    migration_facilitator.migrate(services_to_migrate, migration_action, migration_directory, migrator_arguments)
 
 
 def main():
@@ -39,9 +40,10 @@ def main():
         migration_action = argument_handler.get_migration_action()
         services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
         migration_directory = argument_handler.get_migration_directory()
+        migrator_arguments = argument_handler.get_migrator_arguments()
 
         facade_factory = FacadeFactory()
-        run_migration_tool(facade_factory, services_to_migrate, migration_action, migration_directory)
+        run_migration_tool(facade_factory, services_to_migrate, migration_action, migration_directory, migrator_arguments)
 
     except Exception as e:
         migration_error.handle_migration_error(e)

@@ -66,6 +66,13 @@ class ArgumentHandler:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
         return enabled_plugins
 
+    def get_migrator_arguments(self) -> dict:
+        d = vars(parsed_arguments)
+        migrator_arguments = {}
+        for p in self.__get_enabled_plugins():
+            prefix = f'--{p.argument}-'
+            migrator_arguments[p.argument] = { k, v for k, v in d.items() if k.begins(prefix) }
+
     def __get_enabled_plugins(self) -> List[MigratorPlugin]:
         arguments: List[str] = self.__get_enabled_plugin_arguments()
         return [self.__find_plugin_for_argument(argument) for argument in arguments]

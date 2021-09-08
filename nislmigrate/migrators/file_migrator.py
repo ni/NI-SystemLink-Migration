@@ -31,7 +31,7 @@ class FileMigrator(MigratorPlugin):
     def help(self):
         return "Migrate ingested files"
 
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory):
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, migrator_arguments: dict):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
@@ -41,10 +41,12 @@ class FileMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory(
-            self.__data_directory(facade_factory),
-            file_migration_directory,
-            False)
+
+        if migrator_arguments['--files-metadata-only']:
+            file_facade.copy_directory(
+                self.__data_directory(facade_factory),
+                file_migration_directory,
+                False)
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
@@ -56,10 +58,12 @@ class FileMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory(
-            file_migration_directory,
-            self.__data_directory(facade_factory),
-            True)
+
+        if migrator_arguments['--files-metadata-only']:
+            file_facade.copy_directory(
+                file_migration_directory,
+                self.__data_directory(facade_factory),
+                True)
 
     def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
