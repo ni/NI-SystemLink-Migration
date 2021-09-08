@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import pytest
@@ -84,11 +85,6 @@ def test_restore_two_services_arguments_recognizes_both_services():
 
 @pytest.mark.unit
 def test_get_migration_directory_returns_default():
-    """
-    given: The --dir argument is not specified when constructing the argument handler.
-    when: get_migration_directory is called.
-    then: the migration directory returned is the default one.
-    """
     arguments = [CAPTURE_ARGUMENT, "--tags"]
     argument_handler = ArgumentHandler(arguments)
 
@@ -97,12 +93,14 @@ def test_get_migration_directory_returns_default():
 
 @pytest.mark.unit
 def test_get_migration_directory_returns_migration_directory():
-    """
-    given: The --dir argument is specified when constructing the argument handler.
-    when: get_migration_directory is called.
-    then: the migration directory returned is the one specified in the command arguments.
-    """
     arguments = [CAPTURE_ARGUMENT, "--tags", "--dir=test"]
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == "test"
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_no_arguments():
+    arguments = []
+    argument_handler = ArgumentHandler(arguments)
+
+    assert argument_handler.get_logging_verbosity() == logging.WARNING
