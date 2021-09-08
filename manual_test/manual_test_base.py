@@ -86,13 +86,26 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
-    def write_capture_file(self, category: str, collection: str, data) -> None:
-        folder_path = os.path.join(os.getcwd(), '.test', category)
-        os.makedirs(folder_path, exist_ok = True)
+    def read_capture_file(self, category: str, collection: str) -> dict:
+        file_path = self.__build_capture_file_path(category, collection, create_folder_if_missing=False)
 
-        file_path = os.path.join(folder_path, collection + '.json')
+        try:
+            with open(file_path, 'r') as file:
+                return json.load(file)
+        except Exception:
+            raise RuntimeError(f'Unable to read capture file found for category=\'{category}\'; collection=\'{collection}\'')
+
+    def write_capture_file(self, category: str, collection: str, data) -> None:
+        file_path = self.__build_capture_file_path(category, collection, create_folder_if_missing=True)
         with open(file_path, 'w') as file:
             json.dump(data, file)
+
+    def __build_capture_file_path(self, category: str, collection: str, create_folder_if_missing: bool) -> str:
+        folder_path = os.path.join(os.getcwd(), '.test', category)
+        if create_folder_if_missing:
+            os.makedirs(folder_path, exist_ok=True)
+        
+        return os.path.join(folder_path, collection + '.json')
 
 
 
