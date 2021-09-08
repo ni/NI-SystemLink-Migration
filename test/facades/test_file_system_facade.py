@@ -34,15 +34,15 @@ def test_copy_directory_destination_directory_not_empty_raises_error(directory):
 
 @pytest.mark.unit
 @tempdir()
-def test_force_copy_directory_destination_directory_contents_deleted(directory):
+def test_force_copy_directory_to_non_empty_destination(directory):
     source_path = make_directory(directory, "source")
     destination_path = make_directory(directory, "destination")
-    deleted_file_path = make_file(destination_path, "demofile2.txt")
+    file_path = make_file(destination_path, "demofile2.txt")
     file_system_facade = FileSystemFacade()
 
     file_system_facade.copy_directory(source_path, destination_path, True)
 
-    assert not os.path.exists(deleted_file_path)
+    assert os.path.exists(file_path)
 
 
 @pytest.mark.unit
@@ -83,6 +83,36 @@ def test_copy_file_does_not_copy_wrong_file(directory):
     file_system_facade.copy_file(source_path, destination_path, "demofile3.txt")
 
     assert not os.path.exists(unwanted_file_path)
+
+
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_clear_enabled_clears_destination_directory(directory):
+    source_path = make_directory(directory, "source")
+    destination_path = make_directory(directory, "destination")
+    make_file(source_path, "demofile3.txt")
+    make_file(destination_path, "demofile2.txt")
+    unwanted_file_path = os.path.join(destination_path, "demofile2.txt")
+    file_system_facade = FileSystemFacade()
+    file_system_facade.set_clear_restore_directory_before_restore(True)
+
+    file_system_facade.copy_directory(source_path, destination_path, True)
+
+    assert not os.path.exists(unwanted_file_path)
+
+
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_clear_disabled_does_not_clear_destination_directory(directory):
+    source_path = make_directory(directory, "source")
+    destination_path = make_directory(directory, "destination")
+    make_file(source_path, "demofile3.txt")
+    desired_file = make_file(destination_path, "demofile2.txt")
+    file_system_facade = FileSystemFacade()
+
+    file_system_facade.copy_directory(source_path, destination_path, True)
+
+    assert os.path.exists(desired_file)
 
 
 def make_directory(temp_directory: TempDirectory, name: str) -> str:

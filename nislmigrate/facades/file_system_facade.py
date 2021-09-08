@@ -1,15 +1,17 @@
 """Handle file and directory operations."""
-
 import json
 import os
 import shutil
 import stat
+from distutils.dir_util import copy_tree
 
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 
 
 class FileSystemFacade:
+    __clear_restore_directory_before_restore: bool = False
+
     """
     Handles operations that act on the real file system.
     """
@@ -24,9 +26,10 @@ class FileSystemFacade:
         os.chmod(path, stat.S_IWRITE)
         func(path)
 
-    def determine_migration_directory_for_service(self,
-                                                  migration_directory_root: str,
-                                                  service_name: str):
+    def determine_migration_directory_for_service(
+            self,
+            migration_directory_root: str,
+            service_name: str):
         """
         Generates the migration directory for a particular service.
 
@@ -117,6 +120,9 @@ class FileSystemFacade:
         root = migration_directory_root
         migration_dir = self.determine_migration_directory_for_service(root, service_name)
         singlefile_full_path = os.path.join(migration_dir, file)
+        if self.__clear_restore_directory_before_restore:
+            self.remove_dir(restore_directory)
+            os.mkdir(restore_directory)
         shutil.copy(singlefile_full_path, restore_directory)
 
     def read_json_file(self, path: str) -> dict:
@@ -157,6 +163,9 @@ class FileSystemFacade:
             raise MigrationError(error)
         if not os.path.exists(from_directory):
             raise MigrationError("No data found at: '%s'" % from_directory)
+        if self.__clear_restore_directory_before_restore:
+            self.remove_dir(to_directory)
+        copy_tree(from_directory, to_directory)
 
-        self.remove_dir(to_directory)
-        shutil.copytree(from_directory, to_directory)
+    def set_clear_restore_directory_before_restore(self, should_delete: bool):
+        self.__clear_restore_directory_before_restore = should_delete

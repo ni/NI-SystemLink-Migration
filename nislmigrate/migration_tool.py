@@ -42,11 +42,12 @@ def main():
         migration_directory = argument_handler.get_migration_directory()
 
         facade_factory = FacadeFactory()
+        allow_overwriting_data = argument_handler.is_force_migration_flag_present()
+        permission_checker.verify_force_if_restoring(allow_overwriting_data, migration_action)
         mongo_facade = facade_factory.get_mongo_facade()
-        allow_dropping_collections = argument_handler.is_force_migration_flag_present()
-        mongo_facade.set_drop_collections_on_restore(allow_dropping_collections)
-
-        permission_checker.verify_force_if_restoring(allow_dropping_collections, migration_action)
+        mongo_facade.set_drop_collections_on_restore(allow_overwriting_data)
+        file_system_facade = facade_factory.get_file_system_facade()
+        file_system_facade.set_clear_restore_directory_before_restore(allow_overwriting_data)
 
         run_migration_tool(facade_factory, services_to_migrate, migration_action, migration_directory)
     except MigrationWarning as e:
