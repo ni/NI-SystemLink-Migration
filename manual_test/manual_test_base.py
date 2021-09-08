@@ -7,6 +7,11 @@ from typing import Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 
+# Record type for data recorded from a clean server prior to restoring data
+CLEAN_SERVER_RECORD_TYPE = 'clean'
+# Record type for data recorded from a server which is populated with test data
+POPULATED_SERVER_RECORD_TYPE = 'populated'
+
 
 class ManualTestBase:
 
@@ -86,27 +91,49 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
-    def read_recorded_data(self, category: str, collection: str) -> dict:
-        file_path = self.__build_recording_file_path(category, collection, create_folder_if_missing=False)
+    def read_recorded_data(
+            self,
+            category: str,
+            collection: str,
+            record_type: str,
+            required: bool = True) -> list:
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            create_folder_if_missing=False)
 
         try:
             with open(file_path, 'r') as file:
                 return json.load(file)
         except Exception:
-            msg = f'Unable to read recording file for category=\'{category}\'; collection=\'{collection}\''
-            raise RuntimeError(msg)
+            if required:
+                msg = f'Unable to read recording file for category=\'{category}\'; collection=\'{collection}\''
+                raise RuntimeError(msg)
 
-    def record_data(self, category: str, collection: str, data) -> None:
-        file_path = self.__build_recording_file_path(category, collection, create_folder_if_missing=True)
+        return []
+
+    def record_data(self, category: str, collection: str, record_type: str, data) -> None:
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            create_folder_if_missing=True)
         with open(file_path, 'w') as file:
             json.dump(data, file)
 
-    def __build_recording_file_path(self, category: str, collection: str, create_folder_if_missing: bool) -> str:
+    def __build_recording_file_path(
+            self,
+            category: str,
+            collection: str,
+            record_type: str,
+            create_folder_if_missing: bool) -> str:
         folder_path = os.path.join(os.getcwd(), '.test', category)
         if create_folder_if_missing:
             os.makedirs(folder_path, exist_ok=True)
 
-        return os.path.join(folder_path, collection + '.json')
+        filename = collection + '.' + record_type + '.json'
+        return os.path.join(folder_path, filename)
 
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
