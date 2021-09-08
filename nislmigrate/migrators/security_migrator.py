@@ -4,19 +4,19 @@ from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 
 
-class UserDataMigrator(MigratorPlugin):
+class SecurityMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "UserData"
+        return "Security"
 
     @property
     def argument(self):
-        return "userdata"
+        return "security"
 
     @property
     def help(self):
-        return "Migrate user data"
+        return "Migrate workspaces."
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
