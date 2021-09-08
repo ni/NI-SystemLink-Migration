@@ -1,13 +1,13 @@
-import json
 from manual_test_base import ManualTestBase, handle_command_line
 
 service_name = 'Notification'
 get_address_groups_route = '/ninotification/v1/address-groups'
 get_message_templates_route = '/ninotification/v1/message-templates'
 get_notification_strategies_route = '/ninotification/v1/notification-strategies'
-create_address_group_route ='/ninotification/v1/address-groups'
-create_message_templates_route ='/ninotification/v1/message-templates'
-create_notification_strategy_route ='/ninotification/v1/notification-strategies'
+create_address_group_route = '/ninotification/v1/address-groups'
+create_message_templates_route = '/ninotification/v1/message-templates'
+create_notification_strategy_route = '/ninotification/v1/notification-strategies'
+
 
 class TestNotification(ManualTestBase):
     def populate_data(self):
@@ -59,7 +59,7 @@ class TestNotification(ManualTestBase):
 
         for address_group_to_validate in address_groups_to_validate:
             if self.__is_generated(address_group_to_validate):
-                self.__assertAddressGroupsEqual( 
+                self.__assertAddressGroupsEqual(
                     self.__find_matching_record(address_group_to_validate, generated_address_groups),
                     address_group_to_validate)
             else:
@@ -74,7 +74,7 @@ class TestNotification(ManualTestBase):
                 'interpretingServiceName': 'Smtp',
                 'displayName': f'Address Group {i}',
                 'fields': self.__get_expected_smtp_address_group_fields(i),
-                'properties': { 'forTest': 'True' }
+                'properties': {'forTest': 'True'}
             })
 
         return address_groups
@@ -109,7 +109,7 @@ class TestNotification(ManualTestBase):
 
         for message_template_to_validate in message_templates_to_validate:
             if self.__is_generated(message_template_to_validate):
-                self.__assertMessageTemplatesEqual( 
+                self.__assertMessageTemplatesEqual(
                     self.__find_matching_record(message_template_to_validate, generated_message_templates),
                     message_template_to_validate)
             else:
@@ -124,7 +124,7 @@ class TestNotification(ManualTestBase):
                 'interpretingServiceName': 'Smtp',
                 'displayName': f'Message Template {i}',
                 'fields': self.__get_example_smtp_message_template_fields(i),
-                'properties': { 'forTest': 'True' }
+                'properties': {'forTest': 'True'}
             })
 
         return message_templates
@@ -166,11 +166,13 @@ class TestNotification(ManualTestBase):
             all_message_templates):
         generated_address_groups = [group for group in all_address_groups if self.__is_generated(group)]
         generated_message_templates = [template for template in all_message_templates if self.__is_generated(template)]
-        generated_notification_strategies = self.__get_expected_notification_strategies(generated_address_groups, generated_message_templates)
+        generated_notification_strategies = self.__get_expected_notification_strategies(
+            generated_address_groups,
+            generated_message_templates)
 
         for notification_strategy_to_validate in notification_strategies_to_validate:
             if self.__is_generated(notification_strategy_to_validate):
-                self.__assertNotificationStrategiesEqual( 
+                self.__assertNotificationStrategiesEqual(
                     self.__find_matching_record(notification_strategy_to_validate, generated_notification_strategies),
                     notification_strategy_to_validate,
                     include_links=True)
@@ -179,7 +181,6 @@ class TestNotification(ManualTestBase):
                     self.__find_matching_record(notification_strategy_to_validate, initial_notification_strategies),
                     notification_strategy_to_validate,
                     include_links=False)
-
 
     def __get_expected_notification_strategies(self, address_groups, message_templates) -> list:
         notification_strategies = []
@@ -191,7 +192,7 @@ class TestNotification(ManualTestBase):
                 notification_strategies.append({
                     'displayName': f'Notification Strategy {index}',
                     'description': f'Description {index}',
-                    'properties': { 'forTest': 'True' },
+                    'properties': {'forTest': 'True'},
                     'notificationConfigurations': [{
                         'addressGroupId': address_group_id,
                         'messageTemplateId': message_template_id,
@@ -215,6 +216,7 @@ class TestNotification(ManualTestBase):
 
     def __find_matching_record(self, record, collection):
         return next(item for item in collection if item['displayName'] == record['displayName'])
+
 
 if __name__ == '__main__':
     handle_command_line(TestNotification)

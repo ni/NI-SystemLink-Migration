@@ -93,7 +93,8 @@ class ManualTestBase:
             with open(file_path, 'r') as file:
                 return json.load(file)
         except Exception:
-            raise RuntimeError(f'Unable to read capture file found for category=\'{category}\'; collection=\'{collection}\'')
+            msg = f'Unable to read capture file found for category=\'{category}\'; collection=\'{collection}\''
+            raise RuntimeError(msg)
 
     def write_capture_file(self, category: str, collection: str, data) -> None:
         file_path = self.__build_capture_file_path(category, collection, create_folder_if_missing=True)
@@ -104,9 +105,8 @@ class ManualTestBase:
         folder_path = os.path.join(os.getcwd(), '.test', category)
         if create_folder_if_missing:
             os.makedirs(folder_path, exist_ok=True)
-        
-        return os.path.join(folder_path, collection + '.json')
 
+        return os.path.join(folder_path, collection + '.json')
 
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
@@ -123,7 +123,9 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     parser.add_argument('--password', '-p', required=True, help='server password.')
     subparsers = parser.add_subparsers(dest='command', required=True)
     subparsers.add_parser('populate', help='populate the server with test data')
-    subparsers.add_parser('capture', help='capture the initial state of the server prior to running a restore operation')
+    subparsers.add_parser(
+        'capture',
+        help='capture the initial state of the server prior to running a restore operation')
     subparsers.add_parser('validate', help='validate the data on the server matches the test data')
 
     options = parser.parse_args()
