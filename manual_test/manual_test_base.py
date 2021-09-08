@@ -1,4 +1,6 @@
 import argparse
+import json
+import os
 from requests.auth import HTTPBasicAuth
 import requests
 from typing import Type
@@ -26,6 +28,14 @@ class ManualTestBase:
     def populate_data(self) -> None:
         """
         Derived class should override to populate the SystemLink server with test data.
+        """
+
+        raise NotImplementedError
+
+    def capture_initial_data(self) -> None:
+        """
+        Derived class should ovveride to capture the initial state of the SystemLink server prior
+        to running a restore operation. Captured data should be used by the validate_data() method.
         """
 
         raise NotImplementedError
@@ -76,6 +86,15 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
+    def write_capture_file(self, category: str, collection: str, data) -> None:
+        folder_path = os.path.join(os.getcwd(), '.test', category)
+        os.makedirs(folder_path, exist_ok = True)
+
+        file_path = os.path.join(folder_path, collection + '.json')
+        with open(file_path, 'w') as file:
+            json.dump(data, file)
+
+
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     """
@@ -91,6 +110,7 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     parser.add_argument('--password', '-p', required=True, help='server password.')
     subparsers = parser.add_subparsers(dest='command', required=True)
     subparsers.add_parser('populate', help='populate the server with test data')
+    subparsers.add_parser('capture', help='capture the initial state of the server prior to running a restore operation')
     subparsers.add_parser('validate', help='validate the data on the server matches the test data')
 
     options = parser.parse_args()
@@ -102,5 +122,7 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
 
     if 'populate' == options.command:
         test.populate_data()
+    elif 'capture' == options.command:
+        test.capture_initial_data()
     elif 'validate' == options.command:
         test.validate_data()

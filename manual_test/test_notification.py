@@ -1,6 +1,7 @@
 import json
 from manual_test_base import ManualTestBase, handle_command_line
 
+service_name = 'Notification'
 get_address_groups_route = '/ninotification/v1/address-groups'
 get_message_templates_route = '/ninotification/v1/message-templates'
 get_notification_strategies_route = '/ninotification/v1/notification-strategies'
@@ -13,6 +14,11 @@ class TestNotification(ManualTestBase):
         address_groups = self.__populate_address_groups()
         message_templates = self.__populate_message_templates()
         self.__populate_notification_strategies(address_groups, message_templates)
+
+    def capture_initial_data(self):
+        self.write_capture_file(service_name, 'address_groups', self.__get_all_address_groups())
+        self.write_capture_file(service_name, 'message_templates', self.__get_all_message_templates())
+        self.write_capture_file(service_name, 'notification-strategies', self.__get_all_notification_strategies())
 
     def validate_data(self):
         return
@@ -82,6 +88,12 @@ class TestNotification(ManualTestBase):
         fields['bodyTemplate'] = f'Sample body template {index}'
 
         return fields
+
+    def __get_all_notification_strategies(self) -> list:
+        response = self.get(get_notification_strategies_route)
+        response.raise_for_status()
+
+        return response.json()
 
     def __populate_notification_strategies(self, address_groups, message_templates) -> list:
         created_strategies = []

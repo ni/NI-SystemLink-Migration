@@ -13,6 +13,10 @@ class TestFile(ManualTestBase):
         workspaces = self.__get_workspaces()
         self.__upload_files(workspaces)
 
+    def capture_initial_data(self):
+        """The file service should not be populated with initial data."""
+        pass
+
     def validate_data(self):
         workspaces = self.__get_workspaces()
         expected_files = self.__get_expected_files(workspaces)

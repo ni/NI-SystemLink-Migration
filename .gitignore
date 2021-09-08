@@ -142,3 +142,6 @@ cython_debug/
 # PyCharm IDE Settings
 .idea/
 poetry.lock
+
+# Test output
+.test/
