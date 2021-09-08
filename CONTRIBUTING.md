@@ -28,7 +28,7 @@ poetry install
 ```
 Finally, to run the tool while developing, use the poetry `run` command:
 ```bash
-poerty run nislmigrate
+poetry run nislmigrate
 ```
 ### Running tests
 The unit tests in this repository can be executed using:
@@ -38,7 +38,7 @@ poetry run task test
 ### Code style
 The python code style in this repository adheres to the `flake8` linters default and uses `mypy` to check types hints. Linting can be run on the repository using:"
 ```bash
-poerty run task lint
+poetry run task lint
 ```
 
 ### Extensibility
@@ -82,7 +82,7 @@ After you've verified that you can successfully run the unit tests and they all 
 1. Verify all tests, including the new ones, pass.
 1. On GitHub, send a new pull request to the main repository's master branch. GitHub
    pull requests are the expected method of code collaboration on this project.
-1. Add at least one reviewer to the pull request and wait for thier approval.
+1. Add at least one reviewer to the pull request and wait for their approval.
 1. Merge the pull request into master
    
 ## Releasing

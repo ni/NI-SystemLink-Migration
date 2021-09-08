@@ -6,6 +6,7 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
 from nislmigrate.migration_facilitator import MigrationFacilitator
+from test.test_utilities import FakeMongoFacade
 from pathlib import Path
 import pytest
 from typing import Optional
@@ -115,19 +116,6 @@ class TestSystemLinkServiceManagerFacade(SystemLinkServiceManagerFacade):
         self.are_services_running = True
 
 
-class TestMongoFacade(MongoFacade):
-    is_mongo_running = True
-
-    def __init__(self, process_facade: ProcessFacade):
-        super().__init__(process_facade)
-
-    def start_mongo(self):
-        self.is_mongo_running = True
-
-    def stop_mongo(self):
-        self.is_mongo_running = False
-
-
 class TestFileSystemFacade(FileSystemFacade):
     config = {
             "test": {
@@ -148,7 +136,7 @@ class FakeFacadeFactory(FacadeFactory):
     def __init__(self):
         super().__init__()
         self.process_facade = ProcessFacade()
-        self.mongo_facade: TestMongoFacade = TestMongoFacade(self.process_facade)
+        self.mongo_facade: FakeMongoFacade = FakeMongoFacade(self.process_facade)
         self.file_system_facade: TestFileSystemFacade = TestFileSystemFacade()
         self.system_link_service_manager_facade: SystemLinkServiceManagerFacade = TestSystemLinkServiceManagerFacade()
 

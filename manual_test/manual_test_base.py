@@ -82,7 +82,7 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     Parses command line arguments, instantiates a test class,
     and populates or verifies data.
 
-    :param derived_class: The test class to instantiate
+    :param test_class: The test class to instantiate
     """
 
     parser = argparse.ArgumentParser()
