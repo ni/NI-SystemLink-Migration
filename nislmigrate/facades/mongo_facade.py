@@ -35,7 +35,6 @@ MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongod.exe"
 
 class MongoFacade:
     __mongo_process_handle: Optional[BackgroundProcess] = None
-    __drop_collections_on_restore = False
 
     def __init__(self, process_facade: ProcessFacade):
         self.process_facade: ProcessFacade = process_facade
@@ -87,8 +86,7 @@ class MongoFacade:
         mongo_restore_command.extend(connection_arguments)
         mongo_restore_command.append("--gzip")
         mongo_restore_command.append("--archive=" + dump_path)
-        if self.__drop_collections_on_restore:
-            mongo_restore_command.append("--drop")
+        mongo_restore_command.append("--drop")
         output = self.__ensure_mongo_process_is_running_and_execute_command(mongo_restore_command)
         self.__check_mongo_output_for_errors(output)
 
@@ -300,6 +298,3 @@ class MongoFacade:
             else:
                 log = logging.getLogger("MongoProcess")
                 log.info(f"{line}")
-
-    def set_drop_collections_on_restore(self, should_drop: bool):
-        self.__drop_collections_on_restore = should_drop

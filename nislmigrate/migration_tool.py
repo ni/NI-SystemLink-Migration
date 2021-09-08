@@ -41,11 +41,8 @@ def main():
         migration_directory = argument_handler.get_migration_directory()
 
         facade_factory = FacadeFactory()
-        mongo_facade = facade_factory.get_mongo_facade()
-        allow_dropping_collections = argument_handler.is_force_migration_flag_present()
-        mongo_facade.set_drop_collections_on_restore(allow_dropping_collections)
-
-        permission_checker.verify_force_if_restoring(allow_dropping_collections, migration_action)
+        is_force_migration_flag_present = argument_handler.is_force_migration_flag_present()
+        permission_checker.verify_force_if_restoring(is_force_migration_flag_present, migration_action)
 
         run_migration_tool(facade_factory, services_to_migrate, migration_action, migration_directory)
     except Exception as e:
