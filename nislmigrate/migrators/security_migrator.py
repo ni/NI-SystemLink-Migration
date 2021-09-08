@@ -1,22 +1,22 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
-from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class AlarmRuleMigrator(MigratorPlugin):
-
-    @property
-    def argument(self):
-        return "alarmrule"
+class SecurityMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "TagRuleEngine"
+        return "Security"
+
+    @property
+    def argument(self):
+        return "security"
 
     @property
     def help(self):
-        return "Migrate Tag alarm rules"
+        return "Migrate workspaces."
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

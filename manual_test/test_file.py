@@ -1,15 +1,18 @@
 import json
+
+from manual_test.test_workspace import TestWorkspace
 from manual_test_base import ManualTestBase, handle_command_line
 
 
 upload_route = '/nifile/v1/service-groups/Default/upload-files'
 get_route = '/nifile/v1/service-groups/Default/files'
-auth_route = '/niauth/v1/auth'
 
 
-class TestFile(ManualTestBase):
+class TestFile(ManualTestBase, TestWorkspace):
+
     def populate_data(self):
         self.__raise_if_existing_data()
+        self.__create_workspace("WorkspaceForManualFilesMigrationTest")
         workspaces = self.__get_workspaces()
         self.__upload_files(workspaces)
 
@@ -53,31 +56,20 @@ class TestFile(ManualTestBase):
 
         return response.json()
 
-    def __get_workspaces(self):
-        response = self.get(auth_route)
-        response.raise_for_status()
-
-        auth = response.json()
-        workspaces = [workspace['id'] for workspace in auth['workspaces'] if workspace['enabled']]
-        if len(workspaces) < 2:
-            raise RuntimeError('User needs access to at least 2 workspaces')
-
-        return workspaces
-
     def __extract_file_details(self, data):
-        availableFiles = data['availableFiles']
+        available_files = data['availableFiles']
         return {filename: file_data
                 for filename, file_data
-                in [self.__extract_single_file_details(availableFile)
-                    for availableFile in availableFiles]}
+                in [self.__extract_single_file_details(available_file)
+                    for available_file in available_files]}
 
-    def __extract_single_file_details(self, availableFile):
-        dataUrl = availableFile['_links']['data']['href']
-        contents = self.__download_file_contents(dataUrl)
-        filename = availableFile['properties']['Name']
-        properties = {k: v for k, v in availableFile['properties'].items() if k != 'Name'}
-        workspace = availableFile['workspace']
-        return (filename, {'contents': contents, 'properties': properties, 'workspace': workspace})
+    def __extract_single_file_details(self, available_file):
+        data_url = available_file['_links']['data']['href']
+        contents = self.__download_file_contents(data_url)
+        filename = available_file['properties']['Name']
+        properties = {k: v for k, v in available_file['properties'].items() if k != 'Name'}
+        workspace = available_file['workspace']
+        return filename, {'contents': contents, 'properties': properties, 'workspace': workspace}
 
     def __download_file_contents(self, url):
         response = self.get(url)
@@ -85,17 +77,20 @@ class TestFile(ManualTestBase):
 
         return response.text
 
-    def __assert_file_count(self, data, expected_count):
-        totalFiles = data['totalCount']
-        actualFiles = data['availableFiles']
+    @staticmethod
+    def __assert_file_count(data, expected_count):
+        total_files = data['totalCount']
+        actual_files = data['availableFiles']
 
-        assert totalFiles == expected_count
-        assert len(actualFiles) == expected_count
+        assert total_files == expected_count
+        assert len(actual_files) == expected_count
 
-    def __assert_files_match(self, actual_files, expected_files):
+    @staticmethod
+    def __assert_files_match(actual_files, expected_files):
         assert actual_files == expected_files
 
-    def __get_expected_files(self, workspaces):
+    @staticmethod
+    def __get_expected_files(workspaces):
         files = {}
         for i in range(len(workspaces)):
             for j in range(10):
