@@ -8,7 +8,7 @@ from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migration_tool import run_migration_tool
 from pathlib import Path
 import pytest
-from test.test_utilities import FakeServiceManager
+from test.test_utilities import FakeServiceManager, NoopBackgroundProcess
 from typing import List
 
 
@@ -59,14 +59,6 @@ class FakeProcessFacade(ProcessFacade):
 
     def run_background_process(self, args: List[str]) -> BackgroundProcess:
         return NoopBackgroundProcess(args)
-
-
-class NoopBackgroundProcess(BackgroundProcess):
-    def __init__(self, arguments: List[str]):
-        pass
-
-    def stop(self):
-        pass
 
 
 class TestMigrator(MigratorPlugin):
