@@ -98,6 +98,7 @@ def test_get_migration_directory_returns_migration_directory():
 
     assert argument_handler.get_migration_directory() == "test"
 
+
 @pytest.mark.unit
 def test_get_logging_verbosity_with_no_arguments():
     arguments = []
