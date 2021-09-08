@@ -59,7 +59,8 @@ class MongoFacade:
         mongo_dump_command.extend(connection_arguments)
         mongo_dump_command.append("--archive=" + dump_path)
         mongo_dump_command.append("--gzip")
-        self.__ensure_mongo_process_is_running_and_execute_command(mongo_dump_command)
+        output = self.__ensure_mongo_process_is_running_and_execute_command(mongo_dump_command)
+        self.__check_mongo_output_for_errors(output)
 
     def restore_database_from_directory(
             self,
@@ -85,7 +86,8 @@ class MongoFacade:
         mongo_restore_command.extend(connection_arguments)
         mongo_restore_command.append("--gzip")
         mongo_restore_command.append("--archive=" + dump_path)
-        self.__ensure_mongo_process_is_running_and_execute_command(mongo_restore_command)
+        output = self.__ensure_mongo_process_is_running_and_execute_command(mongo_restore_command)
+        self.__check_mongo_output_for_errors(output)
 
     @staticmethod
     def validate_can_restore_database_from_directory(
@@ -236,7 +238,7 @@ class MongoFacade:
             destination_database,
             self.__merge_history_document)
 
-    def __ensure_mongo_process_is_running_and_execute_command(self, arguments: List[str]) -> None:
+    def __ensure_mongo_process_is_running_and_execute_command(self, arguments: List[str]) -> str:
         """
         Ensures the mongo service is running and executed the given command in a subprocess.
 
@@ -245,7 +247,7 @@ class MongoFacade:
 
         self.__start_mongo()
         try:
-            self.process_facade.run_process(arguments)
+            return self.process_facade.run_process(arguments)
         except ProcessError as e:
             log = logging.getLogger(MongoFacade.__name__)
             log.error(e.error)
@@ -281,3 +283,12 @@ class MongoFacade:
                 mongo_configuration.user,
                 "--password",
                 mongo_configuration.password]
+
+    @staticmethod
+    def __check_mongo_output_for_errors(output: str):
+        lines = output.splitlines()
+        for line in lines:
+            print(line)
+            if "error: E" in line:
+                log = logging.getLogger(MongoFacade.__name__)
+                log.error(f"Mongo reported the following warning: {MongoFacade}")

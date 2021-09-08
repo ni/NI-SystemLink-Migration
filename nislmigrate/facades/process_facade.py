@@ -37,7 +37,7 @@ class BackgroundProcess:
 
 
 class ProcessFacade:
-    def run_process(self, arguments: List[str]) -> None:
+    def run_process(self, arguments: List[str]) -> str:
         """
         Runs a command.
 
@@ -47,7 +47,9 @@ class ProcessFacade:
         """
 
         try:
-            subprocess.run(arguments, check=True)
+            result = subprocess.check_output(arguments, stderr=subprocess.STDOUT)
+            print(result)
+            return result.decode("utf-8")
         except subprocess.CalledProcessError as e:
             raise ProcessError(e.stderr) from e
 
