@@ -134,7 +134,8 @@ class ArgumentHandler:
         """
         description = "Run `nislmigrate {command} -h` to list additional options."
         argument_parser = ArgumentParser(prog=PROGRAM_NAME, description=description)
-
+        self.__add_logging_flag_options(argument_parser)
+        self.__add_additional_flag_options(argument_parser)
         self.__add_capture_and_restore_commands(argument_parser)
         return argument_parser
 

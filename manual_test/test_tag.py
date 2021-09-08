@@ -4,7 +4,7 @@ from typing import List, Dict
 from manual_test.manual_test_base import ManualTestBase, handle_command_line
 from nislmigrate.logs.migration_error import MigrationError
 
-TEST_WORKSPACE_NAME = "CustomWorkspace"
+TEST_WORKSPACE_NAME = "CustomWorkspaceForManualTagMigrationTest"
 CREATE_ROUTE = '/nitag/v2/tags/'
 GET_ROUTE = '/nitag/v2/tags-with-values/'
 WORKSPACES_ROUTE = '/niuser/v1/workspaces'
