@@ -1,7 +1,7 @@
 import ctypes
 import os
 
-from nislmigrate.logs.migration_error import MigrationWarning
+from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 
 RESTORE_WITHOUT_FORCE_FLAG_WARNING = """
@@ -38,4 +38,4 @@ def verify_force_if_restoring(is_force_set: bool, migration_action: MigrationAct
     permissions or not and raises an error if it is not.
     """
     if not is_force_set and migration_action == MigrationAction.RESTORE:
-        raise MigrationWarning(CAPTURE_WITHOUT_FORCE_FLAG_WARNING)
+        raise MigrationError(RESTORE_WITHOUT_FORCE_FLAG_WARNING)

@@ -49,8 +49,6 @@ def main():
         permission_checker.verify_force_if_restoring(allow_dropping_collections, migration_action)
 
         run_migration_tool(facade_factory, services_to_migrate, migration_action, migration_directory)
-    except MigrationWarning as e:
-        migration_error.handle_migration_warning(e)
     except Exception as e:
         migration_error.handle_migration_error(e)
 
