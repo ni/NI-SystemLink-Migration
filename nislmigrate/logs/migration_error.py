@@ -11,4 +11,4 @@ def handle_migration_error(e: Exception):
     log.error("%s: %s" % (type(e).__name__, e))
     if log.level == logging.DEBUG:
         traceback.print_exc()
-        exit(1)
+    exit(1)
