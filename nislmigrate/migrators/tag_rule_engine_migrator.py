@@ -4,11 +4,11 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
 
-class AlarmRuleMigrator(MigratorPlugin):
+class TagRuleEngineMigrator(MigratorPlugin):
 
     @property
     def argument(self):
-        return "alarmrule"
+        return "tagrule"
 
     @property
     def name(self):
