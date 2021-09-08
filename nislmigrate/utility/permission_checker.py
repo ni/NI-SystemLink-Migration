@@ -4,7 +4,7 @@ import os
 from nislmigrate.logs.migration_error import MigrationWarning
 from nislmigrate.migration_action import MigrationAction
 
-CAPTURE_WITHOUT_FORCE_FLAG_WARNING = """
+RESTORE_WITHOUT_FORCE_FLAG_WARNING = """
 
 'restore' will overwrite existing data for the services being restored,
 if you are sure you want to delete existing data and restore the

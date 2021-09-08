@@ -152,7 +152,12 @@ class ArgumentHandler:
 
         sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT, metavar="command")
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
-        sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
+        restore_parser = sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
+        restore_parser.add_argument(
+            "-f",
+            "--force",
+            help=FORCE_ARGUMENT_HELP,
+            action="store_true")
 
     @staticmethod
     def __add_additional_flag_options(parser: ArgumentParser) -> None:
@@ -161,11 +166,6 @@ class ArgumentHandler:
             help=DIRECTORY_ARGUMENT_HELP,
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
-        parser.add_argument(
-            "-f",
-            "--force",
-            help=FORCE_ARGUMENT_HELP,
-            action="store_true")
         parser.add_argument(
             "--" + ALL_SERVICES_ARGUMENT,
             help=ALL_SERVICES_ARGUMENT_HELP,
