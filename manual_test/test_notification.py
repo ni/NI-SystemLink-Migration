@@ -57,6 +57,9 @@ class TestNotification(ManualTestBase):
     def __validate_address_groups(self, address_groups_to_validate, initial_address_groups):
         generated_address_groups = self.__get_expected_address_groups()
 
+        expected_count = len(initial_address_groups) + len(generated_address_groups)
+        assert len(address_groups_to_validate) == expected_count
+
         for address_group_to_validate in address_groups_to_validate:
             if self.__is_generated(address_group_to_validate):
                 self.__assertAddressGroupsEqual(
@@ -106,6 +109,9 @@ class TestNotification(ManualTestBase):
 
     def __validate_message_templates(self, message_templates_to_validate, initial_message_templates):
         generated_message_templates = self.__get_expected_message_templates()
+
+        expected_count = len(initial_message_templates) + len(generated_message_templates)
+        assert len(message_templates_to_validate) == expected_count
 
         for message_template_to_validate in message_templates_to_validate:
             if self.__is_generated(message_template_to_validate):
@@ -169,6 +175,9 @@ class TestNotification(ManualTestBase):
         generated_notification_strategies = self.__get_expected_notification_strategies(
             generated_address_groups,
             generated_message_templates)
+
+        expected_count = len(initial_notification_strategies) + len(generated_notification_strategies)
+        assert len(notification_strategies_to_validate) == expected_count
 
         for notification_strategy_to_validate in notification_strategies_to_validate:
             if self.__is_generated(notification_strategy_to_validate):
