@@ -52,7 +52,7 @@ The following services can be migrated with this utility:
 
 - Tag Ingestion and Tag History: `--tags`
 - File Ingestion: `--files` 
-    - Must migrate file to the same storage location on the new System Link server.**
+    - Must migrate file to the same storage location on the new System Link server.
 - Notifications: `--notification`
 
 There are plans to support the following services in the near future:
