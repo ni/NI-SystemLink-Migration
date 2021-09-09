@@ -14,12 +14,12 @@ from nislmigrate.migrators.tag_migrator import TagMigrator
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("arguments", [
+@pytest.mark.parametrize('arguments', [
     [],
     [CAPTURE_ARGUMENT, RESTORE_ARGUMENT],
-    ["--tag"],
-    [CAPTURE_ARGUMENT, "--invalid"],
-    ["not_capture_or_restore"],
+    ['--tag'],
+    [CAPTURE_ARGUMENT, '--invalid'],
+    ['not_capture_or_restore'],
 ])
 def test_invalid_arguments_exits_with_exception(arguments: List[str]):
     arguments = [CAPTURE_ARGUMENT, RESTORE_ARGUMENT]
@@ -29,7 +29,7 @@ def test_invalid_arguments_exits_with_exception(arguments: List[str]):
 
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_capture_action():
-    arguments = [CAPTURE_ARGUMENT, "--tags"]
+    arguments = [CAPTURE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
     migration_action = argument_handler.get_migration_action()
@@ -39,7 +39,7 @@ def test_capture_tag_service_arguments_recognizes_capture_action():
 
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_tag_service():
-    arguments = [CAPTURE_ARGUMENT, "--tags"]
+    arguments = [CAPTURE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -50,7 +50,7 @@ def test_capture_tag_service_arguments_recognizes_tag_service():
 
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_restore_action():
-    arguments = [RESTORE_ARGUMENT, "--tags"]
+    arguments = [RESTORE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
     migration_action = argument_handler.get_migration_action()
@@ -60,7 +60,7 @@ def test_restore_tag_service_arguments_recognizes_restore_action():
 
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_tag_service():
-    arguments = [RESTORE_ARGUMENT, "--tags"]
+    arguments = [RESTORE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -71,7 +71,7 @@ def test_restore_tag_service_arguments_recognizes_tag_service():
 
 @pytest.mark.unit
 def test_restore_two_services_arguments_recognizes_both_services():
-    arguments = [RESTORE_ARGUMENT, "--tags", "--assets"]
+    arguments = [RESTORE_ARGUMENT, '--tags', '--assets']
     argument_handler = ArgumentHandler(arguments)
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
@@ -85,7 +85,7 @@ def test_restore_two_services_arguments_recognizes_both_services():
 
 @pytest.mark.unit
 def test_get_migration_directory_returns_default():
-    arguments = [CAPTURE_ARGUMENT, "--tags"]
+    arguments = [CAPTURE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_migration_directory() == DEFAULT_MIGRATION_DIRECTORY
@@ -93,10 +93,10 @@ def test_get_migration_directory_returns_default():
 
 @pytest.mark.unit
 def test_get_migration_directory_returns_migration_directory():
-    arguments = [CAPTURE_ARGUMENT, "--tags", "--dir=test"]
+    arguments = [CAPTURE_ARGUMENT, '--tags', '--dir=test']
     argument_handler = ArgumentHandler(arguments)
 
-    assert argument_handler.get_migration_directory() == "test"
+    assert argument_handler.get_migration_directory() == 'test'
 
 
 @pytest.mark.unit
@@ -109,7 +109,7 @@ def test_get_logging_verbosity_with_no_arguments():
 
 @pytest.mark.unit
 def test_is_force_migration_flag_present_short_flag_present():
-    arguments = [RESTORE_ARGUMENT, "-f"]
+    arguments = [RESTORE_ARGUMENT, '-f']
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.is_force_migration_flag_present()
@@ -125,7 +125,7 @@ def test_is_force_migration_flag_present_flag_not_present():
 
 @pytest.mark.unit
 def test_is_force_migration_flag_present_flag_present():
-    arguments = [RESTORE_ARGUMENT, "--force"]
+    arguments = [RESTORE_ARGUMENT, '--force']
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.is_force_migration_flag_present()

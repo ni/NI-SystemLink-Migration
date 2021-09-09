@@ -6,10 +6,10 @@ import abc
 from nislmigrate.facades.facade_factory import FacadeFactory
 
 DEFAULT_SERVICE_CONFIGURATION_DIRECTORY: str = os.path.join(
-    str(os.environ.get("ProgramData")),
-    "National Instruments",
-    "Skyline",
-    "Config")
+    str(os.environ.get('ProgramData')),
+    'National Instruments',
+    'Skyline',
+    'Config')
 
 
 class MigratorPlugin(abc.ABC):
@@ -27,7 +27,7 @@ class MigratorPlugin(abc.ABC):
         Gets the string to be used as the argument for using this migrator from the command line.
         :return: The argument.
         """
-        return "service"
+        return 'service'
 
     @property
     @abc.abstractmethod
@@ -37,7 +37,7 @@ class MigratorPlugin(abc.ABC):
         configuration file for this service if it has one.
         :return: The plugin name.
         """
-        return "The full name of the plugin"
+        return 'The full name of the plugin'
 
     @property
     @abc.abstractmethod
@@ -46,7 +46,7 @@ class MigratorPlugin(abc.ABC):
         Gets the help string for this service migrator plugin.
         :returns: The help string to display in the command line.
         """
-        return "A short sentence describing the operation of the plugin"
+        return 'A short sentence describing the operation of the plugin'
 
     def config(self, facade_factory: FacadeFactory) -> Dict[str, Any]:
         """
@@ -55,7 +55,7 @@ class MigratorPlugin(abc.ABC):
         :returns: Gets the configuration dictionary this plugin provides.
         """
         if self.__cached_config is None:
-            config_file = os.path.join(self.service_configuration_directory, self.name + ".json")
+            config_file = os.path.join(self.service_configuration_directory, self.name + '.json')
             filesystem_facade = facade_factory.get_file_system_facade()
             self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
         return self.__cached_config

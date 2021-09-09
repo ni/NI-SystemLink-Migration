@@ -48,7 +48,7 @@ class ProcessFacade:
 
         try:
             result = subprocess.check_output(arguments, stderr=subprocess.STDOUT)
-            return result.decode("utf-8")
+            return result.decode('utf-8')
         except subprocess.CalledProcessError as e:
             raise ProcessError(e.stderr) from e
 

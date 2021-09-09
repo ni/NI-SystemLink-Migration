@@ -19,12 +19,12 @@ def test_mongo_facade_capture_migration_directory_created_when_it_does_not_exist
         run: Mock,
         temp_directory: TempDirectory,
 ) -> None:
-    migration_directory = os.path.join(temp_directory.path, "migration")
+    migration_directory = os.path.join(temp_directory.path, 'migration')
     assert not os.path.exists(migration_directory)
     configuration = get_fake_mongo_configuration()
     mongo_facade = MongoFacade(ProcessFacade())
 
-    mongo_facade.capture_database_to_directory(configuration, migration_directory, "testname.gz")
+    mongo_facade.capture_database_to_directory(configuration, migration_directory, 'testname.gz')
 
     assert os.path.exists(migration_directory)
     run.assert_called()
@@ -40,12 +40,12 @@ def test_mongo_facade_capture_migration_nested_directory_created_when_it_does_no
         run: Mock,
         temp_directory: TempDirectory,
 ) -> None:
-    migration_directory = os.path.join(temp_directory.path, "migration", "other")
+    migration_directory = os.path.join(temp_directory.path, 'migration', 'other')
     assert not os.path.exists(migration_directory)
     configuration = get_fake_mongo_configuration()
     mongo_facade = MongoFacade(ProcessFacade())
 
-    mongo_facade.capture_database_to_directory(configuration, migration_directory, "testname.gz")
+    mongo_facade.capture_database_to_directory(configuration, migration_directory, 'testname.gz')
 
     assert os.path.exists(migration_directory)
     run.assert_called()
@@ -61,12 +61,12 @@ def test_mongo_facade_capture_migration_directory_already_exists_and_empty(
         run: Mock,
         temp_directory: TempDirectory,
 ) -> None:
-    migration_directory = make_directory(temp_directory, "migration")
+    migration_directory = make_directory(temp_directory, 'migration')
     assert os.path.exists(migration_directory)
     configuration = get_fake_mongo_configuration()
     mongo_facade = MongoFacade(ProcessFacade())
 
-    mongo_facade.capture_database_to_directory(configuration, migration_directory, "testname.gz")
+    mongo_facade.capture_database_to_directory(configuration, migration_directory, 'testname.gz')
 
     assert os.path.exists(migration_directory)
     run.assert_called()
@@ -81,10 +81,10 @@ def make_directory(temp_directory: TempDirectory, name: str) -> str:
 
 def get_fake_mongo_configuration():
     return MongoConfiguration({
-        mongo_configuration.MONGO_PASSWORD_CONFIGURATION_KEY: "",
-        mongo_configuration.MONGO_USER_CONFIGURATION_KEY: "",
-        mongo_configuration.MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY: "",
-        mongo_configuration.MONGO_PORT_NAME_CONFIGURATION_KEY: "",
-        mongo_configuration.MONGO_DATABASE_NAME_CONFIGURATION_KEY: "",
-        mongo_configuration.MONGO_HOST_NAME_CONFIGURATION_KEY: "",
+        mongo_configuration.MONGO_PASSWORD_CONFIGURATION_KEY: '',
+        mongo_configuration.MONGO_USER_CONFIGURATION_KEY: '',
+        mongo_configuration.MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY: '',
+        mongo_configuration.MONGO_PORT_NAME_CONFIGURATION_KEY: '',
+        mongo_configuration.MONGO_DATABASE_NAME_CONFIGURATION_KEY: '',
+        mongo_configuration.MONGO_HOST_NAME_CONFIGURATION_KEY: '',
     })

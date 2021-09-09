@@ -29,7 +29,7 @@ def verify_elevated_permissions():
     permissions or not and raises an error if it is not.
     """
     if not is_running_with_elevated_permissions():
-        raise PermissionError("Please run the migration tool with administrator permissions.")
+        raise PermissionError('Please run the migration tool with administrator permissions.')
 
 
 def verify_force_if_restoring(is_force_set: bool, migration_action: MigrationAction):
