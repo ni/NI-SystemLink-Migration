@@ -12,6 +12,27 @@ DEFAULT_SERVICE_CONFIGURATION_DIRECTORY: str = os.path.join(
     'Config')
 
 
+class ArgumentManager(abc.ABC):
+    """
+    Abstracts management of migrator-specific command line arguments.
+    """
+
+    @abc.abstractmethod
+    def add_switch(self, name: str, help: str) -> None:
+        """
+        Adds a switch command line argument that will be associated with a migrator_plugin.
+        The argument will be namespaced by the migrator name in order to ensure that it does
+        not conflict with any other arguments, resulting in a command line argument in the form:
+
+          --<migrator-name>-<argument-name>
+
+        If the switch is specified on the command line, the arguments dictionary passed to the
+        migrator's create/restore/pre_restore_check methods contain the <argument-name>
+        with a value of True. Otherwise <argument-name> will not be in the dictionary.
+        """
+        raise NotImplementedError
+
+
 class MigratorPlugin(abc.ABC):
     """
     Base class for creating a plugin capable of migrating a SystemLink service.
@@ -95,5 +116,14 @@ class MigratorPlugin(abc.ABC):
         :param facade_factory: Factory that produces objects capable of doing
                          actual restore operations.
         :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
+        """
+        pass
+
+    def add_additional_arguments(self, argument_manager: ArgumentManager) -> None:
+        """
+        Adds additional command line arguments to control the behavior of the migration.
+        The from the command line values will be passed to capture / restore / pre_restore_check.
+
+        :param argument_mananger: API for adding arguments to this MigratorPlugin.
         """
         pass
