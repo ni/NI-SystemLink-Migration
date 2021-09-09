@@ -51,21 +51,24 @@ See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and rele
 The following services can be migrated with this utility:
 
 - Tag Ingestion and Tag History: `--tags`
+- File Ingestion: `--files` 
+    - Must migrate file to the same storage location on the new System Link server.**
+- Notifications: `--notification`
 
 There are plans to support the following services in the near future:
 - Tag Alarm Rules: `--tagrule`
+- Alarm Instances: `--alarms`
 - OPC UA Client: `--opc`
-- File Ingestion: `--files`
 - Test Monitor: `--tests`
 - Asset Management: `--assets`
     - Cannot be migrated between 2020R1 and 2020R2 servers
 - Repository: `--repo`
     - Feeds may require additional updates if servers used for migration have different domain names
 - User Data: `--userdata`
-- Notifications: `--notification`
 - States: `--states`
     - Feeds may require additional updates if servers used for migration have different domain names
     - Cannot be migrated between 2020R1 and 2020R2 servers
+- Security `--security`
   
 The following list of services is explicitly not supported because of issues that arose when developing and testing migrating the service that will require changes to the service rather than the migration utility to enable support:
 - Cloud Connector
