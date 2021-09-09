@@ -129,3 +129,10 @@ def test_is_force_migration_flag_present_flag_present():
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.is_force_migration_flag_present()
+
+@pytest.mark.unit
+def test_is_force_migration_flag_present_during_capture_returns_false():
+    arguments = [CAPTURE_ARGUMENT]
+    argument_handler = ArgumentHandler(arguments)
+
+    assert not argument_handler.is_force_migration_flag_present()
