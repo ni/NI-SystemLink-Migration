@@ -1,3 +1,5 @@
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess
@@ -57,3 +59,11 @@ class FakeFacadeFactory(FacadeFactory):
         self.process_facade = FakeProcessFacade()
         self.mongo_facade = FakeMongoFacade(self.process_facade)
         self.system_link_service_manager_facade = FakeServiceManager()
+
+
+class FakeMigratorPluginLoader(MigratorPluginLoader):
+    def __init__(self, migrators: List[MigratorPlugin]):
+        self.__migrators = migrators
+
+    def get_plugins(self) -> List[MigratorPlugin]:
+        return self.__migrators

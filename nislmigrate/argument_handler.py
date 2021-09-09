@@ -2,13 +2,13 @@ import logging
 import os
 from typing import List, Dict, Any
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action, SUPPRESS
 from argparse import Namespace
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
-from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 
 ACTION_ARGUMENT = 'action'
 PROGRAM_NAME = 'nislmigrate'
@@ -35,6 +35,14 @@ DEBUG_VERBOSITY_ARGUMENT_HELP = 'print all logged information and stack trace in
 VERBOSE_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
 
 
+def _get_migrator_arguments_key(migrator: MigratorPlugin):
+    return f'{migrator.argument}_args'
+
+
+def _is_migrator_arguments_key(key: str) -> bool:
+    return key.endswith('_args')
+
+
 class ArgumentHandler:
     """
     Processes arguments either from the command line or just a list of arguments and breaks them
@@ -43,11 +51,15 @@ class ArgumentHandler:
     parsed_arguments: Namespace = Namespace()
     plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)
 
-    def __init__(self,  arguments: List[str] = None):
+    def __init__(
+            self,
+            arguments: List[str] = None,
+            plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)):
         """
         Creates a new instance of ArgumentHandler
         :param arguments: The list of arguments to process, or None to directly grab CLI arguments.
         """
+        self.plugin_loader = plugin_loader
         argument_parser = self.__create_migration_tool_argument_parser()
         if arguments is None:
             self.parsed_arguments = argument_parser.parse_args()
@@ -59,14 +71,24 @@ class ArgumentHandler:
         Generate a list of migration strategies to use during migration,
         based on the given arguments.
 
-        :return: A list of selected migration actions.
+        :return: A list of selected migration actions with the parameters for each action.
         """
-        if self.__is_all_service_migration_flag_present():
-            return self.plugin_loader.get_plugins()
-        enabled_plugins = self.__get_enabled_plugins()
+        enabled_plugins = (self.plugin_loader.get_plugins() if self.__is_all_service_migration_flag_present()
+                           else self.__get_enabled_plugins())
         if len(enabled_plugins) == 0:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
-        return enabled_plugins
+        return [plugin for plugin in enabled_plugins]
+
+    def get_migrator_additional_arguments(self, migrator: MigratorPlugin) -> Dict[str, Any]:
+        """
+        Gets the additional command line arguments for the specified migrator.
+
+        :param migrator: The migrator for which to get arguments.
+        :return: A dictionary where the keys are the names of the additional arguments for the migrator,
+                 and the values are the argument values.
+        """
+        key = _get_migrator_arguments_key(migrator)
+        return getattr(self.parsed_arguments, key, {})
 
     def __get_enabled_plugins(self) -> List[MigratorPlugin]:
         arguments: List[str] = self.__get_enabled_plugin_arguments()
@@ -101,6 +123,7 @@ class ArgumentHandler:
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
             and not argument == 'force'
+            and not _is_migrator_arguments_key(argument)
         ]
 
     def get_migration_action(self) -> MigrationAction:
@@ -195,8 +218,36 @@ class ArgumentHandler:
         :param parser: The parser to add the argument flag to.
         """
         for plugin in self.plugin_loader.get_plugins():
+            manager = _MigratorArgumentManager(plugin, parser)
             parser.add_argument(
                 '--' + plugin.argument,
                 help=plugin.help,
                 action='store_true',
                 dest=plugin.argument)
+            plugin.add_additional_arguments(manager)
+
+
+class _MigratorArgumentManager(ArgumentManager):
+    def __init__(self, plugin: MigratorPlugin, parser: ArgumentParser):
+        self.__parser = parser
+        self.__plugin = plugin
+
+    def add_switch(self, name: str, help: str) -> None:
+        migrator_argument = self.__plugin.argument
+        argument = f'--{migrator_argument}-{name}'
+        dest = f'{_get_migrator_arguments_key(self.__plugin)}.{name}'
+        self.__parser.add_argument(
+                argument,
+                nargs=0,
+                help=help,
+                action=_StoreMigratorSwitchAction,
+                dest=dest,
+                default=SUPPRESS)
+
+
+class _StoreMigratorSwitchAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        dest, key = self.dest.split('.', 1)
+        args = getattr(namespace, dest, {})
+        args[key] = True
+        setattr(namespace, dest, args)
