@@ -9,7 +9,7 @@ from nislmigrate.migration_tool import run_migration_tool
 from pathlib import Path
 import pytest
 from test.test_utilities import FakeServiceManager, NoopBackgroundProcess
-from typing import List
+from typing import Any, Dict, List
 
 
 @pytest.mark.unit
@@ -74,7 +74,7 @@ class TestMigrator(MigratorPlugin):
     def help(self) -> str:
         return ""
 
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
 
@@ -83,7 +83,7 @@ class TestMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
 
@@ -92,7 +92,11 @@ class TestMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def pre_restore_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
         pass
 
 

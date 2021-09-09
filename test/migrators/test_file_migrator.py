@@ -13,7 +13,7 @@ def test_file_migrator_captures_from_default_location_when_unconfigured():
     facade_factory.file_system_facade = file_system_facade
     migrator = FileMigrator()
 
-    migrator.capture('data_dir', facade_factory)
+    migrator.capture('data_dir', facade_factory, {})
 
     assert file_system_facade.last_from_directory == DEFAULT_DATA_DIRECTORY
 
@@ -28,7 +28,7 @@ def test_file_migrator_captures_from_configured_location():
     expected_directory = 'custom/directory'
     file_system_facade.config[PATH_CONFIGURATION_KEY] = expected_directory
 
-    migrator.capture('data_dir', facade_factory)
+    migrator.capture('data_dir', facade_factory, {})
 
     assert file_system_facade.last_from_directory == expected_directory
 
@@ -41,7 +41,7 @@ def test_file_migrator_restores_to_default_location_when_unconfigured():
     facade_factory.file_system_facade = file_system_facade
     migrator = FileMigrator()
 
-    migrator.restore('data_dir', facade_factory)
+    migrator.restore('data_dir', facade_factory, {})
 
     assert file_system_facade.last_to_directory == DEFAULT_DATA_DIRECTORY
 
@@ -56,7 +56,7 @@ def test_file_migrator_resteores_to_configured_location():
     expected_directory = 'custom/directory'
     file_system_facade.config[PATH_CONFIGURATION_KEY] = expected_directory
 
-    migrator.restore('data_dir', facade_factory)
+    migrator.restore('data_dir', facade_factory, {})
 
     assert file_system_facade.last_to_directory == expected_directory
 

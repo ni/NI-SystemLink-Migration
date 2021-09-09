@@ -4,15 +4,11 @@ AUTH_ROUTE = '/niauth/v1/auth'
 WORKSPACES_ROUTE = '/niuser/v1/workspaces'
 
 
-class TestWorkspace(ManualTestBase):
-    def populate_data(self) -> None:
-        pass
+class WorkspaceUtilities:
 
-    def validate_data(self) -> None:
-        pass
-
-    def __get_workspaces(self):
-        response = self.get(AUTH_ROUTE)
+    @staticmethod
+    def get_workspaces(test: ManualTestBase):
+        response = test.get(AUTH_ROUTE)
         response.raise_for_status()
 
         auth = response.json()
@@ -22,13 +18,15 @@ class TestWorkspace(ManualTestBase):
 
         return workspaces
 
-    def __get_workspace_id(self, workspace_name: str):
-        result = self.get(WORKSPACES_ROUTE)
+    @staticmethod
+    def get_workspace_id(workspace_name: str, test: ManualTestBase):
+        result = test.get(WORKSPACES_ROUTE)
         workspaces = result.json()["workspaces"]
         for workspace in workspaces:
             if workspace["name"] == workspace_name:
                 return workspace["id"]
         return None
 
-    def __create_workspace(self, workspace_name: str):
-        self.post(WORKSPACES_ROUTE, json={"name": workspace_name})
+    @staticmethod
+    def create_workspace(workspace_name: str, test: ManualTestBase):
+        test.post(WORKSPACES_ROUTE, json={"name": workspace_name})

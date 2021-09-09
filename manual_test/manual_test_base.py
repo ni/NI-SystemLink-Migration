@@ -8,9 +8,9 @@ from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 
 # Record type for data recorded from a clean server prior to restoring data
-CLEAN_SERVER_RECORD_TYPE = 'clean'
+CLEAN_SERVER_RECORD_TYPE: str = 'clean'
 # Record type for data recorded from a server which is populated with test data
-POPULATED_SERVER_RECORD_TYPE = 'populated'
+POPULATED_SERVER_RECORD_TYPE: str = 'populated'
 
 
 class ManualTestBase:
