@@ -1,87 +1,73 @@
 import logging
 import os
-from typing import Any, Dict, List, Tuple
 
+from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
+from nislmigrate.utility import permission_checker
 
 
 class MigrationFacilitator:
     """
     Facilitates an entire capture or restore operation from start to finish.
     """
-    def __init__(self, facade_factory: FacadeFactory):
+    def __init__(self, facade_factory: FacadeFactory, argument_handler: ArgumentHandler):
         self.facade_factory: FacadeFactory = facade_factory
         self.service_manager: SystemLinkServiceManagerFacade = facade_factory.get_system_link_service_manager_facade()
 
-    def migrate(
-            self,
-            migrators: List[Tuple[MigratorPlugin, Dict[str, Any]]],
-            migration_action: MigrationAction,
-            migration_directory: str):
+        self._action = argument_handler.get_migration_action()
+        self._migrators = argument_handler.get_list_of_services_to_capture_or_restore()
+        self._migration_directory = argument_handler.get_migration_directory()
+        self._argument_handler = argument_handler
+
+    def migrate(self):
         """Facilitates an entire capture or restore operation from start to finish.
-
-        :param migrators: The list of plugins to involve in the migration.
-        :param migration_action: Whether to perform a capture or restore migration.
-        :param migration_directory: The directory either capture data to, or restore data from.
         """
-        self.__pre_migration_error_check(migrators, migration_action, migration_directory)
-        self.__stop_services_and_perform_migration(migrators, migration_action, migration_directory)
 
-    def __stop_services_and_perform_migration(
-            self,
-            migrators: List[Tuple[MigratorPlugin, Dict[str, Any]]],
-            action: MigrationAction,
-            migration_directory: str,
-    ) -> None:
+        self.__pre_migration_error_check()
+        self.__stop_services_and_perform_migration()
+
+    def __stop_services_and_perform_migration(self) -> None:
         self.service_manager.stop_all_system_link_services()
         try:
-            for migrator, arguments in migrators:
-                migrator_directory = os.path.join(migration_directory, migrator.name)
-                self.__report_migration_starting(migrator.name, action)
-                self.__migrate_service(migrator, action, migrator_directory, arguments)
-                self.__report_migration_finished(migrator.name, action)
+            for migrator in self._migrators:
+                migrator_directory = os.path.join(self._migration_directory, migrator.name)
+                self.__report_migration_starting(migrator.name)
+                self.__migrate_service(migrator, migrator_directory)
+                self.__report_migration_finished(migrator.name)
         finally:
             self.service_manager.start_all_system_link_services()
 
-    def __migrate_service(
-            self,
-            migrator: MigratorPlugin,
-            action: MigrationAction,
-            migration_directory: str,
-            migrator_arguments: dict,
-    ) -> None:
-        if action == MigrationAction.CAPTURE:
-            migrator.capture(migration_directory, self.facade_factory, migrator_arguments)
-        elif action == MigrationAction.RESTORE:
-            migrator.restore(migration_directory, self.facade_factory, migrator_arguments)
+    def __migrate_service(self, migrator: MigratorPlugin, migrator_directory) -> None:
+        migrator_arguments = self._argument_handler.get_migrator_additional_arguments(migrator)
+        if self._action == MigrationAction.CAPTURE:
+            migrator.capture(migrator_directory, self.facade_factory, migrator_arguments)
+        elif self._action == MigrationAction.RESTORE:
+            migrator.restore(migrator_directory, self.facade_factory, migrator_arguments)
         else:
             raise ValueError('Migration action is not the correct type.')
 
-    @staticmethod
-    def __report_migration_starting(migrator_name: str, action: MigrationAction):
-        action_pretty_name = 'capture' if action == MigrationAction.CAPTURE else 'restore'
+    def __report_migration_starting(self, migrator_name: str):
+        action_pretty_name = 'capture' if self._action == MigrationAction.CAPTURE else 'restore'
         migrator_names = (action_pretty_name, migrator_name)
         info = f'Starting to {action_pretty_name} data using {migrator_names} migrator strategy ...'
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
 
-    @staticmethod
-    def __report_migration_finished(migrator_name: str, action: MigrationAction):
-        action_pretty_name = 'capturing' if action == MigrationAction.CAPTURE else 'restoring'
+    def __report_migration_finished(self, migrator_name: str):
+        action_pretty_name = 'capturing' if self._action == MigrationAction.CAPTURE else 'restoring'
         info = f'Done {action_pretty_name} data using {migrator_name} migrator strategy.'
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
 
-    def __pre_migration_error_check(
-            self,
-            plugins: List[Tuple[MigratorPlugin, Dict[str, Any]]],
-            migration_action: MigrationAction,
-            migration_directory: str
-    ) -> None:
-        if migration_action == MigrationAction.RESTORE:
+    def __pre_migration_error_check(self) -> None:
+        is_force_migration_flag_present = self._argument_handler.is_force_migration_flag_present()
+        permission_checker.verify_force_if_restoring(is_force_migration_flag_present, self._action)
+
+        if self._action == MigrationAction.RESTORE:
             plugin: MigratorPlugin
-            for plugin, arguments in plugins:
-                plugin.pre_restore_check(migration_directory, self.facade_factory, arguments)
+            for plugin in self._migrators:
+                arguments = self._argument_handler.get_migrator_additional_arguments(plugin)
+                plugin.pre_restore_check(self._migration_directory, self.facade_factory, arguments)

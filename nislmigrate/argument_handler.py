@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 
 from argparse import ArgumentParser, Action, SUPPRESS
 from argparse import Namespace
@@ -66,7 +66,7 @@ class ArgumentHandler:
         else:
             self.parsed_arguments = argument_parser.parse_args(arguments)
 
-    def get_list_of_services_to_capture_or_restore(self) -> List[Tuple[MigratorPlugin, Dict[str, Any]]]:
+    def get_list_of_services_to_capture_or_restore(self) -> List[MigratorPlugin]:
         """
         Generate a list of migration strategies to use during migration,
         based on the given arguments.
@@ -77,9 +77,16 @@ class ArgumentHandler:
                            else self.__get_enabled_plugins())
         if len(enabled_plugins) == 0:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
-        return [(plugin, self._get_migrator_additional_arguments(plugin)) for plugin in enabled_plugins]
+        return [plugin for plugin in enabled_plugins]
 
-    def _get_migrator_additional_arguments(self, migrator: MigratorPlugin) -> Dict[str, Any]:
+    def get_migrator_additional_arguments(self, migrator: MigratorPlugin) -> Dict[str, Any]:
+        """
+        Gets the additional command line arguments for the specified migrator.
+
+        :param migrator: The migrator for which to get arguments.
+        :return: A dictionary where the keys are the names of the additional arguments for the migrator,
+                 and the values are the argument values.
+        """
         key = _get_migrator_arguments_key(migrator)
         return getattr(self.parsed_arguments, key, {})
 

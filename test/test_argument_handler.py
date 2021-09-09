@@ -9,11 +9,12 @@ from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import DEFAULT_MIGRATION_DIRECTORY
 
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
-from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migrators.asset_migrator import AssetMigrator
 from nislmigrate.migrators.tag_migrator import TagMigrator
+
+from test.test_utilities import FakeMigratorPluginLoader
 
 
 @pytest.mark.unit
@@ -45,11 +46,10 @@ def test_capture_tag_service_arguments_recognizes_tag_service():
     arguments = [CAPTURE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
-    result = argument_handler.get_list_of_services_to_capture_or_restore()
+    services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
-    assert len(result) == 1
-    service_to_migrate, _ = result[0]
-    assert service_to_migrate.name == TagMigrator().name
+    assert len(services_to_migrate) == 1
+    assert services_to_migrate[0].name == TagMigrator().name
 
 
 @pytest.mark.unit
@@ -67,11 +67,10 @@ def test_restore_tag_service_arguments_recognizes_tag_service():
     arguments = [RESTORE_ARGUMENT, '--tags']
     argument_handler = ArgumentHandler(arguments)
 
-    result = argument_handler.get_list_of_services_to_capture_or_restore()
+    services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
-    assert len(result) == 1
-    service_to_migrate, _ = result[0]
-    assert service_to_migrate.name == TagMigrator().name
+    assert len(services_to_migrate) == 1
+    assert services_to_migrate[0].name == TagMigrator().name
 
 
 @pytest.mark.unit
@@ -82,8 +81,8 @@ def test_restore_two_services_arguments_recognizes_both_services():
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
     assert len(services_to_migrate) == 2
-    first_service, _ = services_to_migrate[0]
-    second_service, _ = services_to_migrate[1]
+    first_service = services_to_migrate[0]
+    second_service = services_to_migrate[1]
     assert first_service.name == TagMigrator().name or second_service.name == TagMigrator().name
     assert second_service.name == AssetMigrator().name or first_service.name == AssetMigrator().name
 
@@ -145,7 +144,7 @@ def test_migrator_with_no_additional_arguments_has_empty_additional_parameters()
 
     result = argument_handler.get_list_of_services_to_capture_or_restore()
 
-    assert result == [(migrator, {})]
+    assert result == [migrator]
 
 
 @pytest.mark.unit
@@ -155,9 +154,9 @@ def test_migrator_with_additional_arguments_has_empty_additional_parameters_when
     arguments = ['capture', '--fake']
     argument_handler = ArgumentHandler(arguments, loader)
 
-    result = argument_handler.get_list_of_services_to_capture_or_restore()
+    additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
 
-    assert result == [(migrator, {})]
+    assert additional_arguments == {}
 
 
 @pytest.mark.unit
@@ -167,9 +166,9 @@ def test_migrator_with_additional_arguments_has_additional_parameters_when_passe
     arguments = ['capture', '--fake', '--fake-extra']
     argument_handler = ArgumentHandler(arguments, loader)
 
-    result = argument_handler.get_list_of_services_to_capture_or_restore()
+    additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
 
-    assert result == [(migrator, {'extra': True})]
+    assert additional_arguments == {'extra': True}
 
 
 @pytest.mark.unit
@@ -180,9 +179,11 @@ def test_migrator_with_additional_arguments_only_receives_own_arguments():
     arguments = ['capture', '--one', '--one-mine', '--two', '--two-yours']
     argument_handler = ArgumentHandler(arguments, loader)
 
-    result = argument_handler.get_list_of_services_to_capture_or_restore()
+    additional_arguments1 = argument_handler.get_migrator_additional_arguments(migrator1)
+    additional_arguments2 = argument_handler.get_migrator_additional_arguments(migrator2)
 
-    assert result == [(migrator1, {'mine': True}), (migrator2, {'yours': True})]
+    assert additional_arguments1 == {'mine': True}
+    assert additional_arguments2 == {'yours': True}
 
 
 class FakeMigrator(MigratorPlugin):
@@ -215,11 +216,3 @@ class FakeMigrator(MigratorPlugin):
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         if self._add_argument:
             argument_manager.add_switch(self._extra_argument_name, f'{self._extra_argument_name} help')
-
-
-class FakeMigratorPluginLoader(MigratorPluginLoader):
-    def __init__(self, migrators: List[MigratorPlugin]):
-        self.__migrators = migrators
-
-    def get_plugins(self) -> List[MigratorPlugin]:
-        return self.__migrators

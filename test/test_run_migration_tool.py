@@ -1,54 +1,52 @@
 import json
+from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
-from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migration_tool import run_migration_tool
 from pathlib import Path
 import pytest
-from test.test_utilities import FakeServiceManager, NoopBackgroundProcess
+from test.test_utilities import FakeServiceManager, NoopBackgroundProcess, FakeMigratorPluginLoader
 from typing import Any, Dict, List, Tuple
 
 
 @pytest.mark.unit
 def test_run_migration_tool(tmp_path: Path) -> None:
     migrator = configure_test_migrator(tmp_path)
-    services_to_migrate: List[Tuple[MigratorPlugin, dict]] = [(migrator, {})]
-
-    facade_factory = FacadeFactory()
-    mongo_facade = facade_factory.get_mongo_facade()
-    process_facade = FakeProcessFacade()
-    mongo_facade.process_facade = process_facade
-    facade_factory.system_link_service_manager_facade = FakeServiceManager()
+    plugin_loader = FakeMigratorPluginLoader([migrator])
+    facade_factory, process_facade = configure_facade_factory()
     migration_directory = str(tmp_path / 'data')
 
-    run_migration_tool(facade_factory, services_to_migrate, MigrationAction.CAPTURE, migration_directory)
+    capture_arguments = ['capture', '--test-migrator', '--dir', migration_directory]
+    capture_argument_handler = ArgumentHandler(capture_arguments, plugin_loader)
+    run_migration_tool(facade_factory, capture_argument_handler)
     assert process_facade.captured
 
+    restore_arguments = ['restore', '--test-migrator', '--dir', migration_directory]
+    restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
     process_facade.reset()
-    run_migration_tool(facade_factory, services_to_migrate, MigrationAction.RESTORE, migration_directory)
+    run_migration_tool(facade_factory, restore_argument_handler)
     assert process_facade.restored
 
 
 def test_migrator_receives_extra_arguments(tmp_path) -> None:
     migrator = configure_test_migrator(tmp_path)
-    expected_arguments = {'extra': True}
-    services_to_migrate: List[Tuple[MigratorPlugin, dict]] = [(migrator, expected_arguments)]
-
-    facade_factory = FacadeFactory()
-    mongo_facade = facade_factory.get_mongo_facade()
-    process_facade = FakeProcessFacade()
-    mongo_facade.process_facade = process_facade
-    facade_factory.system_link_service_manager_facade = FakeServiceManager()
+    plugin_loader = FakeMigratorPluginLoader([migrator])
+    facade_factory, process_facade = configure_facade_factory()
     migration_directory = str(tmp_path / 'data')
+    expected_arguments = {'extra': True}
 
-    run_migration_tool(facade_factory, services_to_migrate, MigrationAction.CAPTURE, migration_directory)
-    assert migrator.capture_extra_arguments == expected_arguments
+    capture_arguments = ['capture', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory]
+    capture_argument_handler = ArgumentHandler(capture_arguments, plugin_loader)
+    run_migration_tool(facade_factory, capture_argument_handler)
+    assert process_facade.captured
 
+    restore_arguments = ['restore', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory]
+    restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
     process_facade.reset()
-    run_migration_tool(facade_factory, services_to_migrate, MigrationAction.RESTORE, migration_directory)
+    run_migration_tool(facade_factory, restore_argument_handler)
     assert migrator.pre_restore_extra_arguments == expected_arguments
     assert migrator.restore_extra_arguments == expected_arguments
 
@@ -131,6 +129,16 @@ class TestMigrator(MigratorPlugin):
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch('extra', 'extra help')
+
+
+def configure_facade_factory() -> Tuple[FacadeFactory, FakeProcessFacade]:
+    facade_factory = FacadeFactory()
+    mongo_facade = facade_factory.get_mongo_facade()
+    process_facade = FakeProcessFacade()
+    mongo_facade.process_facade = process_facade
+    facade_factory.system_link_service_manager_facade = FakeServiceManager()
+
+    return (facade_factory, process_facade)
 
 
 def configure_test_migrator(tmp_path: Path) -> TestMigrator:
