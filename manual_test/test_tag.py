@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Dict
 
-from manual_test.manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import ManualTestBase, handle_command_line
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from nislmigrate.logs.migration_error import MigrationError
 
