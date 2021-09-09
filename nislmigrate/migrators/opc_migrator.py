@@ -3,6 +3,7 @@ import os
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from typing import Any, Dict
 
 
 class OPCMigrator(MigratorPlugin):
@@ -22,7 +23,7 @@ class OPCMigrator(MigratorPlugin):
     __ni_directory = os.path.join(str(os.environ.get('ProgramData')), 'National Instruments')
     __data_directory = os.path.join(__ni_directory, 'Skyline', 'Data', 'OpcClient')
 
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory):
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
@@ -37,7 +38,7 @@ class OPCMigrator(MigratorPlugin):
             file_migration_directory,
             False)
 
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory):
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
@@ -52,7 +53,11 @@ class OPCMigrator(MigratorPlugin):
             self.__data_directory,
             True)
 
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def pre_restore_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
         mongo_facade = facade_factory.get_mongo_facade()
         mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,

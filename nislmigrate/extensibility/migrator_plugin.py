@@ -61,32 +61,39 @@ class MigratorPlugin(abc.ABC):
         return self.__cached_config
 
     @abc.abstractmethod
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         """
         Captures the given service from SystemLink.
         :param migration_directory: the root path to perform the capture to.
         :param facade_factory: Factory that produces objects capable of doing
                                  actual migration operations.
+        :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
         """
         pass
 
     @abc.abstractmethod
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         """
         Restores the given service to SystemLink.
         :param migration_directory: the root path to perform the restore from.
         :param facade_factory: Factory that produces objects capable of doing
                                  actual restore operations.
+        :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
         """
         pass
 
     @abc.abstractmethod
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def pre_restore_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
         """
         Raises a MigrationError if the service anticipates an error migrating.
 
         :param migration_directory: The directory to migrate to.
         :param facade_factory: Factory that produces objects capable of doing
                          actual restore operations.
+        :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
         """
         pass

@@ -9,7 +9,7 @@ from nislmigrate.migration_facilitator import MigrationFacilitator
 from test.test_utilities import FakeMongoFacade
 from pathlib import Path
 import pytest
-from typing import Optional
+from typing import Any, Dict, Optional
 
 
 @pytest.mark.unit
@@ -96,13 +96,17 @@ class TestMigrator(MigratorPlugin):
     def argument(self):
         return 'test'
 
-    def capture(self, mongo_handler=None, file_handler=None):
+    def capture(self, mongo_handler=None, file_handler=None, arguments=None):
         self.capture_count += 1
 
-    def restore(self, mongo_handler=None, file_handler=None):
+    def restore(self, mongo_handler=None, file_handler=None, arguments=None):
         self.restore_count += 1
 
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def pre_restore_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
         pass
 
 

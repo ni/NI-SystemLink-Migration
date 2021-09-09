@@ -49,9 +49,9 @@ class MigrationFacilitator:
             migration_directory: str
     ) -> None:
         if action == MigrationAction.CAPTURE:
-            migrator.capture(migration_directory, self.facade_factory)
+            migrator.capture(migration_directory, self.facade_factory, {})
         elif action == MigrationAction.RESTORE:
-            migrator.restore(migration_directory, self.facade_factory)
+            migrator.restore(migration_directory, self.facade_factory, {})
         else:
             raise ValueError('Migration action is not the correct type.')
 
@@ -79,4 +79,4 @@ class MigrationFacilitator:
         if migration_action == MigrationAction.RESTORE:
             plugin: MigratorPlugin
             for plugin in plugins:
-                plugin.pre_restore_check(migration_directory, self.facade_factory)
+                plugin.pre_restore_check(migration_directory, self.facade_factory, {})
