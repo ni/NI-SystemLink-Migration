@@ -76,21 +76,21 @@ class ManualTestBase:
         Sends a get request. See self.request for parameter details.
         """
 
-        return self.request("GET", route, **kwargs)
+        return self.request('GET', route, **kwargs)
 
     def post(self, route: str, **kwargs) -> requests.Response:
         """
         Sends a post request. See self.request for parameter details.
         """
 
-        return self.request("POST", route, **kwargs)
+        return self.request('POST', route, **kwargs)
 
     def put(self, route: str, **kwargs) -> requests.Response:
         """
         Sends a put request. See self.request for parameter details.
         """
 
-        return self.request("PUT", route, **kwargs)
+        return self.request('PUT', route, **kwargs)
 
     def read_recorded_data(
             self,
@@ -109,7 +109,7 @@ class ManualTestBase:
                 return json.load(file)
         except Exception:
             if required:
-                msg = f'Unable to read recording file for category=\'{category}\'; collection=\'{collection}\''
+                msg = f'Unable to read recording file for category="{category}"; collection="{collection}"'
                 raise RuntimeError(msg)
 
         return []

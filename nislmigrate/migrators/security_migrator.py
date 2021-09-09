@@ -9,15 +9,15 @@ class SecurityMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "Security"
+        return 'Security'
 
     @property
     def argument(self):
-        return "security"
+        return 'security'
 
     @property
     def help(self):
-        return "Migrate workspaces."
+        return 'Migrate workspaces.'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

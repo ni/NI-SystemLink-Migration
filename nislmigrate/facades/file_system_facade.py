@@ -127,7 +127,7 @@ class FileSystemFacade:
         :return: The parsed json from the file.
         """
 
-        with open(path, encoding="utf-8-sig") as json_file:
+        with open(path, encoding='utf-8-sig') as json_file:
             return json.load(json_file)
 
     @staticmethod

@@ -10,14 +10,14 @@ from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 
-ACTION_ARGUMENT = "action"
-PROGRAM_NAME = "nislmigrate"
-CAPTURE_ARGUMENT = "capture"
-RESTORE_ARGUMENT = "restore"
-ALL_SERVICES_ARGUMENT = "all"
-VERBOSITY_ARGUMENT = "verbosity"
-MIGRATION_DIRECTORY_ARGUMENT = "dir"
-DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
+ACTION_ARGUMENT = 'action'
+PROGRAM_NAME = 'nislmigrate'
+CAPTURE_ARGUMENT = 'capture'
+RESTORE_ARGUMENT = 'restore'
+ALL_SERVICES_ARGUMENT = 'all'
+VERBOSITY_ARGUMENT = 'verbosity'
+MIGRATION_DIRECTORY_ARGUMENT = 'dir'
+DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 
@@ -25,14 +25,14 @@ Must specify at least one service to migrate, or migrate all services with the `
 
 Run `nislmigrate capture/restore --help` to list all supported services."""
 
-CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = "The 'capture' or 'restore' argument must be provided"
-CAPTURE_COMMAND_HELP = "use capture to pull data and settings off of a SystemLink server"
-RESTORE_COMMAND_HELP = "use restore to push captured data and settings to a clean SystemLink server"
-DIRECTORY_ARGUMENT_HELP = "specify the directory used for migrated data (defaults to documents)"
-ALL_SERVICES_ARGUMENT_HELP = "use all provided migrator plugins during a capture or restore operation"
-FORCE_ARGUMENT_HELP = "allows capture to delete existing data on the SystemLink server prior to restore"
-DEBUG_VERBOSITY_ARGUMENT_HELP = "print all logged information and stack trace information in case an error occurs"
-VERBOSE_VERBOSITY_ARGUMENT_HELP = "print all logged information except debugging information"
+CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = 'The "capture" or "restore" argument must be provided'
+CAPTURE_COMMAND_HELP = 'use capture to pull data and settings off of a SystemLink server'
+RESTORE_COMMAND_HELP = 'use restore to push captured data and settings to a clean SystemLink server'
+DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (defaults to documents)'
+ALL_SERVICES_ARGUMENT_HELP = 'use all provided migrator plugins during a capture or restore operation'
+FORCE_ARGUMENT_HELP = 'allows capture to delete existing data on the SystemLink server prior to restore'
+DEBUG_VERBOSITY_ARGUMENT_HELP = 'print all logged information and stack trace information in case an error occurs'
+VERBOSE_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
 
 
 class ArgumentHandler:
@@ -89,7 +89,7 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
     def is_force_migration_flag_present(self) -> bool:
-        return getattr(self.parsed_arguments, "force")
+        return getattr(self.parsed_arguments, 'force', False)
 
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:
@@ -100,7 +100,7 @@ class ArgumentHandler:
             and not argument == MIGRATION_DIRECTORY_ARGUMENT
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
-            and not argument == "force"
+            and not argument == 'force'
         ]
 
     def get_migration_action(self) -> MigrationAction:
@@ -138,7 +138,7 @@ class ArgumentHandler:
 
         :return: The built parser.
         """
-        description = "Run `nislmigrate {command} -h` to list additional options."
+        description = 'Run `nislmigrate {command} -h` to list additional options.'
         argument_parser = ArgumentParser(prog=PROGRAM_NAME, description=description)
         self.__add_logging_flag_options(argument_parser)
         self.__add_capture_and_restore_commands(argument_parser)
@@ -150,26 +150,26 @@ class ArgumentHandler:
         self.__add_additional_flag_options(parent_parser)
         self.__add_plugin_arguments(parent_parser)
 
-        sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT, metavar="command")
+        sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT, metavar='command')
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
         restore_parser = sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
         restore_parser.add_argument(
-            "-f",
-            "--force",
+            '-f',
+            '--force',
             help=FORCE_ARGUMENT_HELP,
-            action="store_true")
+            action='store_true')
 
     @staticmethod
     def __add_additional_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
-            "--" + MIGRATION_DIRECTORY_ARGUMENT,
+            '--' + MIGRATION_DIRECTORY_ARGUMENT,
             help=DIRECTORY_ARGUMENT_HELP,
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
         parser.add_argument(
-            "--" + ALL_SERVICES_ARGUMENT,
+            '--' + ALL_SERVICES_ARGUMENT,
             help=ALL_SERVICES_ARGUMENT_HELP,
-            action="store_true")
+            action='store_true')
 
     @staticmethod
     def __add_logging_flag_options(parser: ArgumentParser) -> None:
@@ -177,7 +177,7 @@ class ArgumentHandler:
             '-d',
             '--debug',
             help=DEBUG_VERBOSITY_ARGUMENT_HELP,
-            action="store_const",
+            action='store_const',
             dest=VERBOSITY_ARGUMENT,
             const=logging.DEBUG,
             default=logging.WARNING)
@@ -185,7 +185,7 @@ class ArgumentHandler:
             '-v',
             '--verbose',
             help=VERBOSE_VERBOSITY_ARGUMENT_HELP,
-            action="store_const",
+            action='store_const',
             dest=VERBOSITY_ARGUMENT,
             const=logging.INFO)
 
@@ -196,7 +196,7 @@ class ArgumentHandler:
         """
         for plugin in self.plugin_loader.get_plugins():
             parser.add_argument(
-                "--" + plugin.argument,
+                '--' + plugin.argument,
                 help=plugin.help,
-                action="store_true",
+                action='store_true',
                 dest=plugin.argument)

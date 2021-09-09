@@ -12,8 +12,8 @@ from test import test_constants
 def test_missing_migration_directory() -> None:
     test_arguments = [
         RESTORE_ARGUMENT,
-        "--tags",
-        "--" + MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
+        '--tags',
+        '--' + MIGRATION_DIRECTORY_ARGUMENT + '=' + test_constants.migration_dir,
     ]
 
     argument_handler = ArgumentHandler(test_arguments)
@@ -33,8 +33,8 @@ def test_missing_migration_directory() -> None:
 def test_missing_service_migration_file() -> None:
     test_arguments = [
         RESTORE_ARGUMENT,
-        "--tags",
-        "--" + MIGRATION_DIRECTORY_ARGUMENT + "=" + test_constants.migration_dir,
+        '--tags',
+        '--' + MIGRATION_DIRECTORY_ARGUMENT + '=' + test_constants.migration_dir,
     ]
 
     argument_handler = ArgumentHandler(test_arguments)

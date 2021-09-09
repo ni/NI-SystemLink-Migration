@@ -12,7 +12,7 @@ class TestFile(ManualTestBase):
 
     def populate_data(self):
         self.__raise_if_existing_data()
-        WorkspaceUtilities().create_workspace("WorkspaceForManualFilesMigrationTest", self)
+        WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__upload_files(workspaces)
 
