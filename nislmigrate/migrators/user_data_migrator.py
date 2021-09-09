@@ -18,7 +18,7 @@ class UserDataMigrator(MigratorPlugin):
     def help(self):
         return "Migrate user data"
 
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory):
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         mongo_facade.capture_database_to_directory(
@@ -26,7 +26,7 @@ class UserDataMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory):
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         mongo_facade.restore_database_from_directory(
@@ -34,7 +34,7 @@ class UserDataMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,

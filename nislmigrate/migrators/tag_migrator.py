@@ -28,7 +28,7 @@ class TagMigrator(MigratorPlugin):
         "Skyline",
         "KeyValueDatabase")
 
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory):
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
@@ -41,7 +41,7 @@ class TagMigrator(MigratorPlugin):
             migration_directory,
             self.__file_to_migrate)
 
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory):
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
@@ -54,7 +54,7 @@ class TagMigrator(MigratorPlugin):
             self.__file_to_migrate_directory,
             self.__file_to_migrate)
 
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
+    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,
