@@ -3,19 +3,19 @@ from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
-from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migration_tool import run_migration_tool
 from pathlib import Path
 import pytest
 from test.test_utilities import FakeServiceManager, NoopBackgroundProcess
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 
 @pytest.mark.unit
 def test_run_migration_tool(tmp_path: Path) -> None:
     migrator = configure_test_migrator(tmp_path)
-    services_to_migrate: List[MigratorPlugin] = [migrator]
+    services_to_migrate: List[Tuple[MigratorPlugin, dict]] = [(migrator, {})]
 
     facade_factory = FacadeFactory()
     mongo_facade = facade_factory.get_mongo_facade()
@@ -30,6 +30,27 @@ def test_run_migration_tool(tmp_path: Path) -> None:
     process_facade.reset()
     run_migration_tool(facade_factory, services_to_migrate, MigrationAction.RESTORE, migration_directory)
     assert process_facade.restored
+
+
+def test_migrator_receives_extra_arguments(tmp_path) -> None:
+    migrator = configure_test_migrator(tmp_path)
+    expected_arguments = {'extra': True}
+    services_to_migrate: List[Tuple[MigratorPlugin, dict]] = [(migrator, expected_arguments)]
+
+    facade_factory = FacadeFactory()
+    mongo_facade = facade_factory.get_mongo_facade()
+    process_facade = FakeProcessFacade()
+    mongo_facade.process_facade = process_facade
+    facade_factory.system_link_service_manager_facade = FakeServiceManager()
+    migration_directory = str(tmp_path / 'data')
+
+    run_migration_tool(facade_factory, services_to_migrate, MigrationAction.CAPTURE, migration_directory)
+    assert migrator.capture_extra_arguments == expected_arguments
+
+    process_facade.reset()
+    run_migration_tool(facade_factory, services_to_migrate, MigrationAction.RESTORE, migration_directory)
+    assert migrator.pre_restore_extra_arguments == expected_arguments
+    assert migrator.restore_extra_arguments == expected_arguments
 
 
 class FakeProcessFacade(ProcessFacade):
@@ -62,6 +83,11 @@ class FakeProcessFacade(ProcessFacade):
 
 
 class TestMigrator(MigratorPlugin):
+    def __init__(self):
+        self.catpure_extra_arguments = None
+        self.restore_extra_arguments = None
+        self.pre_restore_extra_arguments = None
+
     @property
     def argument(self) -> str:
         return 'test-migrator'
@@ -83,6 +109,8 @@ class TestMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
+        self.capture_extra_arguments = arguments
+
     def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
@@ -92,12 +120,17 @@ class TestMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
+        self.restore_extra_arguments = arguments
+
     def pre_restore_check(
             self,
             migration_directory: str,
             facade_factory: FacadeFactory,
             arguments: Dict[str, Any]) -> None:
-        pass
+        self.pre_restore_extra_arguments = arguments
+
+    def add_additional_arguments(self, argument_manager: ArgumentManager):
+        argument_manager.add_switch('extra', 'extra help')
 
 
 def configure_test_migrator(tmp_path: Path) -> TestMigrator:

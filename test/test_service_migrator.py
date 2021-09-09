@@ -18,7 +18,7 @@ def test_capture_services_with_restore_action_captures_plugin():
     service_migrator = MigrationFacilitator(facade_factory)
     service = TestMigrator()
 
-    service_migrator.migrate([service], MigrationAction.CAPTURE, '')
+    service_migrator.migrate([(service, {})], MigrationAction.CAPTURE, '')
 
     assert service.capture_count == 1
 
@@ -29,7 +29,7 @@ def test_capture_services_with_restore_action_restores_plugin():
     service_migrator = MigrationFacilitator(facade_factory)
     service = TestMigrator()
 
-    service_migrator.migrate([service], MigrationAction.RESTORE, '')
+    service_migrator.migrate([(service, {})], MigrationAction.RESTORE, '')
 
     assert service.restore_count == 1
 
@@ -41,7 +41,7 @@ def test_capture_services_with_unknown_action_throws_exception():
     service = TestMigrator()
 
     with pytest.raises(ValueError):
-        service_migrator.migrate([service], 'unknown', '')
+        service_migrator.migrate([(service, {})], 'unknown', '')
 
 
 @pytest.mark.unit
