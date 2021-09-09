@@ -105,3 +105,27 @@ def test_get_logging_verbosity_with_no_arguments():
     argument_handler = ArgumentHandler(arguments)
 
     assert argument_handler.get_logging_verbosity() == logging.WARNING
+
+
+@pytest.mark.unit
+def test_is_force_migration_flag_present_short_flag_present():
+    arguments = [RESTORE_ARGUMENT, "-f"]
+    argument_handler = ArgumentHandler(arguments)
+
+    assert argument_handler.is_force_migration_flag_present()
+
+
+@pytest.mark.unit
+def test_is_force_migration_flag_present_flag_not_present():
+    arguments = [RESTORE_ARGUMENT]
+    argument_handler = ArgumentHandler(arguments)
+
+    assert not argument_handler.is_force_migration_flag_present()
+
+
+@pytest.mark.unit
+def test_is_force_migration_flag_present_flag_present():
+    arguments = [RESTORE_ARGUMENT, "--force"]
+    argument_handler = ArgumentHandler(arguments)
+
+    assert argument_handler.is_force_migration_flag_present()

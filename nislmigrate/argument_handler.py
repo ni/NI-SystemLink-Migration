@@ -20,17 +20,19 @@ MIGRATION_DIRECTORY_ARGUMENT = "dir"
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser("~\\Documents\\migration")
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
+
 Must specify at least one service to migrate, or migrate all services with the `--all` flag.
 
 Run `nislmigrate capture/restore --help` to list all supported services."""
 
-CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = "The 'capture' or 'restore' argument must be provided."
-CAPTURE_COMMAND_HELP = "use capture to pull data and settings off of a SystemLink server."
-RESTORE_COMMAND_HELP = "use restore to push captured data and settings to a clean SystemLink server. "
+CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = "The 'capture' or 'restore' argument must be provided"
+CAPTURE_COMMAND_HELP = "use capture to pull data and settings off of a SystemLink server"
+RESTORE_COMMAND_HELP = "use restore to push captured data and settings to a clean SystemLink server"
 DIRECTORY_ARGUMENT_HELP = "specify the directory used for migrated data (defaults to documents)"
-ALL_SERVICES_ARGUMENT_HELP = "use all provided migrator plugins during a capture or restore operation."
-DEBUG_VERBOSITY_ARGUMENT_HELP = "print all logged information and stack trace information in case an error occurs."
-VERBOSE_VERBOSITY_ARGUMENT_HELP = "print all logged information except debugging information."
+ALL_SERVICES_ARGUMENT_HELP = "use all provided migrator plugins during a capture or restore operation"
+FORCE_ARGUMENT_HELP = "allows capture to delete existing data on the SystemLink server prior to restore"
+DEBUG_VERBOSITY_ARGUMENT_HELP = "print all logged information and stack trace information in case an error occurs"
+VERBOSE_VERBOSITY_ARGUMENT_HELP = "print all logged information except debugging information"
 
 
 class ArgumentHandler:
@@ -86,6 +88,9 @@ class ArgumentHandler:
     def __is_all_service_migration_flag_present(self) -> bool:
         return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
+    def is_force_migration_flag_present(self) -> bool:
+        return getattr(self.parsed_arguments, "force")
+
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:
         return [
@@ -95,6 +100,7 @@ class ArgumentHandler:
             and not argument == MIGRATION_DIRECTORY_ARGUMENT
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
+            and not argument == "force"
         ]
 
     def get_migration_action(self) -> MigrationAction:
@@ -146,7 +152,12 @@ class ArgumentHandler:
 
         sub_parser = argument_parser.add_subparsers(dest=ACTION_ARGUMENT, metavar="command")
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
-        sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
+        restore_parser = sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
+        restore_parser.add_argument(
+            "-f",
+            "--force",
+            help=FORCE_ARGUMENT_HELP,
+            action="store_true")
 
     @staticmethod
     def __add_additional_flag_options(parser: ArgumentParser) -> None:
