@@ -1,7 +1,7 @@
 import datetime
 from typing import Dict, List
 from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, POPULATED_SERVER_RECORD_TYPE
-from manual_test.test_workspace import TestWorkspace
+from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
 SERVICE_NAME = 'Alarm'
 TEST_NAME = 'AlarmMigrationTest'
@@ -11,10 +11,10 @@ ADD_NOTES_TO_ALARM_ROUTE_FORMAT = '/nialarm/v1//instances/{instance_id}/notes'
 CREATE_OR_UPDATE_ALARM_ROUTE = '/nialarm/v1/instances'
 QUERY_ALARMS_ROUTE = '/nialarm/v1/query-instances'
 
-class TestAlarm(ManualTestBase, TestWorkspace):
+class TestAlarm(ManualTestBase):
 
     def populate_data(self) -> None:
-        self.__create_worksace(TEST_WORKSPACE_NAME)
+        WorkspaceUtilities().create_worksace(self, TEST_WORKSPACE_NAME)
         index = 0
         startTime = datetime.datetime.now()
         for alarm in self.__generate_alarms(startTime):
@@ -40,8 +40,8 @@ class TestAlarm(ManualTestBase, TestWorkspace):
 
     def __generate_alarms(self, startTime) -> List[Dict[str, str]]:
         alarms = []
-        for workspace in self.__get_workspaces():
-            alarms.extend(self.__generate_alarms_for_workspace(workspace))
+        for workspace in WorkspaceUtilities().get_workspaces(self):
+            alarms.extend(self.__generate_alarms_for_workspace(workspace, startTime))
         return alarms
 
     def __generate_alarms_for_workspace(self, workspace, startTime) -> List[Dict[str, str]]:
@@ -55,7 +55,7 @@ class TestAlarm(ManualTestBase, TestWorkspace):
         time = time + datetime.timedelta(hours=1)
         alarms.append(self.__generate_alarm(workspace, startTime, 3, 'Set.Ack.Clear'))
 
-    def __generate_alarm(workspace, startTime, index, mode) -> Dict[str, str]:
+    def __generate_alarm(self, workspace, startTime, index, mode) -> Dict[str, str]:
         channel = f'{TEST_NAME}.{mode}'
         return {
             'alarmId': f'{channel}.{index}',
