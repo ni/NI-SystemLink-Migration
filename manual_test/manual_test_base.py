@@ -1,9 +1,16 @@
 import argparse
+import json
+import os
 from requests.auth import HTTPBasicAuth
 import requests
 from typing import Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
+
+# Record type for data recorded from a clean server prior to restoring data
+CLEAN_SERVER_RECORD_TYPE = 'clean'
+# Record type for data recorded from a server which is populated with test data
+POPULATED_SERVER_RECORD_TYPE = 'populated'
 
 
 class ManualTestBase:
@@ -26,6 +33,14 @@ class ManualTestBase:
     def populate_data(self) -> None:
         """
         Derived class should override to populate the SystemLink server with test data.
+        """
+
+        raise NotImplementedError
+
+    def record_initial_data(self) -> None:
+        """
+        Derived class should ovveride to record the initial state of the SystemLink server prior
+        to running a restore operation. Recorded data should be used by the validate_data() method.
         """
 
         raise NotImplementedError
@@ -76,6 +91,50 @@ class ManualTestBase:
 
         return self.request("PUT", route, **kwargs)
 
+    def read_recorded_data(
+            self,
+            category: str,
+            collection: str,
+            record_type: str,
+            required: bool = True) -> list:
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            create_folder_if_missing=False)
+
+        try:
+            with open(file_path, 'r') as file:
+                return json.load(file)
+        except Exception:
+            if required:
+                msg = f'Unable to read recording file for category=\'{category}\'; collection=\'{collection}\''
+                raise RuntimeError(msg)
+
+        return []
+
+    def record_data(self, category: str, collection: str, record_type: str, data) -> None:
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            create_folder_if_missing=True)
+        with open(file_path, 'w') as file:
+            json.dump(data, file)
+
+    def __build_recording_file_path(
+            self,
+            category: str,
+            collection: str,
+            record_type: str,
+            create_folder_if_missing: bool) -> str:
+        folder_path = os.path.join(os.getcwd(), '.test', category)
+        if create_folder_if_missing:
+            os.makedirs(folder_path, exist_ok=True)
+
+        filename = collection + '.' + record_type + '.json'
+        return os.path.join(folder_path, filename)
+
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     """
@@ -91,6 +150,9 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     parser.add_argument('--password', '-p', required=True, help='server password.')
     subparsers = parser.add_subparsers(dest='command', required=True)
     subparsers.add_parser('populate', help='populate the server with test data')
+    subparsers.add_parser(
+        'record',
+        help='record the initial state of the server prior to running a restore operation')
     subparsers.add_parser('validate', help='validate the data on the server matches the test data')
 
     options = parser.parse_args()
@@ -102,5 +164,7 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
 
     if 'populate' == options.command:
         test.populate_data()
+    elif 'record' == options.command:
+        test.record_initial_data()
     elif 'validate' == options.command:
         test.validate_data()
