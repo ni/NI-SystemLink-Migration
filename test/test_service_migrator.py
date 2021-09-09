@@ -177,3 +177,6 @@ class FakeArgumentHandler(ArgumentHandler):
 
     def get_migration_directory(self) -> str:
         return ''
+
+    def is_force_migration_flag_present(self) -> bool:
+        return True

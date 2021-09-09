@@ -24,7 +24,7 @@ def test_run_migration_tool(tmp_path: Path) -> None:
     run_migration_tool(facade_factory, capture_argument_handler)
     assert process_facade.captured
 
-    restore_arguments = ['restore', '--test-migrator', '--dir', migration_directory]
+    restore_arguments = ['restore', '--test-migrator', '--dir', migration_directory, '--force']
     restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
     process_facade.reset()
     run_migration_tool(facade_factory, restore_argument_handler)
@@ -43,7 +43,7 @@ def test_migrator_receives_extra_arguments(tmp_path) -> None:
     run_migration_tool(facade_factory, capture_argument_handler)
     assert process_facade.captured
 
-    restore_arguments = ['restore', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory]
+    restore_arguments = ['restore', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory, '--force']
     restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
     process_facade.reset()
     run_migration_tool(facade_factory, restore_argument_handler)

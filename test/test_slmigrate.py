@@ -14,6 +14,7 @@ def test_missing_migration_directory() -> None:
         RESTORE_ARGUMENT,
         '--tags',
         '--' + MIGRATION_DIRECTORY_ARGUMENT + '=' + test_constants.migration_dir,
+        '--force',
     ]
 
     argument_handler = ArgumentHandler(test_arguments)
@@ -31,6 +32,7 @@ def test_missing_service_migration_file() -> None:
         RESTORE_ARGUMENT,
         '--tags',
         '--' + MIGRATION_DIRECTORY_ARGUMENT + '=' + test_constants.migration_dir,
+        '--force',
     ]
 
     argument_handler = ArgumentHandler(test_arguments)
