@@ -67,7 +67,8 @@ class MigrationFacilitator:
         permission_checker.verify_force_if_restoring(is_force_migration_flag_present, self._action)
 
         if self._action == MigrationAction.RESTORE:
-            plugin: MigratorPlugin
-            for plugin in self._migrators:
-                arguments = self._argument_handler.get_migrator_additional_arguments(plugin)
-                plugin.pre_restore_check(self._migration_directory, self.facade_factory, arguments)
+            migrator: MigratorPlugin
+            for migrator in self._migrators:
+                migrator_directory = os.path.join(self._migration_directory, migrator.name)
+                arguments = self._argument_handler.get_migrator_additional_arguments(migrator)
+                migrator.pre_restore_check(migrator_directory, self.facade_factory, arguments)
