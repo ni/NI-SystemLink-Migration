@@ -9,15 +9,15 @@ class UserDataMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "UserData"
+        return 'UserData'
 
     @property
     def argument(self):
-        return "userdata"
+        return 'userdata'
 
     @property
     def help(self):
-        return "Migrate user data"
+        return 'Migrate user data'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

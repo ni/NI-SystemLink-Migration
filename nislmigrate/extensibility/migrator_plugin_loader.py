@@ -29,7 +29,7 @@ class MigratorPluginLoader:
 
     def __get_discovered_plugin_modules(self) -> List[ModuleType]:
         package_path = str(os.path.dirname(os.path.abspath(inspect.getfile(self.plugin_package))))
-        module_info_list = pkgutil.iter_modules([package_path], self.package_name + ".")
+        module_info_list = pkgutil.iter_modules([package_path], self.package_name + '.')
         return [importlib.import_module(name) for _, name, _ in module_info_list]
 
     def __instantiate_plugins_from_module(self, module: ModuleType):
