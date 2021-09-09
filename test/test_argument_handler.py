@@ -174,8 +174,8 @@ def test_migrator_with_additional_arguments_has_additional_parameters_when_passe
 
 @pytest.mark.unit
 def test_migrator_with_additional_arguments_only_receives_own_arguments():
-    migrator1 = FakeMigrator("one", "mine", True)
-    migrator2 = FakeMigrator("two", "yours", True)
+    migrator1 = FakeMigrator('one', 'mine', True)
+    migrator2 = FakeMigrator('two', 'yours', True)
     loader = FakeMigratorPluginLoader([migrator1, migrator2])
     arguments = ['capture', '--one', '--one-mine', '--two', '--two-yours']
     argument_handler = ArgumentHandler(arguments, loader)
@@ -186,7 +186,7 @@ def test_migrator_with_additional_arguments_only_receives_own_arguments():
 
 
 class FakeMigrator(MigratorPlugin):
-    def __init__(self, name: str = "Fake", extra_argument_name: str = "extra", add_argument: bool = False):
+    def __init__(self, name: str = 'Fake', extra_argument_name: str = 'extra', add_argument: bool = False):
         self._add_argument = add_argument
         self._name = name
         self._extra_argument_name = extra_argument_name
