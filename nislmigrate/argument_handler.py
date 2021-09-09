@@ -71,7 +71,7 @@ class ArgumentHandler:
         Generate a list of migration strategies to use during migration,
         based on the given arguments.
 
-        :return: A list of selected migration actions with the parameters for each action.
+        :return: A list of selected migration actions.
         """
         enabled_plugins = (self.plugin_loader.get_plugins() if self.__is_all_service_migration_flag_present()
                            else self.__get_enabled_plugins())
