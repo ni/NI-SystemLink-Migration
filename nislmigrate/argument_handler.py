@@ -43,11 +43,15 @@ class ArgumentHandler:
     parsed_arguments: Namespace = Namespace()
     plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)
 
-    def __init__(self,  arguments: List[str] = None):
+    def __init__(
+            self,
+            arguments: List[str] = None,
+            plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)):
         """
         Creates a new instance of ArgumentHandler
         :param arguments: The list of arguments to process, or None to directly grab CLI arguments.
         """
+        self.plugin_loader = plugin_loader
         argument_parser = self.__create_migration_tool_argument_parser()
         if arguments is None:
             self.parsed_arguments = argument_parser.parse_args()
