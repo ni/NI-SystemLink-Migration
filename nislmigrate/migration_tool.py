@@ -5,12 +5,12 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from typing import List
+from typing import Any, Dict, List, Tuple
 
 
 def run_migration_tool(
         facade_factory: FacadeFactory,
-        services_to_migrate: List[MigratorPlugin],
+        services_to_migrate: List[Tuple[MigratorPlugin, Dict[str, Any]]],
         migration_action: MigrationAction,
         migration_directory: str) -> None:
     """

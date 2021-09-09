@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import Any, Dict, List, Tuple
 
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
@@ -16,7 +16,11 @@ class MigrationFacilitator:
         self.facade_factory: FacadeFactory = facade_factory
         self.service_manager: SystemLinkServiceManagerFacade = facade_factory.get_system_link_service_manager_facade()
 
-    def migrate(self, migrators: List[MigratorPlugin], migration_action: MigrationAction, migration_directory: str):
+    def migrate(
+            self,
+            migrators: List[Tuple[MigratorPlugin, Dict[str, Any]]],
+            migration_action: MigrationAction,
+            migration_directory: str):
         """Facilitates an entire capture or restore operation from start to finish.
 
         :param migrators: The list of plugins to involve in the migration.
@@ -28,16 +32,16 @@ class MigrationFacilitator:
 
     def __stop_services_and_perform_migration(
             self,
-            migrators: List[MigratorPlugin],
+            migrators: List[Tuple[MigratorPlugin, Dict[str, Any]]],
             action: MigrationAction,
             migration_directory: str,
     ) -> None:
         self.service_manager.stop_all_system_link_services()
         try:
-            for migrator in migrators:
+            for migrator, arguments in migrators:
                 migrator_directory = os.path.join(migration_directory, migrator.name)
                 self.__report_migration_starting(migrator.name, action)
-                self.__migrate_service(migrator, action, migrator_directory)
+                self.__migrate_service(migrator, action, migrator_directory, arguments)
                 self.__report_migration_finished(migrator.name, action)
         finally:
             self.service_manager.start_all_system_link_services()
@@ -46,12 +50,13 @@ class MigrationFacilitator:
             self,
             migrator: MigratorPlugin,
             action: MigrationAction,
-            migration_directory: str
+            migration_directory: str,
+            migrator_arguments: dict,
     ) -> None:
         if action == MigrationAction.CAPTURE:
-            migrator.capture(migration_directory, self.facade_factory, {})
+            migrator.capture(migration_directory, self.facade_factory, migrator_arguments)
         elif action == MigrationAction.RESTORE:
-            migrator.restore(migration_directory, self.facade_factory, {})
+            migrator.restore(migration_directory, self.facade_factory, migrator_arguments)
         else:
             raise ValueError('Migration action is not the correct type.')
 
@@ -72,11 +77,11 @@ class MigrationFacilitator:
 
     def __pre_migration_error_check(
             self,
-            plugins: List[MigratorPlugin],
+            plugins: List[Tuple[MigratorPlugin, Dict[str, Any]]],
             migration_action: MigrationAction,
             migration_directory: str
     ) -> None:
         if migration_action == MigrationAction.RESTORE:
             plugin: MigratorPlugin
-            for plugin in plugins:
-                plugin.pre_restore_check(migration_directory, self.facade_factory, {})
+            for plugin, arguments in plugins:
+                plugin.pre_restore_check(migration_directory, self.facade_factory, arguments)

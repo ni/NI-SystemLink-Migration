@@ -1,14 +1,14 @@
 import logging
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action, SUPPRESS
 from argparse import Namespace
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
-from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 
 ACTION_ARGUMENT = 'action'
 PROGRAM_NAME = 'nislmigrate'
@@ -66,19 +66,18 @@ class ArgumentHandler:
         else:
             self.parsed_arguments = argument_parser.parse_args(arguments)
 
-    def get_list_of_services_to_capture_or_restore(self) -> List[MigratorPlugin]:
+    def get_list_of_services_to_capture_or_restore(self) -> List[Tuple[MigratorPlugin, Dict[str, Any]]]:
         """
         Generate a list of migration strategies to use during migration,
         based on the given arguments.
 
-        :return: A list of selected migration actions.
+        :return: A list of selected migration actions with the parameters for each action.
         """
-        if self.__is_all_service_migration_flag_present():
-            return self.plugin_loader.get_plugins()
-        enabled_plugins = self.__get_enabled_plugins()
+        enabled_plugins = (self.plugin_loader.get_plugins() if self.__is_all_service_migration_flag_present()
+                           else self.__get_enabled_plugins())
         if len(enabled_plugins) == 0:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
-        return enabled_plugins
+        return [(plugin, self._get_migrator_additional_arguments(plugin)) for plugin in enabled_plugins]
 
     def _get_migrator_additional_arguments(self, migrator: MigratorPlugin) -> Dict[str, Any]:
         key = _get_migrator_arguments_key(migrator)
