@@ -9,24 +9,24 @@ class OPCMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "OpcClient"
+        return 'OpcClient'
 
     @property
     def argument(self):
-        return "opc"
+        return 'opc'
 
     @property
     def help(self):
-        return "Migrate OPCUA sessions and certificates"
+        return 'Migrate OPCUA sessions and certificates'
 
-    __ni_directory = os.path.join(str(os.environ.get("ProgramData")), "National Instruments")
-    __data_directory = os.path.join(__ni_directory, "Skyline", "Data", "OpcClient")
+    __ni_directory = os.path.join(str(os.environ.get('ProgramData')), 'National Instruments')
+    __data_directory = os.path.join(__ni_directory, 'Skyline', 'Data', 'OpcClient')
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
@@ -41,7 +41,7 @@ class OPCMigrator(MigratorPlugin):
         mongo_facade = facade_factory.get_mongo_facade()
         file_facade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.restore_database_from_directory(
             mongo_configuration,

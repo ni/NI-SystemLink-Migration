@@ -24,11 +24,11 @@ class TestWorkspace(ManualTestBase):
 
     def __get_workspace_id(self, workspace_name: str):
         result = self.get(WORKSPACES_ROUTE)
-        workspaces = result.json()["workspaces"]
+        workspaces = result.json()['workspaces']
         for workspace in workspaces:
-            if workspace["name"] == workspace_name:
-                return workspace["id"]
+            if workspace['name'] == workspace_name:
+                return workspace['id']
         return None
 
     def __create_workspace(self, workspace_name: str):
-        self.post(WORKSPACES_ROUTE, json={"name": workspace_name})
+        self.post(WORKSPACES_ROUTE, json={'name': workspace_name})

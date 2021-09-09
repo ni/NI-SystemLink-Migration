@@ -11,30 +11,30 @@ class RepositoryMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "Repository"
+        return 'Repository'
 
     @property
     def argument(self):
-        return "repo"
+        return 'repo'
 
     @property
     def help(self):
-        return "Migrate packages and feeds"
+        return 'Migrate packages and feeds'
 
     __data_directory = os.path.join(
-        str(os.environ.get("ProgramW6432")),
-        "National Instruments",
-        "Shared",
-        "Web Services",
-        "NI",
-        "repo_webservice",
-        "files")
+        str(os.environ.get('ProgramW6432')),
+        'National Instruments',
+        'Shared',
+        'Web Services',
+        'NI',
+        'repo_webservice',
+        'files')
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
@@ -49,7 +49,7 @@ class RepositoryMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.restore_database_from_directory(
             mongo_configuration,

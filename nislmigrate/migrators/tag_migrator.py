@@ -11,22 +11,22 @@ class TagMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "TagHistorian"
+        return 'TagHistorian'
 
     @property
     def argument(self):
-        return "tags"
+        return 'tags'
 
     @property
     def help(self):
-        return "migrate tags and tag histories"
+        return 'migrate tags and tag histories'
 
-    __file_to_migrate = "dump.rdb"
+    __file_to_migrate = 'dump.rdb'
     __file_to_migrate_directory = os.path.join(
-        str(os.environ.get("ProgramData")),
-        "National Instruments",
-        "Skyline",
-        "KeyValueDatabase")
+        str(os.environ.get('ProgramData')),
+        'National Instruments',
+        'Skyline',
+        'KeyValueDatabase')
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

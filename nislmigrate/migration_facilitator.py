@@ -53,20 +53,20 @@ class MigrationFacilitator:
         elif action == MigrationAction.RESTORE:
             migrator.restore(migration_directory, self.facade_factory)
         else:
-            raise ValueError("Migration action is not the correct type.")
+            raise ValueError('Migration action is not the correct type.')
 
     @staticmethod
     def __report_migration_starting(migrator_name: str, action: MigrationAction):
-        action_pretty_name = "capture" if action == MigrationAction.CAPTURE else "restore"
+        action_pretty_name = 'capture' if action == MigrationAction.CAPTURE else 'restore'
         migrator_names = (action_pretty_name, migrator_name)
-        info = f"Starting to {action_pretty_name} data using {migrator_names} migrator strategy ..."
+        info = f'Starting to {action_pretty_name} data using {migrator_names} migrator strategy ...'
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
 
     @staticmethod
     def __report_migration_finished(migrator_name: str, action: MigrationAction):
-        action_pretty_name = "capturing" if action == MigrationAction.CAPTURE else "restoring"
-        info = f"Done {action_pretty_name} data using {migrator_name} migrator strategy."
+        action_pretty_name = 'capturing' if action == MigrationAction.CAPTURE else 'restoring'
+        info = f'Done {action_pretty_name} data using {migrator_name} migrator strategy.'
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
 

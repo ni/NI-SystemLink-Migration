@@ -8,15 +8,15 @@ class AssetMigrator(MigratorPlugin):
 
     @property
     def argument(self):
-        return "assets"
+        return 'assets'
 
     @property
     def name(self):
-        return "AssetPerformanceManagement"
+        return 'AssetPerformanceManagement'
 
     @property
     def help(self):
-        return "Migrate asset utilization and calibration data"
+        return 'Migrate asset utilization and calibration data'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

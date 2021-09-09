@@ -8,15 +8,15 @@ class NotificationPlugin(MigratorPlugin):
 
     @property
     def name(self):
-        return "Notification"
+        return 'Notification'
 
     @property
     def argument(self):
-        return "notification"
+        return 'notification'
 
     @property
     def help(self):
-        return "Migrate notifications strategies, templates, and groups"
+        return 'Migrate notifications strategies, templates, and groups'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

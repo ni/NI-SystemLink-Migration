@@ -11,28 +11,28 @@ class StatesMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "SystemsStateManager"
+        return 'SystemsStateManager'
 
     @property
     def argument(self):
-        return "states"
+        return 'states'
 
     @property
     def help(self):
-        return "Migrate system states"
+        return 'Migrate system states'
 
     __data_directory = os.path.join(
-        str(os.environ.get("ProgramData")),
-        "National Instruments",
-        "Skyline",
-        "Data",
-        "SystemsStateManager")
+        str(os.environ.get('ProgramData')),
+        'National Instruments',
+        'Skyline',
+        'Data',
+        'SystemsStateManager')
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
@@ -47,7 +47,7 @@ class StatesMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.restore_database_from_directory(
             mongo_configuration,

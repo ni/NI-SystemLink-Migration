@@ -16,21 +16,21 @@ from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
 
 MONGO_CONFIGURATION_PATH: str = os.path.join(
-    str(os.environ.get("ProgramData")),
-    "National Instruments",
-    "Skyline",
-    "NoSqlDatabase",
-    "mongodb.conf")
+    str(os.environ.get('ProgramData')),
+    'National Instruments',
+    'Skyline',
+    'NoSqlDatabase',
+    'mongodb.conf')
 MONGO_BINARIES_DIRECTORY: str = os.path.join(
-    str(os.environ.get("ProgramW6432")),
-    "National Instruments",
-    "Shared",
-    "Skyline",
-    "NoSqlDatabase",
-    "bin")
-MONGO_DUMP_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongodump.exe")
-MONGO_RESTORE_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongorestore.exe")
-MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, "mongod.exe")
+    str(os.environ.get('ProgramW6432')),
+    'National Instruments',
+    'Shared',
+    'Skyline',
+    'NoSqlDatabase',
+    'bin')
+MONGO_DUMP_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, 'mongodump.exe')
+MONGO_RESTORE_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, 'mongorestore.exe')
+MONGO_EXECUTABLE_PATH: str = os.path.join(MONGO_BINARIES_DIRECTORY, 'mongod.exe')
 
 
 class MongoFacade:
@@ -57,8 +57,8 @@ class MongoFacade:
         mongo_dump_command = [MONGO_DUMP_EXECUTABLE_PATH]
         connection_arguments = self.__get_mongo_connection_arguments(configuration)
         mongo_dump_command.extend(connection_arguments)
-        mongo_dump_command.append("--archive=" + dump_path)
-        mongo_dump_command.append("--gzip")
+        mongo_dump_command.append('--archive=' + dump_path)
+        mongo_dump_command.append('--gzip')
         output = self.__ensure_mongo_process_is_running_and_execute_command(mongo_dump_command)
         self.__check_mongo_output_for_errors(output)
 
@@ -82,11 +82,11 @@ class MongoFacade:
         # We need to provide the db option (even though it's redundant with the uri)
         # because of a bug with mongoDB 4.2
         # https://docs.mongodb.com/v4.2/reference/program/mongorestore/#cmdoption-mongorestore-uri
-        connection_arguments.extend(["--db", configuration.database_name])
+        connection_arguments.extend(['--db', configuration.database_name])
         mongo_restore_command.extend(connection_arguments)
-        mongo_restore_command.append("--gzip")
-        mongo_restore_command.append("--archive=" + dump_path)
-        mongo_restore_command.append("--drop")
+        mongo_restore_command.append('--gzip')
+        mongo_restore_command.append('--archive=' + dump_path)
+        mongo_restore_command.append('--drop')
         output = self.__ensure_mongo_process_is_running_and_execute_command(mongo_restore_command)
         self.__check_mongo_output_for_errors(output)
 
@@ -104,7 +104,7 @@ class MongoFacade:
         """
         dump_path = os.path.join(directory, dump_name)
         if not os.path.exists(dump_path):
-            raise FileNotFoundError("Could not find the captured service at " + dump_path)
+            raise FileNotFoundError('Could not find the captured service at ' + dump_path)
 
     @staticmethod
     def migrate_document(collection: Collection, document: Dict[str, Any]) -> None:
@@ -115,12 +115,12 @@ class MongoFacade:
         :param document: The document to insert.
         """
         log = logging.getLogger(MongoFacade.__name__)
-        document_id = str(document["_id"])
+        document_id = str(document['_id'])
         try:
-            log.log(logging.INFO, "Migrating " + document_id)
+            log.log(logging.INFO, 'Migrating ' + document_id)
             collection.insert_one(document)
         except mongo_errors.DuplicateKeyError:
-            log.warning("Document " + document_id + " already exists. Skipping")
+            log.warning('Document ' + document_id + ' already exists. Skipping')
 
     @staticmethod
     def __get_conflicting_document_id(
@@ -134,11 +134,11 @@ class MongoFacade:
         :param document: The document to test if it conflicts.
         :return: The document that would conflict, or none if no document conflicts.
         """
-        workspace_field = {"workspace": document["workspace"]}
-        path_field = {"path": document["path"]}
+        workspace_field = {'workspace': document['workspace']}
+        path_field = {'path': document['path']}
         query_parameters = [workspace_field, path_field]
-        conflict_search_query = {"$and": query_parameters}
-        return collection.find_one(conflict_search_query)["_id"]
+        conflict_search_query = {'$and': query_parameters}
+        return collection.find_one(conflict_search_query)['_id']
 
     @staticmethod
     def __merge_history_document(
@@ -154,9 +154,9 @@ class MongoFacade:
         :param destination_database: The database to merge the history document in.
         :return: None.
         """
-        destination_collection: Collection = destination_database.get_collection("values")
+        destination_collection: Collection = destination_database.get_collection('values')
         destination_collection.update_one(
-            {"metadataId": source_id}, {"$set": {"metadataId": destination_id}}
+            {'metadataId': source_id}, {'$set': {'metadataId': destination_id}}
         )
 
     def __migrate_collection(
@@ -167,7 +167,7 @@ class MongoFacade:
             on_conflict: Optional[Callable[[str, str, Database], None]],
     ) -> None:
         """
-        Migrates a collection with the name "values" from the source database
+        Migrates a collection with the name 'values' from the source database
         to the destination database.
 
         :param name: the name of the collection to migrate from the source database.
@@ -180,7 +180,7 @@ class MongoFacade:
             if on_conflict:
                 conflict_id: str = self.__get_conflicting_document_id(destination, document)
                 if conflict_id:
-                    source_id = document["_id"]
+                    source_id = document['_id']
                     on_conflict(source_id, conflict_id, destination_database)
                     continue
             self.migrate_document(destination, document)
@@ -193,14 +193,14 @@ class MongoFacade:
                                for data to be migrated into it.
         """
         # look for fields that should be set when Org modeling is present.
-        collection_name: str = "metadata"
+        collection_name: str = 'metadata'
         destination_collection: Collection = destination_db.get_collection(collection_name)
-        if destination_collection.find({"workspace": {"$exists": False}}):
+        if destination_collection.find({'workspace': {'$exists': False}}):
             raise MigrationError(
-                "Database is not ready for migration. Update the connection string in "
-                "C:\\ProgramData\\National Instruments\\Skyline\\Config\\TagHistorian.json to "
-                "point to the nitaghistorian database in your MongoDB instance and restart Service"
-                " Manager. Please see <TODO: DOCUMENTATION LINK HERE> for more detail"
+                'Database is not ready for migration. Update the connection string in '
+                'C:\\ProgramData\\National Instruments\\Skyline\\Config\\TagHistorian.json to '
+                'point to the nitaghistorian database in your MongoDB instance and restart Service'
+                ' Manager. Please see <TODO: DOCUMENTATION LINK HERE> for more detail'
             )
 
     def migrate_within_instance(
@@ -229,12 +229,12 @@ class MongoFacade:
             codec_options=codec)
         self.check_merge_history_readiness(destination_database)
         self.__migrate_collection(
-            "values",
+            'values',
             source_database,
             destination_database,
             None)
         self.__migrate_collection(
-            "metadata",
+            'metadata',
             source_database,
             destination_database,
             self.__merge_history_document)
@@ -252,7 +252,7 @@ class MongoFacade:
         except ProcessError as e:
             log = logging.getLogger(MongoFacade.__name__)
             log.error(e.error)
-        return ""
+        return ''
 
     def __start_mongo(self) -> None:
         """
@@ -260,7 +260,7 @@ class MongoFacade:
         :return: The started subprocess handling mongo DB.
         """
         if not self.__mongo_process_handle:
-            arguments = [MONGO_EXECUTABLE_PATH, "--config", MONGO_CONFIGURATION_PATH]
+            arguments = [MONGO_EXECUTABLE_PATH, '--config', MONGO_CONFIGURATION_PATH]
             self.__mongo_process_handle = self.process_facade.run_background_process(arguments)
 
     def __stop_mongo(self) -> None:
@@ -276,14 +276,14 @@ class MongoFacade:
     @staticmethod
     def __get_mongo_connection_arguments(mongo_configuration: MongoConfiguration) -> List[str]:
         if mongo_configuration.connection_string:
-            return ["--uri", mongo_configuration.connection_string]
-        return ["--port",
+            return ['--uri', mongo_configuration.connection_string]
+        return ['--port',
                 str(mongo_configuration.port),
-                "--db",
+                '--db',
                 mongo_configuration.database_name,
-                "--username",
+                '--username',
                 mongo_configuration.user,
-                "--password",
+                '--password',
                 mongo_configuration.password]
 
     @staticmethod
@@ -291,10 +291,10 @@ class MongoFacade:
         if not output:
             return
         raw_lines = output.splitlines()
-        lines = [line.split("\t")[1] for line in raw_lines if len(line.split("\t")) > 1]
+        lines = [line.split('\t')[1] for line in raw_lines if len(line.split('\t')) > 1]
         for line in lines:
-            if "error:" in line:
-                raise MigrationError(f"Mongo reported the following error: {line}")
+            if 'error:' in line:
+                raise MigrationError(f'Mongo reported the following error: {line}')
             else:
-                log = logging.getLogger("MongoProcess")
-                log.info(f"{line}")
+                log = logging.getLogger('MongoProcess')
+                log.info(f'{line}')

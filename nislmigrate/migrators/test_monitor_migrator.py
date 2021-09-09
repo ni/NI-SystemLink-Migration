@@ -8,15 +8,15 @@ class TestMonitorMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "TestMonitor"
+        return 'TestMonitor'
 
     @property
     def argument(self):
-        return "testmonitor"
+        return 'testmonitor'
 
     @property
     def help(self):
-        return "Migrate notifications strategies, templates, and groups"
+        return 'Migrate notifications strategies, templates, and groups'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

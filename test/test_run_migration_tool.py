@@ -64,15 +64,15 @@ class FakeProcessFacade(ProcessFacade):
 class TestMigrator(MigratorPlugin):
     @property
     def argument(self) -> str:
-        return "test-migrator"
+        return 'test-migrator'
 
     @property
     def name(self) -> str:
-        return "TestMigrator"
+        return 'TestMigrator'
 
     @property
     def help(self) -> str:
-        return ""
+        return ''
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory) -> None:
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
@@ -103,12 +103,12 @@ def configure_test_migrator(tmp_path: Path) -> TestMigrator:
 
     configuration = {
         migrator.name: {
-            "Mongo.CustomConnectionString": "mongodb://localhost:27017",
-            "Mongo.Database": "db"
+            'Mongo.CustomConnectionString': 'mongodb://localhost:27017',
+            'Mongo.Database': 'db'
         }
     }
     config_directory.mkdir()
-    with open(config_directory / f'{migrator.name}.json', "w", encoding="utf-8-sig") as f:
+    with open(config_directory / f'{migrator.name}.json', 'w', encoding='utf-8-sig') as f:
         f.write(json.dumps(configuration))
 
     return migrator

@@ -8,15 +8,15 @@ class TagRuleEngineMigrator(MigratorPlugin):
 
     @property
     def argument(self):
-        return "tagrule"
+        return 'tagrule'
 
     @property
     def name(self):
-        return "TagRuleEngine"
+        return 'TagRuleEngine'
 
     @property
     def help(self):
-        return "Migrate Tag alarm rules"
+        return 'Migrate Tag alarm rules'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

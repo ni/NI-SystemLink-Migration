@@ -7,11 +7,11 @@ from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 
 DEFAULT_DATA_DIRECTORY = os.path.join(
-    str(os.environ.get("ProgramData")),
-    "National Instruments",
-    "Skyline",
-    "Data",
-    "FileIngestion")
+    str(os.environ.get('ProgramData')),
+    'National Instruments',
+    'Skyline',
+    'Data',
+    'FileIngestion')
 
 PATH_CONFIGURATION_KEY = 'OutputPath'
 
@@ -20,21 +20,21 @@ class FileMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return "FileIngestion"
+        return 'FileIngestion'
 
     @property
     def argument(self):
-        return "files"
+        return 'files'
 
     @property
     def help(self):
-        return "Migrate ingested files"
+        return 'Migrate ingested files'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
@@ -49,7 +49,7 @@ class FileMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, "files")
+        file_migration_directory = os.path.join(migration_directory, 'files')
 
         mongo_facade.restore_database_from_directory(
             mongo_configuration,
