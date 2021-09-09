@@ -1,20 +1,21 @@
 import datetime
-from typing import Dict, List
+from typing import Any, Dict, List
 from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, POPULATED_SERVER_RECORD_TYPE
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
 SERVICE_NAME = 'Alarm'
 TEST_NAME = 'AlarmMigrationTest'
 TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
-ACKNOWLEDGE_ALARMS_BY_ID_ROUTE ='/nialarm/v1/acknowledge-instances-by-instance-id'
+ACKNOWLEDGE_ALARMS_BY_ID_ROUTE = '/nialarm/v1/acknowledge-instances-by-instance-id'
 ADD_NOTES_TO_ALARM_ROUTE_FORMAT = '/nialarm/v1//instances/{instance_id}/notes'
 CREATE_OR_UPDATE_ALARM_ROUTE = '/nialarm/v1/instances'
 QUERY_ALARMS_ROUTE = '/nialarm/v1/query-instances'
 
+
 class TestAlarm(ManualTestBase):
 
     def populate_data(self) -> None:
-        WorkspaceUtilities().create_worksace(self, TEST_WORKSPACE_NAME)
+        WorkspaceUtilities().create_workspace(TEST_WORKSPACE_NAME, self)
         index = 0
         startTime = datetime.datetime.now()
         for alarm in self.__generate_alarms(startTime):
@@ -38,13 +39,13 @@ class TestAlarm(ManualTestBase):
 
         return response.json()
 
-    def __generate_alarms(self, startTime) -> List[Dict[str, str]]:
+    def __generate_alarms(self, startTime) -> List[Dict[str, Any]]:
         alarms = []
         for workspace in WorkspaceUtilities().get_workspaces(self):
             alarms.extend(self.__generate_alarms_for_workspace(workspace, startTime))
         return alarms
 
-    def __generate_alarms_for_workspace(self, workspace, startTime) -> List[Dict[str, str]]:
+    def __generate_alarms_for_workspace(self, workspace, startTime) -> List[Dict[str, Any]]:
         alarms = []
         time = startTime
         alarms.append(self.__generate_alarm(workspace, time, 0, 'Set'))
@@ -54,8 +55,9 @@ class TestAlarm(ManualTestBase):
         alarms.append(self.__generate_alarm(workspace, startTime, 2, 'Set.Clear'))
         time = time + datetime.timedelta(hours=1)
         alarms.append(self.__generate_alarm(workspace, startTime, 3, 'Set.Ack.Clear'))
+        return alarms
 
-    def __generate_alarm(self, workspace, startTime, index, mode) -> Dict[str, str]:
+    def __generate_alarm(self, workspace, startTime, index, mode) -> Dict[str, Any]:
         channel = f'{TEST_NAME}.{mode}'
         return {
             'alarmId': f'{channel}.{index}',
@@ -69,7 +71,7 @@ class TestAlarm(ManualTestBase):
             'properties': {'forTest': 'True'}
         }
 
-    def __generate_set_transition(self, time) -> Dict[str, str]:
+    def __generate_set_transition(self, time) -> Dict[str, Any]:
         return {
             'transitionType': 'SET',
             'occuredAt': time,
@@ -82,3 +84,6 @@ class TestAlarm(ManualTestBase):
             'properties': {'forTest': 'True'}
         }
 
+
+if __name__ == '__main__':
+    handle_command_line(TestAlarm)
