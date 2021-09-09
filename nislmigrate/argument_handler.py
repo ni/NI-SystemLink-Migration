@@ -111,7 +111,7 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
     def is_force_migration_flag_present(self) -> bool:
-        return getattr(self.parsed_arguments, 'force')
+        return getattr(self.parsed_arguments, 'force', False)
 
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:

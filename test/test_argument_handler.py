@@ -136,6 +136,14 @@ def test_is_force_migration_flag_present_flag_present():
 
 
 @pytest.mark.unit
+def test_is_force_migration_flag_present_during_capture_returns_false():
+    arguments = [CAPTURE_ARGUMENT]
+    argument_handler = ArgumentHandler(arguments)
+
+    assert not argument_handler.is_force_migration_flag_present()
+
+
+@pytest.mark.unit
 def test_migrator_with_no_additional_arguments_has_empty_additional_parameters():
     migrator = FakeMigrator(add_argument=False)
     loader = FakeMigratorPluginLoader([migrator])
