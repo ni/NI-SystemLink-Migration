@@ -61,7 +61,7 @@ class MigratorPlugin(abc.ABC):
         return self.__cached_config
 
     @abc.abstractmethod
-    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
+    def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         """
         Captures the given service from SystemLink.
         :param migration_directory: the root path to perform the capture to.
@@ -72,7 +72,7 @@ class MigratorPlugin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
+    def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         """
         Restores the given service to SystemLink.
         :param migration_directory: the root path to perform the restore from.
@@ -83,7 +83,11 @@ class MigratorPlugin(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def pre_restore_check(self, migration_directory: str, facade_factory: FacadeFactory, arguments: dict) -> None:
+    def pre_restore_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
         """
         Raises a MigrationError if the service anticipates an error migrating.
 
