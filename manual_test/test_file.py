@@ -1,6 +1,6 @@
 import json
 
-from manual_test.test_workspace import TestWorkspace
+from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test_base import ManualTestBase, handle_command_line
 
 
@@ -8,12 +8,12 @@ upload_route = '/nifile/v1/service-groups/Default/upload-files'
 get_route = '/nifile/v1/service-groups/Default/files'
 
 
-class TestFile(ManualTestBase, TestWorkspace):
+class TestFile(ManualTestBase):
 
     def populate_data(self):
         self.__raise_if_existing_data()
-        self.__create_workspace('WorkspaceForManualFilesMigrationTest')
-        workspaces = self.__get_workspaces()
+        WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
+        workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__upload_files(workspaces)
 
     def record_initial_data(self):
@@ -21,7 +21,7 @@ class TestFile(ManualTestBase, TestWorkspace):
         pass
 
     def validate_data(self):
-        workspaces = self.__get_workspaces()
+        workspaces = WorkspaceUtilities().get_workspaces(self)
         expected_files = self.__get_expected_files(workspaces)
         data = self.__get_files(len(expected_files))
         self.__assert_file_count(data, len(expected_files))

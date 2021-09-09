@@ -2,9 +2,10 @@ import datetime
 from typing import List, Dict
 
 from manual_test.manual_test_base import ManualTestBase, handle_command_line
-from manual_test.test_workspace import TestWorkspace
+from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from nislmigrate.logs.migration_error import MigrationError
 
+SERVICE_NAME = 'Tag'
 TEST_WORKSPACE_NAME = 'CustomWorkspaceForManualTagMigrationTest'
 CREATE_ROUTE = '/nitag/v2/tags/'
 GET_ROUTE = '/nitag/v2/tags-with-values/'
@@ -59,15 +60,18 @@ expected_counts = {
 }
 
 
-class TestTag(ManualTestBase, TestWorkspace):
+class TestTag(ManualTestBase):
 
     def populate_data(self) -> None:
-        self.__create_workspace(TEST_WORKSPACE_NAME)
+        WorkspaceUtilities().create_workspace(TEST_WORKSPACE_NAME, self)
         for tag in self.__generate_tags_data():
             self.__upload_tag(tag)
             now = datetime.datetime.now()
             self.__update_tag_value(tag, data_type_values_1[tag['type']], now)
             self.__update_tag_value(tag, data_type_values_2[tag['type']], now + datetime.timedelta(days=1))
+
+    def record_initial_data(self) -> None:
+        pass
 
     def validate_data(self) -> None:
         for expected in self.__generate_tags_data():
@@ -108,7 +112,7 @@ class TestTag(ManualTestBase, TestWorkspace):
         return tag_data
 
     def __generate_tag_data(self, name: str, workspace_name: str, datatype: str):
-        workspace_id = self.__get_workspace_id(workspace_name)
+        workspace_id = WorkspaceUtilities().get_workspace_id(workspace_name, self)
         if not workspace_id:
             raise MigrationError(workspace_name + ' is not a workspace that has been created yet.')
 
