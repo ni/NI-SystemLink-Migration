@@ -186,10 +186,10 @@ def test_migrator_with_additional_arguments_only_receives_own_arguments():
 
 
 class FakeMigrator(MigratorPlugin):
-    def __init__(self, name: str = "Fake", argument_name: str = "extra", add_argument: bool = False):
+    def __init__(self, name: str = "Fake", extra_argument_name: str = "extra", add_argument: bool = False):
         self._add_argument = add_argument
         self._name = name
-        self._argument_name = argument_name
+        self._extra_argument_name = extra_argument_name
 
     @property
     def argument(self) -> str:
@@ -214,7 +214,7 @@ class FakeMigrator(MigratorPlugin):
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         if self._add_argument:
-            argument_manager.add_switch(self._argument_name, f'{self._argument_name} help')
+            argument_manager.add_switch(self._extra_argument_name, f'{self._extra_argument_name} help')
 
 
 class FakeMigratorPluginLoader(MigratorPluginLoader):
