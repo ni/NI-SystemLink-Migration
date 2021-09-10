@@ -28,14 +28,20 @@ nislmigrate capture --tags --dir C:\custom-backup-location
 ```
 
 ### Restore
+
+> :warning: Restore overwrites existing data on the server. Include the `--force` argument to allow the data to be overwritten.
+
 To restore the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `restore` option and the corresponding flag for each of the services you want to restore (e.g. `--tags`):
 ```bash
-nislmigrate capture --tags
+nislmigrate restore --tags --force
 ```
 This will restore the data corresponding with each service from the default migration directory (`C:\Users\[user]\Documents\migration\`). If your captured data is in a different directory that can be specified with the `--dir [path]` option:
 ```bash
-nislmigrate capture --tags --dir C:\custom-backup-location
+nislmigrate restore --force --tags --dir C:\custom-backup-location
 ```
+
+Include `--force` on with all restore commands to indicate that data on the server may be overwritten.
+
 ### Migration
 To migrate from one SystemLink server instance (server A) to a different instance (server B):
 1. Install the migration tool on server A and server B.
