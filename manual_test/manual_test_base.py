@@ -139,7 +139,7 @@ class ManualTestBase:
 
     def datetime_to_string(self, time) -> str:
         """Converts a datetime object to a string in the format expected by SystemLink"""
-        return time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return time.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
