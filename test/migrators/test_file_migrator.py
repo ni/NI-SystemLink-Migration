@@ -123,7 +123,7 @@ def test_file_migrator_pre_capture_check_reports_error_when_s3_backend_is_enable
 
 @pytest.mark.unit
 def test_file_migrator_pre_restore_check_reports_error_when_s3_backend_is_enabled_without_ignore_metadata_argument():
-    facade_factory, _ = configure_facade_factory(enable_s3_backend=True)
+    facade_factory, _ = configure_facade_factory(enable_s3_backend=True, dir_exists=False)
     migrator = FileMigrator()
 
     with pytest.raises(MigrationError) as e:

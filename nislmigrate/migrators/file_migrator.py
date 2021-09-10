@@ -144,10 +144,10 @@ class FileMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
-        if not configuration.file_migration_directory_exists and configuration.should_migrate_files:
-            raise MigrationError(_NO_FILES_ERROR)
-        elif configuration.is_s3_backend and not configuration.has_metadata_only_argument:
+        if configuration.is_s3_backend and not configuration.has_metadata_only_argument:
             raise MigrationError(_CANNOT_MIGRATE_S3_FILES_ERROR)
+        elif not configuration.file_migration_directory_exists and configuration.should_migrate_files:
+            raise MigrationError(_NO_FILES_ERROR)
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
