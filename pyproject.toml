@@ -39,7 +39,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.flake8]
 max-line-length=120
-exclude=".git,__pycache__,.venv,dist"
+exclude=".git,__pycache__,.venv"
 
 [tool.mypy]
 ignore_missing_imports ="True"
