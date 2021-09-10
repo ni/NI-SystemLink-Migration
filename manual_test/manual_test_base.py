@@ -1,5 +1,4 @@
 import argparse
-import datetime
 import json
 import os
 from requests.auth import HTTPBasicAuth
@@ -138,7 +137,7 @@ class ManualTestBase:
         filename = collection + '.' + record_type + '.json'
         return os.path.join(folder_path, filename)
 
-    def datetime_to_string(self, time: datetime) -> str:
+    def datetime_to_string(self, time) -> str:
         """Converts a datetime object to a string in the format expected by SystemLink"""
         return time.strftime("%Y-%m-%dT%H:%M:%SZ")
 

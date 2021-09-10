@@ -32,11 +32,7 @@ class TestAlarm(ManualTestBase):
             instance_id = self.__raise_alarm(alarm)
             self.__add_note(instance_id, startTime + datetime.timedelta(hours=1), index)
             self.__acknowledge_if_needed(alarm, instance_id, startTime + datetime.timedelta(hours=2), index)
-            self.__clearIfNeeded(
-                alarm,
-                startTime + datetime.timedelta(hours=3),
-                notification_strategy_id,
-                index)
+            self.__clearIfNeeded(alarm, startTime + datetime.timedelta(hours=3), index)
             index = index + 1
 
         self.record_data(SERVICE_NAME, ALARM_DATABASE_NAME, POPULATED_SERVER_RECORD_TYPE, self.__get_all_alarms())
@@ -87,13 +83,12 @@ class TestAlarm(ManualTestBase):
 
         return response.json()['filterMatches']
 
-    def __raise_alarm(self, alarm: Dict[str, any]) -> str:
+    def __raise_alarm(self, alarm: Dict[str, Any]) -> str:
         response = self.post(CREATE_OR_UPDATE_ALARM_ROUTE, json=alarm)
         response.raise_for_status()
         return response.json()['instanceId']
 
-    def __add_note(self, instance_id: str, time: datetime, index: int):
-        u = f'nialarm/v1//instances/{instance_id}'
+    def __add_note(self, instance_id: str, time, index: int):
         uri = ADD_NOTES_TO_ALARM_ROUTE_FORMAT.format(instance_id=instance_id)
         note = {
             'note': f'Note #{index}',
@@ -106,7 +101,7 @@ class TestAlarm(ManualTestBase):
             self,
             alarm: Dict[str, Any],
             instance_id: str,
-            time: datetime,
+            time,
             index: int
     ):
         if self.__need_to_acknowledge(alarm):
@@ -121,7 +116,7 @@ class TestAlarm(ManualTestBase):
             response = self.post(ACKNOWLEDGE_ALARMS_BY_ID_ROUTE, json=ack)
             response.raise_for_status()
 
-    def __clearIfNeeded(self, alarm: Dict[str, Any], time: datetime, notification_strategy_id: str, index: int):
+    def __clearIfNeeded(self, alarm: Dict[str, Any], time, index: int):
         if self.__need_to_clear(alarm):
             clear = {
                 'alarmId': alarm['alarmId'],
@@ -145,13 +140,18 @@ class TestAlarm(ManualTestBase):
 
         return result['notification_strategy']['id']
 
-    def __generate_alarms(self, startTime: datetime, notification_strategy_id: str) -> List[Dict[str, Any]]:
+    def __generate_alarms(self, startTime, notification_strategy_id: str) -> List[Dict[str, Any]]:
         alarms = []
         for workspace_id in WorkspaceUtilities().get_workspaces(self):
             alarms.extend(self.__generate_alarms_for_workspace(workspace_id, startTime, notification_strategy_id))
         return alarms
 
-    def __generate_alarms_for_workspace(self, workspace_id: str, startTime: datetime, notification_strategy_id: str) -> List[Dict[str, Any]]:
+    def __generate_alarms_for_workspace(
+        self,
+        workspace_id: str,
+        startTime,
+        notification_strategy_id: str
+    ) -> List[Dict[str, Any]]:
         alarms = []
         alarms.append(self.__generate_alarm(workspace_id, startTime, notification_strategy_id, 0, 'Set'))
         alarms.append(self.__generate_alarm(workspace_id, startTime, notification_strategy_id, 1, 'Set.Ack'))
@@ -162,7 +162,7 @@ class TestAlarm(ManualTestBase):
     def __generate_alarm(
             self,
             workspace_id,
-            startTime: datetime,
+            startTime,
             notification_strategy_id: str,
             index: int,
             mode: str
@@ -181,7 +181,7 @@ class TestAlarm(ManualTestBase):
             'properties': {'forTest': 'True'}
         }
 
-    def __generate_set_transition(self, time: datetime) -> Dict[str, Any]:
+    def __generate_set_transition(self, time) -> Dict[str, Any]:
         return {
             'transitionType': 'SET',
             'occuredAt': self.datetime_to_string(time),
@@ -193,7 +193,7 @@ class TestAlarm(ManualTestBase):
             'properties': {'forTest': 'True'}
         }
 
-    def __generate_clear_transition(self, time: datetime, index: int) -> Dict[str, Any]:
+    def __generate_clear_transition(self, time, index: int) -> Dict[str, Any]:
         return {
             'transitionType': 'CLEAR',
             'occuredAt': self.datetime_to_string(time),
@@ -237,16 +237,24 @@ class TestAlarm(ManualTestBase):
             assert len(alarm['notificationStrategyIds']) > 0
 
         for strategy_id in alarm['notificationStrategyIds']:
-            matching_strategy = next((strategy for strategy in notification_strategies if strategy['id'] == strategy_id), None)
-            assert matching_strategy is not None
+            matching_strategies = (strategy for strategy in notification_strategies if strategy['id'] == strategy_id)
+            assert next(matching_strategies, None) is not None
 
     def __is_test_alarm(self, alarm: Dict[str, Any]) -> bool:
         return 'forTest' in alarm['properties']
 
-    def __find_matching_alarm_instance(self, record: Dict[str, Any], collection: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    def __find_matching_alarm_instance(
+        self,
+        record: Dict[str, Any],
+        collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
         return next((item for item in collection if item['instanceId'] == record['instanceId']), None)
 
-    def __find_matching_alarm_id(self, record: Dict[str, Any], collection: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    def __find_matching_alarm_id(
+        self,
+        record: Dict[str, Any],
+        collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
         return next((item for item in collection if item['alarmId'] == record['alarmId']), None)
 
 
