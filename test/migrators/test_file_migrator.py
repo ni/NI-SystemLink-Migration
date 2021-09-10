@@ -9,15 +9,13 @@ from nislmigrate.migrators.file_migrator import (
 )
 import pytest
 from test.test_utilities import FakeFacadeFactory
-from typing import Optional
+from typing import Any, Dict, Optional, Tuple
 
 
 @pytest.mark.unit
 def test_file_migrator_captures_from_default_location_when_unconfigured():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    facade_factory.file_system_facade = file_system_facade
+    facade_factory, file_system_facade = configure_facade_factory()
     migrator = FileMigrator()
 
     migrator.capture('data_dir', facade_factory, {})
@@ -28,12 +26,9 @@ def test_file_migrator_captures_from_default_location_when_unconfigured():
 @pytest.mark.unit
 def test_file_migrator_captures_from_configured_location():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    facade_factory.file_system_facade = file_system_facade
-    migrator = FileMigrator()
     expected_directory = 'custom/directory'
-    file_system_facade.config[PATH_CONFIGURATION_KEY] = expected_directory
+    facade_factory, file_system_facade = configure_facade_factory(data_directory=expected_directory)
+    migrator = FileMigrator()
 
     migrator.capture('data_dir', facade_factory, {})
 
@@ -43,9 +38,7 @@ def test_file_migrator_captures_from_configured_location():
 @pytest.mark.unit
 def test_file_migrator_restores_to_default_location_when_unconfigured():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    facade_factory.file_system_facade = file_system_facade
+    facade_factory, file_system_facade = configure_facade_factory()
     migrator = FileMigrator()
 
     migrator.restore('data_dir', facade_factory, {})
@@ -56,12 +49,9 @@ def test_file_migrator_restores_to_default_location_when_unconfigured():
 @pytest.mark.unit
 def test_file_migrator_restores_to_configured_location():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    facade_factory.file_system_facade = file_system_facade
-    migrator = FileMigrator()
     expected_directory = 'custom/directory'
-    file_system_facade.config[PATH_CONFIGURATION_KEY] = expected_directory
+    facade_factory, file_system_facade = configure_facade_factory(data_directory=expected_directory)
+    migrator = FileMigrator()
 
     migrator.restore('data_dir', facade_factory, {})
 
@@ -71,9 +61,7 @@ def test_file_migrator_restores_to_configured_location():
 @pytest.mark.unit
 def test_file_migrator_does_not_capture_files_when_metadata_only_is_passed():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    facade_factory.file_system_facade = file_system_facade
+    facade_factory, file_system_facade = configure_facade_factory()
     migrator = FileMigrator()
 
     migrator.capture('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
@@ -84,10 +72,7 @@ def test_file_migrator_does_not_capture_files_when_metadata_only_is_passed():
 @pytest.mark.unit
 def test_file_migrator_does_not_restore_files_when_metadata_only_is_passed():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    file_system_facade.dir_exists = False
-    facade_factory.file_system_facade = file_system_facade
+    facade_factory, file_system_facade = configure_facade_factory(dir_exists=False)
     migrator = FileMigrator()
 
     migrator.restore('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
@@ -98,10 +83,7 @@ def test_file_migrator_does_not_restore_files_when_metadata_only_is_passed():
 @pytest.mark.unit
 def test_file_migrator_reports_error_if_no_files_to_restore_and_not_metdata_only():
 
-    facade_factory = FakeFacadeFactory()
-    file_system_facade = FakeFileSystemFacade()
-    file_system_facade.dir_exists = False
-    facade_factory.file_system_facade = file_system_facade
+    facade_factory, file_system_facade = configure_facade_factory(dir_exists=False)
     migrator = FileMigrator()
 
     with pytest.raises(MigrationError) as e:
@@ -111,16 +93,23 @@ def test_file_migrator_reports_error_if_no_files_to_restore_and_not_metdata_only
 
 
 class FakeFileSystemFacade(FileSystemFacade):
-    def __init__(self):
+    def __init__(
+        self,
+        data_directory: Optional[str] = None,
+        dir_exists: bool = True
+    ):
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
 
-        self.config = {
+        self.config: Dict[str, Any] = {
                 'Mongo.CustomConnectionString': 'mongodb://localhost',
                 'Mongo.Database': 'file'
             }
 
-        self.dir_exists = True
+        if data_directory is not None:
+            self.config[PATH_CONFIGURATION_KEY] = data_directory
+
+        self.dir_exists = dir_exists
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
         self.last_from_directory = from_directory
@@ -131,3 +120,17 @@ class FakeFileSystemFacade(FileSystemFacade):
 
     def migration_dir_exists(self, dir_):
         return self.dir_exists
+
+
+def configure_facade_factory(
+    data_directory: Optional[str] = None,
+    dir_exists: bool = True
+) -> Tuple[FakeFacadeFactory, FakeFileSystemFacade]:
+    facade_factory = FakeFacadeFactory()
+    file_system_facade = FakeFileSystemFacade(
+        data_directory=data_directory,
+        dir_exists=dir_exists
+    )
+    facade_factory.file_system_facade = file_system_facade
+
+    return (facade_factory, file_system_facade)
