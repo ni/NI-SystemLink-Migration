@@ -53,8 +53,9 @@ class _FileMigratorConfiguration:
         self.file_migration_directory_exists: bool = self.file_facade.migration_dir_exists(
                 self.file_migration_directory)
 
-        self.data_directory: str = config.get(PATH_CONFIGURATION_KEY, DEFAULT_DATA_DIRECTORY)
-        self.is_s3_backend: bool = config.get(S3_CONFIGURATION_KEY, False)
+        self.data_directory: str = config.get(PATH_CONFIGURATION_KEY) or DEFAULT_DATA_DIRECTORY
+
+        self.is_s3_backend: bool = config.get(S3_CONFIGURATION_KEY, '').lower() == 'true'
         self.has_metadata_only_argument: bool = arguments.get(_METADATA_ONLY_ARGUMENT, False)
         self.should_migrate_files: bool = not self.has_metadata_only_argument
 
