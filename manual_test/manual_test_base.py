@@ -97,7 +97,8 @@ class ManualTestBase:
             category: str,
             collection: str,
             record_type: str,
-            required: bool = True) -> list:
+            required: bool = True
+    ) -> list:
         file_path = self.__build_recording_file_path(
             category,
             collection,
@@ -128,7 +129,8 @@ class ManualTestBase:
             category: str,
             collection: str,
             record_type: str,
-            create_folder_if_missing: bool) -> str:
+            create_folder_if_missing: bool
+    ) -> str:
         folder_path = os.path.join(os.getcwd(), '.test', category)
         if create_folder_if_missing:
             os.makedirs(folder_path, exist_ok=True)

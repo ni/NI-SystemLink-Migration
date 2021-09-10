@@ -39,7 +39,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.flake8]
 max-line-length=120
-exclude=".git,__pycache__,.venv"
+exclude=".git,__pycache__,.venv,dist"
 
 [tool.mypy]
 ignore_missing_imports ="True"
@@ -47,7 +47,7 @@ ignore_missing_imports ="True"
 [tool.taskipy.tasks]
 test_pytest = { cmd = "pytest", help = "runs all unit tests" }
 lint_flake8 = { cmd = "pflake8", help = "runs pflake8 linter" }
-lint_mypy = { cmd = "mypy .", help = "runs mypy linter" }
+lint_mypy = { cmd = "mypy . --exclude ./dist/ -v", help = "runs mypy linter" }
 lint = { cmd = "task lint_flake8 && task lint_mypy", help = "runs all linters" }
 test = { cmd = "pytest", help = "runs all tests." }
 verify = { cmd = "task lint && task test", help = "Run all linters and then all tests." }
