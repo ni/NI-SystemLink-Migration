@@ -110,7 +110,22 @@ class MigratorPlugin(abc.ABC):
             facade_factory: FacadeFactory,
             arguments: Dict[str, Any]) -> None:
         """
-        Raises a MigrationError if the service anticipates an error migrating.
+        Raises a MigrationError if the service anticipates an error restoring.
+
+        :param migration_directory: The directory to migrate to.
+        :param facade_factory: Factory that produces objects capable of doing
+                         actual restore operations.
+        :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
+        """
+        pass
+
+    def pre_capture_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
+        """
+        Raises a MigrationError if the service anticipates an error capturing.
 
         :param migration_directory: The directory to migrate to.
         :param facade_factory: Factory that produces objects capable of doing
