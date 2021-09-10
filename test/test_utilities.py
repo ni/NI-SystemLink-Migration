@@ -1,3 +1,5 @@
+from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
+from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.facades.facade_factory import FacadeFactory
@@ -5,6 +7,13 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 from typing import List, Optional
+
+
+class FakeNiWebServerManagerFacade(NiWebServerManagerFacade):
+    restart_count = 0
+
+    def restart_web_server(self):
+        self.restart_count = self.restart_count + 1
 
 
 class FakeServiceManager(SystemLinkServiceManagerFacade):
@@ -58,6 +67,7 @@ class FakeFacadeFactory(FacadeFactory):
         super().__init__()
         self.process_facade = FakeProcessFacade()
         self.mongo_facade = FakeMongoFacade(self.process_facade)
+        self.ni_web_server_manager_facade = FakeNiWebServerManagerFacade()
         self.system_link_service_manager_facade = FakeServiceManager()
 
 
