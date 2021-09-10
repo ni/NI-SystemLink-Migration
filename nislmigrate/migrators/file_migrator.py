@@ -94,7 +94,6 @@ class FileMigrator(MigratorPlugin):
             if not file_facade.migration_dir_exists(file_migration_directory):
                 raise MigrationError(_NO_FILES_ERROR)
 
-
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
 

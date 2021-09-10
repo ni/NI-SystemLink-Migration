@@ -1,6 +1,12 @@
 from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.logs.migration_error import MigrationError
-from nislmigrate.migrators.file_migrator import FileMigrator, DEFAULT_DATA_DIRECTORY, PATH_CONFIGURATION_KEY, _METADATA_ONLY_ARGUMENT, _NO_FILES_ERROR
+from nislmigrate.migrators.file_migrator import (
+    FileMigrator,
+    DEFAULT_DATA_DIRECTORY,
+    PATH_CONFIGURATION_KEY,
+    _METADATA_ONLY_ARGUMENT,
+    _NO_FILES_ERROR
+)
 import pytest
 from test.test_utilities import FakeFacadeFactory
 from typing import Optional
@@ -69,11 +75,10 @@ def test_file_migrator_does_not_capture_files_when_metadata_only_is_passed():
     file_system_facade = FakeFileSystemFacade()
     facade_factory.file_system_facade = file_system_facade
     migrator = FileMigrator()
-    expected_directory = 'custom/directory'
 
     migrator.capture('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
 
-    assert file_system_facade.last_from_directory == None
+    assert file_system_facade.last_from_directory is None
 
 
 @pytest.mark.unit
@@ -84,11 +89,10 @@ def test_file_migrator_does_not_restore_files_when_metadata_only_is_passed():
     file_system_facade.dir_exists = False
     facade_factory.file_system_facade = file_system_facade
     migrator = FileMigrator()
-    expected_directory = 'custom/directory'
 
     migrator.restore('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
 
-    assert file_system_facade.last_to_directory == None
+    assert file_system_facade.last_to_directory is None
 
 
 @pytest.mark.unit
@@ -99,7 +103,6 @@ def test_file_migrator_reports_error_if_no_files_to_restore_and_not_metdata_only
     file_system_facade.dir_exists = False
     facade_factory.file_system_facade = file_system_facade
     migrator = FileMigrator()
-    expected_directory = 'custom/directory'
 
     with pytest.raises(MigrationError) as e:
         migrator.pre_restore_check('data_dir', facade_factory, {})
@@ -127,4 +130,4 @@ class FakeFileSystemFacade(FileSystemFacade):
         return {'FileIngestion': self.config}
 
     def migration_dir_exists(self, dir_):
-        return self.dir_exists;
+        return self.dir_exists
