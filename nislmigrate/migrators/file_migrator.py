@@ -50,9 +50,13 @@ class _FileMigratorConfiguration:
         self.file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         self.mongo_configuration: MongoConfiguration = MongoConfiguration(config)
         self.file_migration_directory: str = os.path.join(migration_directory, 'files')
+        self.file_migration_directory_exists: bool = self.file_facade.migration_dir_exists(
+                self.file_migration_directory)
 
         self.data_directory: str = config.get(PATH_CONFIGURATION_KEY, DEFAULT_DATA_DIRECTORY)
-        self.should_migrate_files: bool = not arguments.get(_METADATA_ONLY_ARGUMENT, False)
+        self.is_s3_backend: bool = config.get(S3_CONFIGURATION_KEY, False)
+        self.has_metadata_only_argument: bool = arguments.get(_METADATA_ONLY_ARGUMENT, False)
+        self.should_migrate_files: bool = not self.has_metadata_only_argument
 
 
 class FileMigrator(MigratorPlugin):
@@ -107,6 +111,22 @@ class FileMigrator(MigratorPlugin):
                 configuration.data_directory,
                 True)
 
+    def pre_capture_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
+
+        configuration = _FileMigratorConfiguration(
+            migration_directory,
+            facade_factory,
+            arguments,
+            self.config(facade_factory)
+        )
+
+        if not configuration.has_metadata_only_argument and configuration.is_s3_backend:
+            raise MigrationError(_CANNOT_MIGRATE_S3_FILES_ERROR)
+
     def pre_restore_check(
             self,
             migration_directory: str,
@@ -124,9 +144,10 @@ class FileMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
-        if configuration.should_migrate_files:
-            if not configuration.file_facade.migration_dir_exists(configuration.file_migration_directory):
-                raise MigrationError(_NO_FILES_ERROR)
+        if not configuration.file_migration_directory_exists and configuration.should_migrate_files:
+            raise MigrationError(_NO_FILES_ERROR)
+        elif configuration.is_s3_backend and not configuration.has_metadata_only_argument:
+            raise MigrationError(_CANNOT_MIGRATE_S3_FILES_ERROR)
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
