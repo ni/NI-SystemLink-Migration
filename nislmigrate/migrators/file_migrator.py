@@ -17,6 +17,8 @@ DEFAULT_DATA_DIRECTORY = os.path.join(
 
 PATH_CONFIGURATION_KEY = 'OutputPath'
 
+S3_CONFIGURATION_KEY = 'UseS3Backend'
+
 _METADATA_ONLY_ARGUMENT = 'metadata-only'
 
 _METADATA_ONLY_HELP = 'When used with --files or --all, migrate only the file metadata, \
@@ -26,6 +28,13 @@ _NO_FILES_ERROR = """
 
 Files data was not found. If you intend to restore metadata only, pass
 --files-metadata-only.
+
+"""
+
+_CANNOT_MIGRATE_S3_FILES_ERROR = """
+
+S3 file storeaged is enabled on the backend. nislmigrate cannot capture/restore the files
+stored in S3. If you intend to migrate metadata only, pass --files-metadata-only.
 
 """
 
