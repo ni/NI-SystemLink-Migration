@@ -1,10 +1,13 @@
+from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+
+from nislmigrate.migration_action import MigrationAction
 
 
 class FakeServiceManager(SystemLinkServiceManagerFacade):
@@ -67,3 +70,24 @@ class FakeMigratorPluginLoader(MigratorPluginLoader):
 
     def get_plugins(self) -> List[MigratorPlugin]:
         return self.__migrators
+
+
+class FakeArgumentHandler(ArgumentHandler):
+    def __init__(self, services: List[MigratorPlugin], action: MigrationAction):
+        self._services: List[MigratorPlugin] = services
+        self._action = action
+
+    def get_list_of_services_to_capture_or_restore(self) -> List[MigratorPlugin]:
+        return self._services
+
+    def get_migrator_additional_arguments(self, migrator: MigratorPlugin) -> Dict[str, Any]:
+        return {}
+
+    def get_migration_action(self) -> MigrationAction:
+        return self._action
+
+    def get_migration_directory(self) -> str:
+        return ''
+
+    def is_force_migration_flag_present(self) -> bool:
+        return True
