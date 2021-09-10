@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 
 
 @pytest.mark.unit
-def test_capture_services_with_restore_action_captures_plugin():
+def test_migrate_services_with_restore_action_captures_plugin():
     facade_factory = FakeFacadeFactory()
     service = FakeMigrator()
 
@@ -22,10 +22,11 @@ def test_capture_services_with_restore_action_captures_plugin():
     service_migrator.migrate()
 
     assert service.capture_count == 1
+    assert service.pre_capture_count == 1
 
 
 @pytest.mark.unit
-def test_capture_services_with_restore_action_restores_plugin():
+def test_migrate_services_with_restore_action_restores_plugin():
     facade_factory = FakeFacadeFactory()
     service = FakeMigrator()
 
@@ -34,10 +35,41 @@ def test_capture_services_with_restore_action_restores_plugin():
     service_migrator.migrate()
 
     assert service.restore_count == 1
+    assert service.pre_restore_count == 1
 
 
 @pytest.mark.unit
-def test_capture_services_with_unknown_action_throws_exception():
+def test_migrate_services_does_not_call_capture_when_pre_capture_check_fails():
+    facade_factory = FakeFacadeFactory()
+    service = FakeMigrator()
+    service.fail_pre_check = True
+
+    argument_handler = FakeArgumentHandler([service], MigrationAction.CAPTURE)
+    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
+    with pytest.raises(RuntimeError):
+        service_migrator.migrate()
+
+    assert service.pre_capture_count == 1
+    assert service.capture_count == 0
+
+
+@pytest.mark.unit
+def test_migrate_services_does_not_call_restore_when_pre_restore_check_fails():
+    facade_factory = FakeFacadeFactory()
+    service = FakeMigrator()
+    service.fail_pre_check = True
+
+    argument_handler = FakeArgumentHandler([service], MigrationAction.RESTORE)
+    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
+    with pytest.raises(RuntimeError):
+        service_migrator.migrate()
+
+    assert service.pre_restore_count == 1
+    assert service.restore_count == 0
+
+
+@pytest.mark.unit
+def test_migrate_services_with_unknown_action_throws_exception():
     facade_factory = FakeFacadeFactory()
     service = FakeMigrator()
 
@@ -84,6 +116,20 @@ def test_migrator_reads_configuration_from_configured_location():
 
 
 @pytest.mark.unit
+def test_migrate_pre_capture_error_check_called_on_migrator_with_same_migration_directory_as_restore():
+    fake_migrator = FakeMigrator()
+    facade_factory = FakeFacadeFactory()
+    argument_handler = FakeArgumentHandler([fake_migrator], MigrationAction.CAPTURE)
+    facilitator = MigrationFacilitator(facade_factory, argument_handler)
+
+    facilitator.migrate()
+
+    assert fake_migrator.pre_capture_migration_directory == fake_migrator.capture_migration_directory
+    assert fake_migrator.pre_capture_count == 1
+    assert fake_migrator.capture_count == 1
+
+
+@pytest.mark.unit
 def test_migrate_pre_restore_error_check_called_on_migrator_with_same_migration_directory_as_restore():
     fake_migrator = FakeMigrator()
     facade_factory = FakeFacadeFactory()
@@ -99,10 +145,14 @@ def test_migrate_pre_restore_error_check_called_on_migrator_with_same_migration_
 
 class FakeMigrator(MigratorPlugin):
     pre_restore_migration_directory: str = ''
+    pre_capture_migration_directory: str = ''
     restore_migration_directory: str = ''
+    capture_migration_directory: str = ''
     restore_count = 0
     capture_count = 0
     pre_restore_count = 0
+    pre_capture_count = 0
+    fail_pre_check = False
 
     @property
     def help(self):
@@ -118,10 +168,21 @@ class FakeMigrator(MigratorPlugin):
 
     def capture(self, migration_directory, facade_factory, arguments) -> None:
         self.capture_count += 1
+        self.capture_migration_directory = migration_directory
 
     def restore(self, migration_directory, facade_factory, arguments) -> None:
         self.restore_count += 1
         self.restore_migration_directory = migration_directory
+
+    def pre_capture_check(
+            self,
+            migration_directory: str,
+            facade_factory: FacadeFactory,
+            arguments: Dict[str, Any]) -> None:
+        self.pre_capture_count += 1
+        self.pre_capture_migration_directory = migration_directory
+        if self.fail_pre_check:
+            raise RuntimeError('pre capture failure')
 
     def pre_restore_check(
             self,
@@ -130,6 +191,8 @@ class FakeMigrator(MigratorPlugin):
             arguments: Dict[str, Any]) -> None:
         self.pre_restore_count += 1
         self.pre_restore_migration_directory = migration_directory
+        if self.fail_pre_check:
+            raise RuntimeError('pre restore failure')
 
 
 class TestSystemLinkServiceManagerFacade(SystemLinkServiceManagerFacade):
