@@ -30,6 +30,22 @@ Files data was not found. If you intend to restore metadata only, pass
 """
 
 
+class _FileMigratorConfiguration:
+    def __init__(
+        self, migration_directory: str,
+        facade_factory: FacadeFactory,
+        arguments: Dict[str, Any],
+        config: Dict[str, Any]
+    ):
+        self.mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
+        self.file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
+        self.mongo_configuration: MongoConfiguration = MongoConfiguration(config)
+        self.file_migration_directory: str = os.path.join(migration_directory, 'files')
+
+        self.data_directory: str = config.get(PATH_CONFIGURATION_KEY, DEFAULT_DATA_DIRECTORY)
+        self.should_migrate_files: bool = not arguments.get(_METADATA_ONLY_ARGUMENT, False)
+
+
 class FileMigrator(MigratorPlugin):
 
     @property
@@ -45,37 +61,41 @@ class FileMigrator(MigratorPlugin):
         return 'Migrate ingested files'
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
-        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
-        file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, 'files')
+        configuration = _FileMigratorConfiguration(
+            migration_directory,
+            facade_factory,
+            arguments,
+            self.config(facade_factory)
+        )
 
-        mongo_facade.capture_database_to_directory(
-            mongo_configuration,
+        configuration.mongo_facade.capture_database_to_directory(
+            configuration.mongo_configuration,
             migration_directory,
             self.name)
 
-        if self.__should_migrate_files(arguments):
-            file_facade.copy_directory(
-                self.__data_directory(facade_factory),
-                file_migration_directory,
+        if configuration.should_migrate_files:
+            configuration.file_facade.copy_directory(
+                configuration.data_directory,
+                configuration.file_migration_directory,
                 False)
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
-        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
-        file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
-        file_migration_directory = os.path.join(migration_directory, 'files')
+        configuration = _FileMigratorConfiguration(
+            migration_directory,
+            facade_factory,
+            arguments,
+            self.config(facade_factory)
+        )
 
-        mongo_facade.restore_database_from_directory(
-            mongo_configuration,
+        configuration.mongo_facade.restore_database_from_directory(
+            configuration.mongo_configuration,
             migration_directory,
             self.name)
 
-        if self.__should_migrate_files(arguments):
-            file_facade.copy_directory(
-                file_migration_directory,
-                self.__data_directory(facade_factory),
+        if configuration.should_migrate_files:
+            configuration.file_facade.copy_directory(
+                configuration.file_migration_directory,
+                configuration.data_directory,
                 True)
 
     def pre_restore_check(
@@ -83,22 +103,21 @@ class FileMigrator(MigratorPlugin):
             migration_directory: str,
             facade_factory: FacadeFactory,
             arguments: Dict[str, Any]) -> None:
-        mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
-        mongo_facade.validate_can_restore_database_from_directory(
+
+        configuration = _FileMigratorConfiguration(
+            migration_directory,
+            facade_factory,
+            arguments,
+            self.config(facade_factory)
+        )
+
+        configuration.mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,
             self.name)
 
-        if self.__should_migrate_files(arguments):
-            file_migration_directory = os.path.join(migration_directory, 'files')
-            file_facade = facade_factory.get_file_system_facade()
-            if not file_facade.migration_dir_exists(file_migration_directory):
+        if configuration.should_migrate_files:
+            if not configuration.file_facade.migration_dir_exists(configuration.file_migration_directory):
                 raise MigrationError(_NO_FILES_ERROR)
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
-
-    def __data_directory(self, facade_factory):
-        return self.config(facade_factory).get(PATH_CONFIGURATION_KEY, DEFAULT_DATA_DIRECTORY)
-
-    def __should_migrate_files(self, arguments):
-        return not arguments.get(_METADATA_ONLY_ARGUMENT)
