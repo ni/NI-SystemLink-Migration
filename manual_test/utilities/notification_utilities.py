@@ -58,7 +58,7 @@ class NotificationUtilities:
             test: ManualTestBase,
             displayName: str,
             description: str = '',
-            addresses: List[str] = [],
+            addresses: List[str] = ['test@example.com'],
             subject: str = 'Test Notification',
             body: str = 'Test Notification'
     ) -> Dict[str, Dict[str, str]]:
