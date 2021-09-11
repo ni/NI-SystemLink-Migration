@@ -7,7 +7,7 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from test.test_utilities import FakeMongoFacade, FakeArgumentHandler
+from test.test_utilities import FakeMongoFacade, FakeArgumentHandler, FakeNiWebServerManagerFacade, FakeServiceManager
 from pathlib import Path
 import pytest
 from typing import Any, Dict, Optional
@@ -253,29 +253,6 @@ class FakeMigrator(MigratorPlugin):
             raise RuntimeError('pre restore failure')
 
 
-class TestNiWebServerManagerFacade(NiWebServerManagerFacade):
-    restart_count = 0
-
-    def restart_web_server(self):
-        self.restart_count = self.restart_count + 1
-
-
-class TestSystemLinkServiceManagerFacade(SystemLinkServiceManagerFacade):
-    are_services_running = True
-    stop_count = 0
-    start_count = 0
-
-    def stop_all_system_link_services(self):
-        if self.are_services_running:
-            self.stop_count = self.stop_count + 1
-            self.are_services_running = False
-
-    def start_all_system_link_services(self):
-        if not self.are_services_running:
-            self.start_count = self.start_count + 1
-            self.are_services_running = True
-
-
 class TestFileSystemFacade(FileSystemFacade):
     config = {
             'test': {
@@ -298,8 +275,8 @@ class FakeFacadeFactory(FacadeFactory):
         self.process_facade = ProcessFacade()
         self.mongo_facade: FakeMongoFacade = FakeMongoFacade(self.process_facade)
         self.file_system_facade: TestFileSystemFacade = TestFileSystemFacade()
-        self.ni_web_server_manager_facade: TestNiWebServerManagerFacade = TestNiWebServerManagerFacade()
-        self.system_link_service_manager_facade: TestSystemLinkServiceManagerFacade = TestSystemLinkServiceManagerFacade()  # noqa: E501
+        self.ni_web_server_manager_facade: FakeNiWebServerManagerFacade = FakeNiWebServerManagerFacade()
+        self.system_link_service_manager_facade: FakeServiceManager = FakeServiceManager()
 
     def get_mongo_facade(self) -> MongoFacade:
         return self.mongo_facade

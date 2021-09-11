@@ -20,12 +20,18 @@ class FakeNiWebServerManagerFacade(NiWebServerManagerFacade):
 
 class FakeServiceManager(SystemLinkServiceManagerFacade):
     are_services_running = True
+    stop_count = 0
+    start_count = 0
 
-    def stop_all_system_link_services(self) -> None:
-        self.are_services_running = False
+    def stop_all_system_link_services(self):
+        if self.are_services_running:
+            self.stop_count = self.stop_count + 1
+            self.are_services_running = False
 
-    def start_all_system_link_services(self) -> None:
-        self.are_services_running = True
+    def start_all_system_link_services(self):
+        if not self.are_services_running:
+            self.start_count = self.start_count + 1
+            self.are_services_running = True
 
 
 class NoopBackgroundProcess(BackgroundProcess):
