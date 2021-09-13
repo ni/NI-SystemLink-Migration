@@ -25,8 +25,7 @@ class TestFile(ManualTestBase):
         pass
 
     def validate_data(self):
-        workspaces = WorkspaceUtilities().get_workspaces(self)
-        expected_files = self.__get_files_to_create(workspaces)
+        expected_files = self.__read_recorded_data(POPULATED_SERVER_RECORD_TYPE)
         actual_files = self.__get_files()
 
         self.__assert_files_match(actual_files, expected_files)
@@ -77,10 +76,13 @@ class TestFile(ManualTestBase):
         return response.text
 
     @staticmethod
+    def __sorted_by_id(files):
+        return sorted(files, key=lambda i: i['id'])
+
+    @staticmethod
     def __assert_files_match(actual_files, expected_files):
-        by_filename = lambda i : i['filename']
         assert len(actual_files) == len(expected_files)
-        assert sorted(actual_files, key=by_filename) == sorted(expected_files, key=by_filename)
+        assert TestFile.__sorted_by_id(actual_files) == TestFile.__sorted_by_id(expected_files)
 
     @staticmethod
     def __get_files_to_create(workspaces) -> List[Dict[str, Any]]:
@@ -105,6 +107,12 @@ class TestFile(ManualTestBase):
             COLLECTION_NAME,
             record_type,
             self.__get_files())
+
+    def __read_recorded_data(self, record_type: str):
+        return self.read_recorded_data(
+            SERVICE_NAME,
+            COLLECTION_NAME,
+            record_type)
 
 
 if __name__ == '__main__':
