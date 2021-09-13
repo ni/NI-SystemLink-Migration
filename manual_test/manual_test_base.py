@@ -137,6 +137,10 @@ class ManualTestBase:
         filename = collection + '.' + record_type + '.json'
         return os.path.join(folder_path, filename)
 
+    def datetime_to_string(self, time) -> str:
+        """Converts a datetime object to a string in the format expected by SystemLink"""
+        return time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     """
