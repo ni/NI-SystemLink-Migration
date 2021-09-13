@@ -89,20 +89,16 @@ class TestTag(ManualTestBase):
             required=True)
 
         for tag in all_tags:
-            expected_tag = self.__find_matching_record(tag, populated_server_tags)
+            expected_tag = self.find_record_by_id(tag, populated_server_tags)
             if expected_tag is not None:
-                self.__validate_tag(tag, expected_tag)
+                self.__validate_tag(tag, expected_tag, True)
                 self.__validate_current_tag_value(tag, data_type_values_2[expected_tag['type']])
             else:
-                expected_tag = self.__find_matching_record(tag, clean_server_tags)
-                self.__validate_tag(tag, expected_tag)
+                expected_tag = self.find_record_by_id(tag, clean_server_tags)
+                self.__validate_tag(tag, expected_tag, False)
 
         for expected in self.__generate_tags_data():
             self.__validate_current_tag_aggregates(expected)
-
-    @staticmethod
-    def __find_matching_record(record, collection: List):
-        return next((item for item in collection if item['id'] == record['id']), None)
 
     def __get_all_tags(self) -> list:
         response = self.get(TAGS_ROUTE)
@@ -110,14 +106,17 @@ class TestTag(ManualTestBase):
         return response.json()['tags']
 
     @staticmethod
-    def __validate_tag(tag, expected):
+    def __validate_tag(tag, expected, exact: bool):
         print('Validating tag: ' + tag['workspace'] + '/' + tag['path'])
-        assert tag['path'] == expected['path']
-        assert tag['type'] == expected['type']
-        assert tag['keywords'] == expected['keywords']
-        assert tag['properties'] == expected['properties']
-        assert tag['collectAggregates'] == expected['collectAggregates']
-        assert tag['workspace'] == expected['workspace']
+        if exact:
+            assert tag == expected
+        else:
+            assert tag['path'] == expected['path']
+            assert tag['type'] == expected['type']
+            assert tag['keywords'] == expected['keywords']
+            assert tag['properties'] == expected['properties']
+            assert tag['collectAggregates'] == expected['collectAggregates']
+            assert tag['workspace'] == expected['workspace']
         print('Done validating tag')
 
     def __validate_current_tag_value(self, tag, expected_value):
