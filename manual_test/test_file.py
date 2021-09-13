@@ -3,6 +3,8 @@ import json
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import ManualTestBase, handle_command_line
 
+from typing import Any, Dict, List
+
 
 upload_route = '/nifile/v1/service-groups/Default/upload-files'
 get_route = '/nifile/v1/service-groups/Default/files'
@@ -41,9 +43,9 @@ class TestFile(ManualTestBase):
 
     def __upload_files(self, workspaces):
         file_data = self.__get_expected_files(workspaces)
-        for filename, data in file_data.items():
+        for data in file_data:
             file = {
-                    'file': (filename, data['contents']),
+                    'file': (data['filename'], data['contents']),
                     'metadata': json.dumps(data['properties'])
                    }
             workspace = data['workspace']
@@ -56,20 +58,18 @@ class TestFile(ManualTestBase):
 
         return response.json()
 
-    def __extract_file_details(self, data):
+    def __extract_file_details(self, data) -> List[Dict[str, Any]]:
         available_files = data['availableFiles']
-        return {filename: file_data
-                for filename, file_data
-                in [self.__extract_single_file_details(available_file)
-                    for available_file in available_files]}
+        return [self.__extract_single_file_details(available_file)
+                for available_file in available_files]
 
-    def __extract_single_file_details(self, available_file):
+    def __extract_single_file_details(self, available_file) -> Dict[str, Any]:
         data_url = available_file['_links']['data']['href']
         contents = self.__download_file_contents(data_url)
         filename = available_file['properties']['Name']
         properties = {k: v for k, v in available_file['properties'].items() if k != 'Name'}
         workspace = available_file['workspace']
-        return filename, {'contents': contents, 'properties': properties, 'workspace': workspace}
+        return {'filename': filename, 'contents': contents, 'properties': properties, 'workspace': workspace}
 
     def __download_file_contents(self, url):
         response = self.get(url)
@@ -87,21 +87,23 @@ class TestFile(ManualTestBase):
 
     @staticmethod
     def __assert_files_match(actual_files, expected_files):
-        assert actual_files == expected_files
+        by_filename = lambda i : i['filename']
+        assert sorted(actual_files, key=by_filename) == sorted(expected_files, key=by_filename)
 
     @staticmethod
-    def __get_expected_files(workspaces):
-        files = {}
+    def __get_expected_files(workspaces) -> List[Dict[str, Any]]:
+        files: List[Dict[str, Any]] = []
         for i in range(len(workspaces)):
             for j in range(10):
                 count = i * 10 + j
-                files[f'File {count}.txt'] = {
+                files.append({
+                    'filename': f'File {count}.txt',
                     'contents': f'Contents {count}',
                     'properties': {
                         f'key{count}': f'value{count}'
                     },
                     'workspace': workspaces[i]
-                }
+                })
 
         return files
 
