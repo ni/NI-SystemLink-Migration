@@ -132,7 +132,7 @@ class TestTag(ManualTestBase):
             'type': tag['type'],
             'value': value,
         }
-        json = {'value': updated_value, 'timestamp': time.strftime('%Y-%m-%dT%H:%M:%SZ')}
+        json = {'value': updated_value, 'timestamp': self.datetime_to_string(time)}
         response = self.put(url, json=json)
         response.raise_for_status()
         print('Done updating tag value')
