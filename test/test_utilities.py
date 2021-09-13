@@ -1,4 +1,3 @@
-from pathlib import Path
 from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.argument_handler import ArgumentHandler
@@ -65,7 +64,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
 
-        self.config ={
+        self.config = {
             'FileIngestion': {
                 'Mongo.CustomConnectionString': 'mongodb://localhost',
                 'Mongo.Database': 'file'
@@ -134,8 +133,6 @@ class FakeProcessFacade(ProcessFacade):
         archive_arg = [a for a in args if a.startswith('--archive=')][0]
         if not archive_arg:
             raise ProcessError('missing --archive= argument')
-
-        archive = Path(archive_arg.split('=')[1])
 
         if 'mongodump' in args[0]:
             self.captured = True

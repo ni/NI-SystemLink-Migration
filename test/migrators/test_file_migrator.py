@@ -1,4 +1,3 @@
-from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migrators.file_migrator import (
     FileMigrator,
@@ -9,7 +8,6 @@ from nislmigrate.migrators.file_migrator import (
 )
 import pytest
 from test.test_utilities import FakeFacadeFactory
-import os
 
 
 @pytest.mark.unit
