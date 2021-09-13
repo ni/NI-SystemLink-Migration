@@ -63,15 +63,8 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_read_json_file_path: Optional[str] = None
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
-
-        self.config = {
-            'FileIngestion': {
-                'Mongo.CustomConnectionString': 'mongodb://localhost',
-                'Mongo.Database': 'file'
-            }
-        }
-
-        self.dir_exists = True
+        self.config = {}
+        self.directory_exists = True
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
         print(f'COPY! {from_directory} {to_directory}')
@@ -83,7 +76,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         return self.config
 
     def migration_dir_exists(self, dir_):
-        return self.dir_exists
+        return self.directory_exists
 
 
 class FakeMigratorPluginLoader(MigratorPluginLoader):
