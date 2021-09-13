@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, Dict, List, Optional
-from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, POPULATED_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE
 from manual_test.utilities.notification_utilities import NotificationUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
@@ -15,7 +16,7 @@ DELETE_ALARMS_BY_ID_ROUTE = 'nialarm/v1/delete-instances-by-instance-id'
 QUERY_ALARMS_ROUTE = 'nialarm/v1/query-instances'
 
 """Set this when debugging to cleanup the alarm database prior to populating the server with alarms."""
-DEBUG_CLEANUP_EXISTING_DATA = False
+DEBUG_CLEANUP_EXISTING_DATA = True
 
 
 class TestAlarm(ManualTestBase):

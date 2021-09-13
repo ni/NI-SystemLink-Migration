@@ -1,7 +1,7 @@
 import json
 
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
-from manual_test_base import ManualTestBase, handle_command_line
+from manual_test.manual_test_base import ManualTestBase, handle_command_line
 
 
 upload_route = '/nifile/v1/service-groups/Default/upload-files'

@@ -70,7 +70,7 @@ class TestTag(ManualTestBase):
             now = datetime.datetime.now()
             self.__update_tag_value(tag, data_type_values_1[tag['type']], now)
             self.__update_tag_value(tag, data_type_values_2[tag['type']], now + datetime.timedelta(days=1))
-        self.record_data(POPULATED_SERVER_RECORD_TYPE)
+        self.record_data(SERVICE_NAME, 'tag_data', POPULATED_SERVER_RECORD_TYPE, self.__get_all_tags())
 
     def record_initial_data(self) -> None:
         self.record_data(SERVICE_NAME, 'tag_data', CLEAN_SERVER_RECORD_TYPE, self.__get_all_tags())

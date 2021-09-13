@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 from manual_test.utilities.notification_utilities import NotificationUtilities
-from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, POPULATED_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE
 
 SERVICE_NAME = 'Notification'
 
