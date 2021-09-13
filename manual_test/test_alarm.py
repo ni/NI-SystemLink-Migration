@@ -250,14 +250,14 @@ class TestAlarm(ManualTestBase):
         record: Dict[str, Any],
         collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        return self.find_record_with_matching_property(record, collection, 'instanceId')
+        return self.find_record_with_matching_property_value(record, collection, 'instanceId')
 
     def __find_matching_alarm_id(
         self,
         record: Dict[str, Any],
         collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        return self.find_record_with_matching_property(record, collection, 'alarmId')
+        return self.find_record_with_matching_property_value(record, collection, 'alarmId')
 
 
 if __name__ == '__main__':
