@@ -7,6 +7,7 @@ from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessError, ProcessFacade, BackgroundProcess
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 from nislmigrate.migration_action import MigrationAction
@@ -126,15 +127,27 @@ class FakeProcessFacade(ProcessFacade):
         if not archive_arg:
             raise ProcessError('missing --archive= argument')
 
+        archive_path = Path(archive_arg.split('=')[1])
+
         if 'mongodump' in args[0]:
+            self.handle_mongo_dump(archive_path)
             self.captured = True
         elif 'mongorestore' in args[0]:
+            self.handle_mongo_restore(archive_path)
             self.restored = True
         else:
             raise ProcessError('unknown command')
 
     def run_background_process(self, args: List[str]) -> BackgroundProcess:
         return NoopBackgroundProcess(args)
+
+    def handle_mongo_dump(self, archive_path: Path):
+        """Override this method to add test-specific handling."""
+        pass
+
+    def handle_mongo_restore(self, archive_path: Path):
+        """Override this method to add test-specific handling."""
+        pass
 
 
 class FakeServiceManager(SystemLinkServiceManagerFacade):

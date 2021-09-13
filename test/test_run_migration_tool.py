@@ -1,3 +1,4 @@
+from nislmigrate.facades.process_facade import ProcessError
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
@@ -6,7 +7,7 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentMa
 from nislmigrate.migration_tool import run_migration_tool
 from pathlib import Path
 import pytest
-from test.test_utilities import FakeFacadeFactory, FakeMigratorPluginLoader
+from test.test_utilities import FakeFacadeFactory, FakeMigratorPluginLoader, FakeMongoFacade, FakeProcessFacade
 from typing import Any, Dict
 
 
@@ -48,6 +49,17 @@ def test_migrator_receives_extra_arguments(tmp_path) -> None:
     run_migration_tool(facade_factory, restore_argument_handler)
     assert migrator.pre_restore_extra_arguments == expected_arguments
     assert migrator.restore_extra_arguments == expected_arguments
+
+
+class FakeProcessFacadeWithPathVerification(FakeProcessFacade):
+    def handle_mongo_dump(self, archive_path: Path):
+        # create an empty file at the requested path
+        archive_path.touch()
+
+    def handle_mongo_restore(self, archive_path: Path):
+        # ensure the requested file exists
+        if not archive_path.exists():
+            raise ProcessError('the archive does not exist')
 
 
 class TestMigrator(MigratorPlugin):
@@ -106,6 +118,8 @@ def configure_test_migrator(tmp_path: Path, facade_factory: FakeFacadeFactory) -
     migrator = TestMigrator()
     migrator.service_configuration_directory = str(config_directory)
 
+    facade_factory.process_facade = FakeProcessFacadeWithPathVerification()
+    facade_factory.mongo_facade = FakeMongoFacade(facade_factory.process_facade)
     facade_factory.file_system_facade.config = {
         migrator.name: {
             'Mongo.CustomConnectionString': 'mongodb://localhost:27017',
