@@ -23,14 +23,14 @@ class TestFile(ManualTestBase):
 
     def validate_data(self):
         workspaces = WorkspaceUtilities().get_workspaces(self)
-        expected_files = self.__get_expected_files(workspaces)
+        expected_files = self.__get_files_to_create(workspaces)
         files = self.__get_files()
 
         actual_files = self.__extract_file_details(files)
         self.__assert_files_match(actual_files, expected_files)
 
     def __upload_files(self, workspaces):
-        file_data = self.__get_expected_files(workspaces)
+        file_data = self.__get_files_to_create(workspaces)
         for data in file_data:
             file = {
                     'file': (data['filename'], data['contents']),
@@ -82,7 +82,7 @@ class TestFile(ManualTestBase):
         assert sorted(actual_files, key=by_filename) == sorted(expected_files, key=by_filename)
 
     @staticmethod
-    def __get_expected_files(workspaces) -> List[Dict[str, Any]]:
+    def __get_files_to_create(workspaces) -> List[Dict[str, Any]]:
         files: List[Dict[str, Any]] = []
         for i in range(len(workspaces)):
             for j in range(10):
