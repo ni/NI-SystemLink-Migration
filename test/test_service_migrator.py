@@ -1,21 +1,24 @@
-from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.facades.file_system_facade import FileSystemFacade
-from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 from nislmigrate.migration_action import MigrationAction
-from nislmigrate.facades.mongo_facade import MongoFacade
-from nislmigrate.facades.process_facade import ProcessFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from test.test_utilities import FakeMongoFacade, FakeArgumentHandler, FakeNiWebServerManagerFacade, FakeServiceManager
+from test.test_utilities import FakeFacadeFactory, FakeArgumentHandler
 from pathlib import Path
 import pytest
-from typing import Any, Dict, Optional
+from typing import Any, Dict
+
+
+CONFIGURATION_FOR_TEST = config = {
+        'test': {
+            'key1': 'value1',
+            'key2': 'value2'
+        }
+    }
 
 
 @pytest.mark.unit
 def test_migrate_services_with_restore_action_captures_plugin():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], MigrationAction.CAPTURE)
@@ -28,7 +31,7 @@ def test_migrate_services_with_restore_action_captures_plugin():
 
 @pytest.mark.unit
 def test_migrate_services_with_restore_action_restores_plugin():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], MigrationAction.RESTORE)
@@ -41,7 +44,7 @@ def test_migrate_services_with_restore_action_restores_plugin():
 
 @pytest.mark.unit
 def test_migrate_services_does_not_call_capture_when_pre_capture_check_fails():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
     service.fail_pre_check = True
 
@@ -56,7 +59,7 @@ def test_migrate_services_does_not_call_capture_when_pre_capture_check_fails():
 
 @pytest.mark.unit
 def test_migrate_services_does_not_call_restore_when_pre_restore_check_fails():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
     service.fail_pre_check = True
 
@@ -71,7 +74,7 @@ def test_migrate_services_does_not_call_restore_when_pre_restore_check_fails():
 
 @pytest.mark.unit
 def test_migrate_services_with_unknown_action_throws_exception():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], 'unknown')
@@ -82,17 +85,17 @@ def test_migrate_services_with_unknown_action_throws_exception():
 
 @pytest.mark.unit
 def test_migrator_reads_configuration():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     migrator = FakeMigrator()
 
     actual_config = migrator.config(facade_factory)
 
-    assert actual_config == TestFileSystemFacade.config[migrator.name]
+    assert actual_config == CONFIGURATION_FOR_TEST[migrator.name]
 
 
 @pytest.mark.unit
 def test_migrator_reads_configuration_from_default_location():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     file_system_facade = facade_factory.get_file_system_facade()
     migrator = FakeMigrator()
     expected_configuration_file = str(Path(DEFAULT_SERVICE_CONFIGURATION_DIRECTORY) / f'{migrator.name}.json')
@@ -104,7 +107,7 @@ def test_migrator_reads_configuration_from_default_location():
 
 @pytest.mark.unit
 def test_migrator_reads_configuration_from_configured_location():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     file_system_facade = facade_factory.get_file_system_facade()
     migrator = FakeMigrator()
     configured_location = Path('C:') / '/Test' / 'Config' / 'Dir'
@@ -119,7 +122,7 @@ def test_migrator_reads_configuration_from_configured_location():
 @pytest.mark.unit
 def test_migrate_pre_capture_error_check_called_on_migrator_with_same_migration_directory_as_restore():
     fake_migrator = FakeMigrator()
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     argument_handler = FakeArgumentHandler([fake_migrator], MigrationAction.CAPTURE)
     facilitator = MigrationFacilitator(facade_factory, argument_handler)
 
@@ -133,7 +136,7 @@ def test_migrate_pre_capture_error_check_called_on_migrator_with_same_migration_
 @pytest.mark.unit
 def test_migrate_pre_restore_error_check_called_on_migrator_with_same_migration_directory_as_restore():
     fake_migrator = FakeMigrator()
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     argument_handler = FakeArgumentHandler([fake_migrator], MigrationAction.RESTORE)
     facilitator = MigrationFacilitator(facade_factory, argument_handler)
 
@@ -150,7 +153,7 @@ def test_migrate_pre_restore_error_check_called_on_migrator_with_same_migration_
     MigrationAction.RESTORE
 ])
 def test_migrate_services_stops_running_services(operation: MigrationAction):
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], operation)
@@ -166,7 +169,7 @@ def test_migrate_services_stops_running_services(operation: MigrationAction):
     MigrationAction.RESTORE
 ])
 def test_migrate_services_starts_stopped_services(operation: MigrationAction):
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], operation)
@@ -179,7 +182,7 @@ def test_migrate_services_starts_stopped_services(operation: MigrationAction):
 
 @pytest.mark.unit
 def test_migrate_services_with_capture_action_does_not_restart_web_server():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], MigrationAction.CAPTURE)
@@ -191,7 +194,7 @@ def test_migrate_services_with_capture_action_does_not_restart_web_server():
 
 @pytest.mark.unit
 def test_migrate_services_with_restore_action_restarts_web_server():
-    facade_factory = FakeFacadeFactory()
+    facade_factory = configure_fake_facade_factory()
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], MigrationAction.RESTORE)
@@ -253,42 +256,7 @@ class FakeMigrator(MigratorPlugin):
             raise RuntimeError('pre restore failure')
 
 
-class TestFileSystemFacade(FileSystemFacade):
-    config = {
-            'test': {
-                'key1': 'value1',
-                'key2': 'value2'
-            }
-        }
-
-    def __init__(self):
-        self.last_read_json_file_path: Optional[str] = None
-
-    def read_json_file(self, path):
-        self.last_read_json_file_path = path
-        return self.config
-
-
-class FakeFacadeFactory(FacadeFactory):
-    def __init__(self):
-        super().__init__()
-        self.process_facade = ProcessFacade()
-        self.mongo_facade: FakeMongoFacade = FakeMongoFacade(self.process_facade)
-        self.file_system_facade: TestFileSystemFacade = TestFileSystemFacade()
-        self.ni_web_server_manager_facade: FakeNiWebServerManagerFacade = FakeNiWebServerManagerFacade()
-        self.system_link_service_manager_facade: FakeServiceManager = FakeServiceManager()
-
-    def get_mongo_facade(self) -> MongoFacade:
-        return self.mongo_facade
-
-    def get_file_system_facade(self) -> FileSystemFacade:
-        return self.file_system_facade
-
-    def get_ni_web_server_manager_facade(self) -> NiWebServerManagerFacade:
-        return self.ni_web_server_manager_facade
-
-    def get_system_link_service_manager_facade(self) -> SystemLinkServiceManagerFacade:
-        return self.system_link_service_manager_facade
-
-    def get_process_facade(self) -> ProcessFacade:
-        return self.process_facade
+def configure_fake_facade_factory() -> FakeFacadeFactory:
+    fake_facade_factory = FakeFacadeFactory()
+    fake_facade_factory.file_system_facade.config = CONFIGURATION_FOR_TEST
+    return fake_facade_factory
