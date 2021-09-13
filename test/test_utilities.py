@@ -67,7 +67,6 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.directory_exists = True
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
-        print(f'COPY! {from_directory} {to_directory}')
         self.last_from_directory = from_directory
         self.last_to_directory = to_directory
 
