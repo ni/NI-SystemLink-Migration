@@ -39,7 +39,7 @@ class ManualTestBase:
 
     def record_initial_data(self) -> None:
         """
-        Derived class should ovveride to record the initial state of the SystemLink server prior
+        Derived class should override to record the initial state of the SystemLink server prior
         to running a restore operation. Recorded data should be used by the validate_data() method.
         """
 
