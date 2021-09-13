@@ -67,10 +67,8 @@ class TestFile(ManualTestBase):
     def __extract_single_file_details(self, file) -> Dict[str, Any]:
         data_url = file['_links']['data']['href']
         contents = self.__download_file_contents(data_url)
-        filename = file['properties']['Name']
-        properties = {k: v for k, v in file['properties'].items() if k != 'Name'}
-        workspace = file['workspace']
-        return {'filename': filename, 'contents': contents, 'properties': properties, 'workspace': workspace}
+        file['contents'] = contents
+        return file
 
     def __download_file_contents(self, url):
         response = self.get(url)
