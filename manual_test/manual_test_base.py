@@ -141,21 +141,39 @@ class ManualTestBase:
         """Converts a datetime object to a string in the format expected by SystemLink"""
         return time.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    def find_record_by_id(
-            self,
-            record: Dict[str, Any],
-            collection: List[Dict[str, Any]]
-    ) -> Optional[Dict[str, Any]]:
-        """Finds a record in a collection based on matching 'id' fields."""
-        return self.find_record_with_matching_id(record['id'], collection)
-
     def find_record_with_matching_id(
             self,
-            record_id: str,
+            source: Dict[str, Any],
+            collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection with the same 'id' value as target."""
+        return self.find_record_with_matching_id(source['id'], collection)
+
+    def find_record_with_matching_property(
+        self,
+        source: Dict[str, any],
+        collection: List[Dict[str, Any]],
+        property: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection with the same value for property as target"""
+        return self.find_record_by_property_value(source[property], collection, property)
+
+    def find_record_by_id(
+            self,
+            id: str,
             collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
         """Finds a record in a collection which has an 'id' field matching the input."""
-        return next((item for item in collection if item['id'] == record_id), None)
+        return self.find_record_by_property_value(id, collection, 'id')
+
+    def find_record_by_property_value(
+            self,
+            property_value: Any,
+            collection: List[Dict[str, Any]],
+            property: str
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection which has an field matching value for the given property."""
+        return next((record for record in collection if record[property] == property_value), None)
 
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
