@@ -1,13 +1,15 @@
 import json
 
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
-from manual_test.manual_test_base import ManualTestBase, handle_command_line
-
+from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
 from typing import Any, Dict, List
 
 
 upload_route = '/nifile/v1/service-groups/Default/upload-files'
 get_route = '/nifile/v1/service-groups/Default/files'
+
+SERVICE_NAME = 'Files'
+COLLECTION_NAME = 'FileIngestion'
 
 
 class TestFile(ManualTestBase):
@@ -16,6 +18,7 @@ class TestFile(ManualTestBase):
         WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__upload_files(workspaces)
+        self.__record_data(POPULATED_SERVER_RECORD_TYPE)
 
     def record_initial_data(self):
         """The file service should not be populated with initial data."""
@@ -24,9 +27,8 @@ class TestFile(ManualTestBase):
     def validate_data(self):
         workspaces = WorkspaceUtilities().get_workspaces(self)
         expected_files = self.__get_files_to_create(workspaces)
-        files = self.__get_files()
+        actual_files = self.__get_files()
 
-        actual_files = self.__extract_file_details(files)
         self.__assert_files_match(actual_files, expected_files)
 
     def __upload_files(self, workspaces):
@@ -51,7 +53,8 @@ class TestFile(ManualTestBase):
 
             received_files = response.json()['availableFiles']
             count = len(received_files)
-            all_files.extend(received_files)
+            details = self.__extract_file_details(received_files)
+            all_files.extend(details)
 
             skip += take
 
@@ -97,6 +100,13 @@ class TestFile(ManualTestBase):
                 })
 
         return files
+
+    def __record_data(self, record_type: str):
+        self.record_data(
+            SERVICE_NAME,
+            COLLECTION_NAME,
+            record_type,
+            self.__get_files())
 
 
 if __name__ == '__main__':
