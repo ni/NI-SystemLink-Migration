@@ -97,7 +97,7 @@ class ManualTestBase:
             collection: str,
             record_type: str,
             required: bool = True
-    ) -> list:
+    ) -> List[Dict[str, Any]]:
         file_path = self.__build_recording_file_path(
             category,
             collection,
@@ -114,7 +114,7 @@ class ManualTestBase:
 
         return []
 
-    def record_data(self, category: str, collection: str, record_type: str, data) -> None:
+    def record_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
         file_path = self.__build_recording_file_path(
             category,
             collection,
@@ -151,7 +151,7 @@ class ManualTestBase:
 
     def find_record_with_matching_property_value(
         self,
-        source: Dict[str, any],
+        source: Dict[str, Any],
         collection: List[Dict[str, Any]],
         property: str,
     ) -> Optional[Dict[str, Any]]:
