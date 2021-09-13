@@ -68,6 +68,8 @@ class TestAlarm(ManualTestBase):
                 expected_alarm = self.__find_matching_alarm_id(alarm, target_service_snaphot)
                 if expected_alarm is not None:
                     self.__assert_alarms_equal(expected_alarm, alarm)
+                    self.__assert_alarm_has_valid_workspace(alarm, workspaces)
+                    self.__assert_alarm_has_valid_notification_strategies(alarm, notification_strategies)
                 else:
                     displayName = alarm['displayName']
                     print(f'WARNING: Encountered alarm not in the record: {displayName}')
