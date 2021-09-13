@@ -1,14 +1,15 @@
 import datetime
 from typing import List, Dict
 
-from manual_test.manual_test_base import ManualTestBase, handle_command_line
+from manual_test.manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, \
+    POPULATED_SERVER_RECORD_TYPE
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from nislmigrate.logs.migration_error import MigrationError
 
 SERVICE_NAME = 'Tag'
 TEST_WORKSPACE_NAME = 'CustomWorkspaceForManualTagMigrationTest'
-CREATE_ROUTE = '/nitag/v2/tags/'
-GET_ROUTE = '/nitag/v2/tags-with-values/'
+TAGS_ROUTE = '/nitag/v2/tags/'
+TAGS_WITH_VALUES_ROUTE = '/nitag/v2/tags-with-values/'
 data_types = ['INT', 'DOUBLE', 'DATE_TIME', 'U_INT64', 'BOOLEAN', 'STRING']
 data_type_values_1 = {
     'INT': 0,
@@ -69,18 +70,47 @@ class TestTag(ManualTestBase):
             now = datetime.datetime.now()
             self.__update_tag_value(tag, data_type_values_1[tag['type']], now)
             self.__update_tag_value(tag, data_type_values_2[tag['type']], now + datetime.timedelta(days=1))
+        self.record_data(POPULATED_SERVER_RECORD_TYPE)
 
     def record_initial_data(self) -> None:
-        pass
+        self.record_data(SERVICE_NAME, 'tag_data', CLEAN_SERVER_RECORD_TYPE, self.__get_all_tags())
 
     def validate_data(self) -> None:
+        all_tags = self.__get_all_tags()
+        clean_server_tags = self.read_recorded_data(
+            SERVICE_NAME,
+            'tag_data',
+            CLEAN_SERVER_RECORD_TYPE,
+            required=True)
+        populated_server_tags = self.read_recorded_data(
+            SERVICE_NAME,
+            'tag_data',
+            CLEAN_SERVER_RECORD_TYPE,
+            required=True)
+
+        for tag in all_tags:
+            expected_tag = self.__find_matching_record(tag, populated_server_tags)
+            if expected_tag is not None:
+                self.__validate_tag(tag, expected_tag)
+                self.__validate_current_tag_value(tag, data_type_values_2[expected_tag['type']])
+            else:
+                expected_tag = self.__find_matching_record(tag, clean_server_tags)
+                self.__validate_tag(tag, expected_tag)
+
         for expected in self.__generate_tags_data():
-            self.__validate_tag(expected)
-            self.__validate_current_tag_value(expected, data_type_values_2[expected['type']])
             self.__validate_current_tag_aggregates(expected)
 
-    def __validate_tag(self, expected):
-        tag = self.__get_tag_json_from_server(expected)
+    @staticmethod
+    def __find_matching_record(record, collection: List):
+        return next((item for item in collection if item['id'] == record['id']), None)
+
+    def __get_all_tags(self) -> list:
+        response = self.get(TAGS_ROUTE)
+        response.raise_for_status()
+        return response.json()['tags']
+
+    @staticmethod
+    def __validate_tag(tag, expected):
         print('Validating tag: ' + tag['workspace'] + '/' + tag['path'])
         assert tag['path'] == expected['path']
         assert tag['type'] == expected['type']
@@ -100,7 +130,7 @@ class TestTag(ManualTestBase):
         print('Done validating tag value')
 
     def __upload_tag(self, tag):
-        url = CREATE_ROUTE + tag['workspace'] + '/' + tag['path']
+        url = TAGS_ROUTE + tag['workspace'] + '/' + tag['path']
         print('Uploading tag to: ' + url)
         response = self.put(url, json=tag)
         response.raise_for_status()
@@ -126,7 +156,7 @@ class TestTag(ManualTestBase):
         }
 
     def __update_tag_value(self, tag, value, time):
-        url = CREATE_ROUTE + tag['workspace'] + '/' + tag['path'] + '/values/current'
+        url = TAGS_ROUTE + tag['workspace'] + '/' + tag['path'] + '/values/current'
         print('Updating tag value at: ' + url)
         updated_value = {
             'type': tag['type'],
@@ -138,13 +168,13 @@ class TestTag(ManualTestBase):
         print('Done updating tag value')
 
     def __get_tag_json_from_server(self, tag):
-        url = CREATE_ROUTE + tag['workspace'] + '/' + tag['path']
+        url = TAGS_ROUTE + tag['workspace'] + '/' + tag['path']
         response = self.get(url)
         response.raise_for_status()
         return response.json()
 
     def __get_tag_values_json_from_server(self, tag):
-        url = GET_ROUTE + tag['workspace'] + '/' + tag['path']
+        url = TAGS_WITH_VALUES_ROUTE + tag['workspace'] + '/' + tag['path']
         response = self.get(url)
         response.raise_for_status()
         return response.json()
