@@ -1,3 +1,4 @@
+from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
@@ -10,14 +11,27 @@ from typing import List, Optional, Dict, Any
 from nislmigrate.migration_action import MigrationAction
 
 
+class FakeNiWebServerManagerFacade(NiWebServerManagerFacade):
+    restart_count = 0
+
+    def restart_web_server(self):
+        self.restart_count = self.restart_count + 1
+
+
 class FakeServiceManager(SystemLinkServiceManagerFacade):
     are_services_running = True
+    stop_count = 0
+    start_count = 0
 
-    def stop_all_system_link_services(self) -> None:
-        self.are_services_running = False
+    def stop_all_system_link_services(self):
+        if self.are_services_running:
+            self.stop_count = self.stop_count + 1
+            self.are_services_running = False
 
-    def start_all_system_link_services(self) -> None:
-        self.are_services_running = True
+    def start_all_system_link_services(self):
+        if not self.are_services_running:
+            self.start_count = self.start_count + 1
+            self.are_services_running = True
 
 
 class NoopBackgroundProcess(BackgroundProcess):
@@ -61,6 +75,7 @@ class FakeFacadeFactory(FacadeFactory):
         super().__init__()
         self.process_facade = FakeProcessFacade()
         self.mongo_facade = FakeMongoFacade(self.process_facade)
+        self.ni_web_server_manager_facade = FakeNiWebServerManagerFacade()
         self.system_link_service_manager_facade = FakeServiceManager()
 
 

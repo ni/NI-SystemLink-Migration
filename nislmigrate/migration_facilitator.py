@@ -3,6 +3,7 @@ import os
 
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.facade_factory import FacadeFactory
+from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
@@ -15,6 +16,7 @@ class MigrationFacilitator:
     """
     def __init__(self, facade_factory: FacadeFactory, argument_handler: ArgumentHandler):
         self.facade_factory: FacadeFactory = facade_factory
+        self.web_server_manager: NiWebServerManagerFacade = facade_factory.get_ni_web_server_manager_facade()
         self.service_manager: SystemLinkServiceManagerFacade = facade_factory.get_system_link_service_manager_facade()
 
         self._action = argument_handler.get_migration_action()
@@ -38,6 +40,8 @@ class MigrationFacilitator:
                 self.__migrate_service(migrator, migrator_directory)
                 self.__report_migration_finished(migrator.name)
         finally:
+            if self._action == MigrationAction.RESTORE:
+                self.web_server_manager.restart_web_server()
             self.service_manager.start_all_system_link_services()
 
     def __migrate_service(self, migrator: MigratorPlugin, migrator_directory) -> None:
