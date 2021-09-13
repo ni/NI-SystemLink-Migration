@@ -147,9 +147,9 @@ class ManualTestBase:
             collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
         """Finds a record in a collection with the same 'id' value as target."""
-        return self.find_record_with_matching_id(source['id'], collection)
+        return self.find_record_with_matching_property_value(source, collection, 'id')
 
-    def find_record_with_matching_property(
+    def find_record_with_matching_property_value(
         self,
         source: Dict[str, any],
         collection: List[Dict[str, Any]],

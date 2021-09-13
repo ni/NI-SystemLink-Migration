@@ -42,7 +42,7 @@ class TestTagRule(ManualTestBase):
 
         migrated_record_count = 0
         for rule in current_snapshot:
-            expected_rule = self.find_record_by_id(rule, source_service_snapshot)
+            expected_rule = self.find_record_with_matching_id(rule, source_service_snapshot)
             if expected_rule is not None:
                 self.__assert_rules_equal(expected_rule, rule)
                 self.__assert_rule_has_valid_workspace(rule, workspaces)
@@ -112,7 +112,7 @@ class TestTagRule(ManualTestBase):
             assert expected['displayName'] == actual['displayName']
 
     def __assert_rule_has_valid_workspace(self, rule: Dict[str, Any], workspaces: List[str]):
-        matching_workspace = next(self.find_record_by_id(rule['workspace'], workspaces))
+        matching_workspace = next((workspace for workspace in workspaces if workspace == rule['workspace']), None)
         assert matching_workspace is not None
 
     def __assert_rule_has_valid_notification_strategies(
@@ -120,13 +120,20 @@ class TestTagRule(ManualTestBase):
         rule: Dict[str, Any],
         notification_strategies: List[Dict[str, Any]]
     ):
-        if self.__is_test_rule(rule):
-            assert len(rule['notificationStrategyIds']) > 0
-
         for condition in rule['conditions']:
+            if self.__is_test_rule(rule):
+                assert len(condition['notificationStrategyIds']) > 0
+
             for strategy_id in condition['notificationStrategyIds']:
-                matching_strategy = next(self.find_record_by_id(strategy_id, notification_strategies))
-                assert matching_strategy is not None
+                matching_strategies = (strategy for strategy in notification_strategies if strategy['id'] == strategy_id)
+                assert next(matching_strategies, None) is not None
+
+    def __find_rule_by_display_name(
+        self,
+        rule: Dict[str, Any],
+        collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        return self.find_record_with_matching_property_value(rule, collection, 'displayName')
 
     def __is_test_rule(self, rule: Dict[str, Any]) -> bool:
         return 'forTest' in rule['properties']
