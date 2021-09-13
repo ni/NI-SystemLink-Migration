@@ -8,7 +8,12 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentMa
 from nislmigrate.migration_tool import run_migration_tool
 from pathlib import Path
 import pytest
-from test.test_utilities import FakeServiceManager, NoopBackgroundProcess, FakeMigratorPluginLoader
+from test.test_utilities import (
+    FakeNiWebServerManagerFacade,
+    FakeServiceManager,
+    NoopBackgroundProcess,
+    FakeMigratorPluginLoader
+)
 from typing import Any, Dict, List, Tuple
 
 
@@ -31,6 +36,7 @@ def test_run_migration_tool(tmp_path: Path) -> None:
     assert process_facade.restored
 
 
+@pytest.mark.unit
 def test_migrator_receives_extra_arguments(tmp_path) -> None:
     migrator = configure_test_migrator(tmp_path)
     plugin_loader = FakeMigratorPluginLoader([migrator])
@@ -136,6 +142,7 @@ def configure_facade_factory() -> Tuple[FacadeFactory, FakeProcessFacade]:
     mongo_facade = facade_factory.get_mongo_facade()
     process_facade = FakeProcessFacade()
     mongo_facade.process_facade = process_facade
+    facade_factory.ni_web_server_manager_facade = FakeNiWebServerManagerFacade()
     facade_factory.system_link_service_manager_facade = FakeServiceManager()
 
     return (facade_factory, process_facade)

@@ -1,3 +1,4 @@
+from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
@@ -6,7 +7,7 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from test.test_utilities import FakeMongoFacade, FakeArgumentHandler
+from test.test_utilities import FakeMongoFacade, FakeArgumentHandler, FakeNiWebServerManagerFacade, FakeServiceManager
 from pathlib import Path
 import pytest
 from typing import Any, Dict, Optional
@@ -143,6 +144,63 @@ def test_migrate_pre_restore_error_check_called_on_migrator_with_same_migration_
     assert fake_migrator.restore_count == 1
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    MigrationAction.CAPTURE,
+    MigrationAction.RESTORE
+])
+def test_migrate_services_stops_running_services(operation: MigrationAction):
+    facade_factory = FakeFacadeFactory()
+    service = FakeMigrator()
+
+    argument_handler = FakeArgumentHandler([service], operation)
+    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
+    service_migrator.migrate()
+
+    assert facade_factory.system_link_service_manager_facade.stop_count == 1
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    MigrationAction.CAPTURE,
+    MigrationAction.RESTORE
+])
+def test_migrate_services_starts_stopped_services(operation: MigrationAction):
+    facade_factory = FakeFacadeFactory()
+    service = FakeMigrator()
+
+    argument_handler = FakeArgumentHandler([service], operation)
+    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
+    service_migrator.migrate()
+
+    assert facade_factory.system_link_service_manager_facade.start_count == 1
+    assert facade_factory.system_link_service_manager_facade.are_services_running
+
+
+@pytest.mark.unit
+def test_migrate_services_with_capture_action_does_not_restart_web_server():
+    facade_factory = FakeFacadeFactory()
+    service = FakeMigrator()
+
+    argument_handler = FakeArgumentHandler([service], MigrationAction.CAPTURE)
+    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
+    service_migrator.migrate()
+
+    assert facade_factory.ni_web_server_manager_facade.restart_count == 0
+
+
+@pytest.mark.unit
+def test_migrate_services_with_restore_action_restarts_web_server():
+    facade_factory = FakeFacadeFactory()
+    service = FakeMigrator()
+
+    argument_handler = FakeArgumentHandler([service], MigrationAction.RESTORE)
+    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
+    service_migrator.migrate()
+
+    assert facade_factory.ni_web_server_manager_facade.restart_count == 1
+
+
 class FakeMigrator(MigratorPlugin):
     pre_restore_migration_directory: str = ''
     pre_capture_migration_directory: str = ''
@@ -195,16 +253,6 @@ class FakeMigrator(MigratorPlugin):
             raise RuntimeError('pre restore failure')
 
 
-class TestSystemLinkServiceManagerFacade(SystemLinkServiceManagerFacade):
-    are_services_running = True
-
-    def stop_all_system_link_services(self):
-        self.are_services_running = False
-
-    def start_all_system_link_services(self):
-        self.are_services_running = True
-
-
 class TestFileSystemFacade(FileSystemFacade):
     config = {
             'test': {
@@ -227,13 +275,17 @@ class FakeFacadeFactory(FacadeFactory):
         self.process_facade = ProcessFacade()
         self.mongo_facade: FakeMongoFacade = FakeMongoFacade(self.process_facade)
         self.file_system_facade: TestFileSystemFacade = TestFileSystemFacade()
-        self.system_link_service_manager_facade: SystemLinkServiceManagerFacade = TestSystemLinkServiceManagerFacade()
+        self.ni_web_server_manager_facade: FakeNiWebServerManagerFacade = FakeNiWebServerManagerFacade()
+        self.system_link_service_manager_facade: FakeServiceManager = FakeServiceManager()
 
     def get_mongo_facade(self) -> MongoFacade:
         return self.mongo_facade
 
     def get_file_system_facade(self) -> FileSystemFacade:
         return self.file_system_facade
+
+    def get_ni_web_server_manager_facade(self) -> NiWebServerManagerFacade:
+        return self.ni_web_server_manager_facade
 
     def get_system_link_service_manager_facade(self) -> SystemLinkServiceManagerFacade:
         return self.system_link_service_manager_facade
