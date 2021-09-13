@@ -5,7 +5,7 @@ from requests.auth import HTTPBasicAuth
 from requests.adapters import HTTPAdapter
 import requests
 from typing import Optional, Type
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 from urllib3.util import Retry
 
