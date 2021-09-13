@@ -119,7 +119,9 @@ class FakeProcessFacade(ProcessFacade):
         self.reset()
 
     def reset(self):
+        self.last_capture_path: Optional[Path] = None
         self.captured: bool = False
+        self.last_restore_path: Optional[Path] = None
         self.restored: bool = False
 
     def run_process(self, args: List[str]):
@@ -131,9 +133,11 @@ class FakeProcessFacade(ProcessFacade):
 
         if 'mongodump' in args[0]:
             self.handle_mongo_dump(archive_path)
+            self.last_capture_path = archive_path
             self.captured = True
         elif 'mongorestore' in args[0]:
             self.handle_mongo_restore(archive_path)
+            self.last_restore_path = archive_path
             self.restored = True
         else:
             raise ProcessError('unknown command')

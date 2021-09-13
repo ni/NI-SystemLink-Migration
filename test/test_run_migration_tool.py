@@ -5,6 +5,7 @@ from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 from nislmigrate.migration_tool import run_migration_tool
+import os
 from pathlib import Path
 import pytest
 from test.test_utilities import FakeFacadeFactory, FakeMigratorPluginLoader, FakeMongoFacade, FakeProcessFacade
@@ -22,12 +23,15 @@ def test_run_migration_tool(tmp_path: Path) -> None:
     capture_argument_handler = ArgumentHandler(capture_arguments, plugin_loader)
     run_migration_tool(facade_factory, capture_argument_handler)
     assert facade_factory.process_facade.captured
+    expected_output_path = os.path.join(migration_directory, migrator.name, migrator.name)
+    assert os.path.isfile(expected_output_path)
 
     restore_arguments = ['restore', '--test-migrator', '--dir', migration_directory, '--force']
     restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
     facade_factory.process_facade.reset()
     run_migration_tool(facade_factory, restore_argument_handler)
     assert facade_factory.process_facade.restored
+    assert Path(expected_output_path) == facade_factory.process_facade.last_restore_path
 
 
 @pytest.mark.unit
