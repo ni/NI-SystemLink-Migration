@@ -59,7 +59,8 @@ The following services can be migrated with this utility:
 - Tag Ingestion and Tag History: `--tags`
 - File Ingestion: `--files` 
     - Must migrate file to the same storage location on the new System Link server.
-    - To captured/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
+    - To capture/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
+    - If files are stored in Amazon Simple Storage Service (S3), use `--files --files-metadata-only`.
 - Notifications: `--notification`
 
 There are plans to support the following services in the near future:
