@@ -3,7 +3,7 @@ import json
 import os
 from requests.auth import HTTPBasicAuth
 import requests
-from typing import Type
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 
@@ -140,6 +140,22 @@ class ManualTestBase:
     def datetime_to_string(self, time) -> str:
         """Converts a datetime object to a string in the format expected by SystemLink"""
         return time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def find_record_by_id(
+            self,
+            record: Dict[str, Any],
+            collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection based on matching 'id' fields."""
+        return self.find_record_with_matching_id(record['id'], collection)
+
+    def find_record_with_matching_id(
+            self,
+            record_id: str,
+            collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection which has an 'id' field matching the input."""
+        return next((item for item in collection if item['id'] == record_id), None)
 
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
