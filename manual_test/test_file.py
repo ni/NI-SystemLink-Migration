@@ -2,11 +2,15 @@ import json
 
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
+from pathlib import Path
 from typing import Any, Dict, List
 
 
 UPLOAD_ROUTE = '/nifile/v1/service-groups/Default/upload-files'
 GET_ROUTE = '/nifile/v1/service-groups/Default/files'
+
+ASSETS_PATH = Path(__file__).parent / 'assets'
+IMAGE_PATH = ASSETS_PATH / 'Image.png'
 
 SERVICE_NAME = 'Files'
 COLLECTION_NAME = 'FileIngestion'
@@ -92,18 +96,20 @@ class TestFile(ManualTestBase):
     def __get_files_to_create(workspaces) -> List[Dict[str, Any]]:
         files: List[Dict[str, Any]] = []
         for i in range(len(workspaces)):
-            for j in range(10):
-                count = i * 10 + j
-                files.append({
-                    'filename': f'File {count}.txt',
-                    'contents': f'Contents {count}',
-                    'properties': {
-                        f'key{count}': f'value{count}'
-                    },
-                    'workspace': workspaces[i]
-                })
+            files.append(TestFile.__create_text_file(i, workspaces[i]))
 
         return files
+
+    @staticmethod
+    def __create_text_file(index: int, workspace: str) -> Dict[str, Any]:
+        return {
+                'filename': f'File {index}.txt',
+                'contents': f'Contents {index}',
+                'properties': {
+                    f'key{index}': f'value{index}'
+                },
+                'workspace': workspace
+            }
 
     def __record_data(self, record_type: str):
         self.record_data(
