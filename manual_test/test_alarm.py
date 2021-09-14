@@ -69,6 +69,8 @@ class TestAlarm(ManualTestBase):
                 expected_alarm = self.__find_matching_alarm_id(alarm, target_service_snaphot)
                 if expected_alarm is not None:
                     self.__assert_alarms_equal(expected_alarm, alarm)
+                    self.__assert_alarm_has_valid_workspace(alarm, workspaces)
+                    self.__assert_alarm_has_valid_notification_strategies(alarm, notification_strategies)
                 else:
                     displayName = alarm['displayName']
                     print(f'WARNING: Encountered alarm not in the record: {displayName}')
@@ -249,14 +251,14 @@ class TestAlarm(ManualTestBase):
         record: Dict[str, Any],
         collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        return next((item for item in collection if item['instanceId'] == record['instanceId']), None)
+        return self.find_record_with_matching_property_value(record, collection, 'instanceId')
 
     def __find_matching_alarm_id(
         self,
         record: Dict[str, Any],
         collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        return next((item for item in collection if item['alarmId'] == record['alarmId']), None)
+        return self.find_record_with_matching_property_value(record, collection, 'alarmId')
 
 
 if __name__ == '__main__':

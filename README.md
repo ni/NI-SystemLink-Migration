@@ -6,7 +6,7 @@
 - This tool currently supports migration from a SystemLink 2020R1 server, migration between other versions has not been tested.
 - **We assume the server you are migrating to is clean with no data. Migrating to a server with existing data will result in data loss.**
 - Not all services are supported yet, see **Supported Services** for details.
-- This tool assumes a single-box SystemLink installation. 
+- This tool assumes a single-box SystemLink installation.
 - This tool must be run on the same machines as the SystemLink installations.
 #### 2. Python
 - This tool requires [Python 3.8](https://www.python.org/downloads/release/python-3811/) to run.
@@ -57,7 +57,7 @@ See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and rele
 The following services can be migrated with this utility:
 
 - Tag Ingestion and Tag History: `--tags`
-- File Ingestion: `--files` 
+- File Ingestion: `--files`
     - Must migrate file to the same storage location on the new System Link server.
     - To capture/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
     - If files are stored in Amazon Simple Storage Service (S3), use `--files --files-metadata-only`.
@@ -73,10 +73,10 @@ There are plans to support the following services in the near future:
 - Repository: `--repo`
     - Feeds may require additional updates if servers used for migration have different domain names
 - User Data: `--userdata`
-- States: `--states`
+- States: `--systemstates`
     - Feeds may require additional updates if servers used for migration have different domain names
     - Cannot be migrated between 2020R1 and 2020R2 servers
 - Security `--security`
-  
+
 The following list of services is explicitly not supported because of issues that arose when developing and testing migrating the service that will require changes to the service rather than the migration utility to enable support:
 - Cloud Connector
