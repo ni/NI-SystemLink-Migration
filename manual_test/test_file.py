@@ -3,6 +3,7 @@ import json
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
 from typing import Any, Dict, List
+from urllib3.util import Retry
 
 
 upload_route = '/nifile/v1/service-groups/Default/upload-files'
@@ -38,7 +39,8 @@ class TestFile(ManualTestBase):
                     'metadata': json.dumps(data['properties'])
                    }
             workspace = data['workspace']
-            response = self.post(upload_route, params={'workspace': workspace}, files=file)
+            retries = Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['POST'])
+            response = self.post(upload_route, params={'workspace': workspace}, files=file, retries=retries)
             response.raise_for_status()
 
     def __get_files(self):
