@@ -8,7 +8,7 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from typing import Any, Dict
 
 
-class StatesMigrator(MigratorPlugin):
+class SystemStatesMigrator(MigratorPlugin):
 
     @property
     def name(self):
@@ -16,7 +16,7 @@ class StatesMigrator(MigratorPlugin):
 
     @property
     def argument(self):
-        return 'states'
+        return 'systemstates'
 
     @property
     def help(self):
