@@ -16,7 +16,7 @@ DELETE_ALARMS_BY_ID_ROUTE = 'nialarm/v1/delete-instances-by-instance-id'
 QUERY_ALARMS_ROUTE = 'nialarm/v1/query-instances'
 
 """Set this when debugging to cleanup the alarm database prior to populating the server with alarms."""
-DEBUG_CLEANUP_EXISTING_DATA = True
+DEBUG_CLEANUP_EXISTING_DATA = False
 
 
 class TestAlarm(ManualTestBase):
