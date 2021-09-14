@@ -17,9 +17,10 @@ GET_SYSTEM_STATE_BY_VERSION_ROUTE_FORMAT = 'nisystemsstate/v1/states/{id}/histor
 class TestSystemStates(ManualTestBase):
     def populate_data(self) -> None:
         workspace_utilities = WorkspaceUtilities()
-        WorkspaceUtilities().create_workspace(TEST_WORKSPACE_NAME, self)
+        workspace_utilities.create_workspace(TEST_WORKSPACE_NAME, self)
         for workspace in workspace_utilities.get_workspaces(self):
             state_id = self.__create_test_state(workspace)
+            # Push an update so the state has a non-trivial history
             self.__update_test_state(state_id)
 
         self.record_data(
@@ -49,47 +50,38 @@ class TestSystemStates(ManualTestBase):
             CLEAN_SERVER_RECORD_TYPE,
             required=False)
         current_snapshot = self.__get_all_state_data()
-        current_states = current_snapshot['current_versions']
-        histories = current_snapshot['histories']
-        v1_states = current_snapshot['v1_states']
         workspaces = WorkspaceUtilities().get_workspaces(self)
 
         migrated_record_count = 0
-        for state in current_states:
-            expected_state = self.find_record_with_matching_id(state, source_service_snapshot['current_versions'])
-            if expected_state is not None:
-                self.__assert_states_equal(expected_state, state)
-                self.__assert_state_has_valid_workspace(state, workspaces)
-                self.__assert_histories_equal(
-                    state['id'],
-                    source_service_snapshot['histories'],
-                    histories
-                )
-                self.__assert_v1_states_equal(
-                    state['id'],
-                    source_service_snapshot['v1_states'],
-                    v1_states
-                )
+        for state_data in current_snapshot:
+            expected_state_data = self.find_record_with_matching_id(state_data, source_service_snapshot)
+            if expected_state_data is not None:
+                self.__assert_state_data_equal(expected_state_data, state_data)
+                self.__assert_state_has_valid_workspace(state_data, workspaces)
                 migrated_record_count = migrated_record_count + 1
             else:
                 # This test does not expect any auto-generated states. It just verifies that if any extra
                 # states exist, they were present when the server first started.
-                expected_state = self.__find_state_by_name(state, target_service_snaphot['current_versions'])
+                expected_state = self.__find_state_by_name(state_data, target_service_snaphot)
                 assert expected_state is not None
 
-        assert len(source_service_snapshot['current_versions']) == migrated_record_count
+        assert len(source_service_snapshot) == migrated_record_count
 
     def __get_all_state_data(self) -> Dict[str, Any]:
         all_state_ids = self.__get_all_state_ids()
-        all_states = self.__get_state_details(all_state_ids)
-        histories = self.__get_state_histories(all_state_ids)
-        v1_states = self.__get_v1_states(histories)
+        all_state_data = []
+        for id in all_state_ids:
+            current_state = self.__get_state_details(id)
+            history = self.__get_state_history(id)
+            all_versions = self.__get_all_versions_of_state(id, history)
+            all_state_data.append({
+                'id': id,
+                'current': current_state,
+                'history': history,
+                'all_versions': all_versions,
+            })
 
-        return {
-            'current_versions': all_states,
-            'histories': histories,
-            'v1_states': v1_states
-        }
+        return all_state_data
 
     def __get_all_state_ids(self) -> List[str]:
         response = self.get(GET_SYSTEM_STATES_ROUTE)
@@ -99,39 +91,24 @@ class TestSystemStates(ManualTestBase):
         states = response.json()['states']
         return [state['id'] for state in states]
 
-    def __get_state_details(self, state_ids: List[str]) -> List[Dict[str, Any]]:
+    def __get_state_details(self, state_id: str) -> Dict[str, Any]:
+        uri = GET_SYSTEM_STATE_DETAILS_ROUTE_FORMAT.format(id=state_id)
+        response = self.get(uri)
+        response.raise_for_status()
+
+        return response.json()
+
+    def __get_state_history(self, state_id: str) -> Dict[str, Any]:
+        uri = GET_SYSTEM_STATE_HISTORY_ROUTE_FORMAT.format(id=state_id)
+        response = self.get(uri)
+        response.raise_for_status()
+
+        return response.json()
+
+    def __get_all_versions_of_state(self, state_id: str, history: Dict[str, Any]) -> List[Dict[str, Any]]:
         result = []
-        for id in state_ids:
-            uri = GET_SYSTEM_STATE_DETAILS_ROUTE_FORMAT.format(id=id)
-            response = self.get(uri)
-            response.raise_for_status()
-            result.append(response.json())
-
-        return result
-
-    def __get_state_histories(self, state_ids: List[str]) -> List[Dict[str, Any]]:
-        result = []
-        for id in state_ids:
-            uri = GET_SYSTEM_STATE_HISTORY_ROUTE_FORMAT.format(id=id)
-            response = self.get(uri)
-            response.raise_for_status()
-
-            # NOTE: The history response does not repeat the state ID. So append it
-            # to make future lookup easier.
-            history = response.json()
-            result.append({
-                'id': id,
-                'history': history
-            })
-
-        return result
-
-    def __get_v1_states(self, histories: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        result = []
-        for history in histories:
-            id = history['id']
-            v1_version = history['history']['versions'][0]['version']
-            uri = GET_SYSTEM_STATE_BY_VERSION_ROUTE_FORMAT.format(id=id, version=v1_version)
+        for version in [record['version'] for record in history['versions']]:
+            uri = GET_SYSTEM_STATE_BY_VERSION_ROUTE_FORMAT.format(id=state_id, version=version)
             response = self.get(uri)
             response.raise_for_status()
             result.append(response.json())
@@ -181,41 +158,21 @@ class TestSystemStates(ManualTestBase):
         response = self.patch(uri, json=patch)
         response.raise_for_status()
 
-    def __assert_states_equal(self, expected: Dict[str, Any], actual: Dict[str, Any]):
+    def __assert_state_data_equal(self, expected: Dict[str, Any], actual: Dict[str, Any]):
         assert expected == actual
 
-    def __assert_state_has_valid_workspace(self, state: Dict[str, Any], workspaces: List[str]):
-        matching_workspace = next((workspace for workspace in workspaces if workspace == state['workspace']), None)
+    def __assert_state_has_valid_workspace(self, state_data: Dict[str, Any], workspaces: List[str]):
+        current = state_data['current']
+        matching_workspace = next((workspace for workspace in workspaces if workspace == current['workspace']), None)
         assert matching_workspace is not None
-
-    def __assert_histories_equal(
-        self,
-        state_id: str,
-        expected_histories: List[Dict[str, Any]],
-        actual_histories: List[Dict[str, Any]]
-    ):
-        actual_history = self.find_record_by_id(state_id, actual_histories)
-        assert actual_history is not None
-        expected_history = self.find_record_by_id(state_id, expected_histories)
-        assert actual_history == expected_history
-
-    def __assert_v1_states_equal(
-        self,
-        state_id: str,
-        expected_v1_states: List[Dict[str, Any]],
-        actual_v1_states: List[Dict[str, Any]]
-    ):
-        actual_state = self.find_record_by_id(state_id, actual_v1_states)
-        assert actual_state is not None
-        expected_state = self.find_record_by_id(state_id, expected_v1_states)
-        self.__assert_states_equal(expected_state, actual_state)
 
     def __find_state_by_name(
         self,
-        state: Dict[str, Any],
+        state_data: Dict[str, Any],
         collection: List[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        return self.find_record_with_matching_property_value(state, collection, 'name')
+        name = state_data['current']['name']
+        return next((record for record in collection if record['current']['name'] == name))
 
 
 if __name__ == '__main__':
