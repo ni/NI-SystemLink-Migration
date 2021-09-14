@@ -2,10 +2,12 @@ import argparse
 import json
 import os
 from requests.auth import HTTPBasicAuth
+from requests.adapters import HTTPAdapter
 import requests
 from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
+from urllib3.util import Retry
 
 # Record type for data recorded from a clean server prior to restoring data
 CLEAN_SERVER_RECORD_TYPE: str = 'clean'
@@ -39,7 +41,7 @@ class ManualTestBase:
 
     def record_initial_data(self) -> None:
         """
-        Derived class should ovveride to record the initial state of the SystemLink server prior
+        Derived class should override to record the initial state of the SystemLink server prior
         to running a restore operation. Recorded data should be used by the validate_data() method.
         """
 
@@ -54,49 +56,54 @@ class ManualTestBase:
 
         raise NotImplementedError
 
-    def request(self, method: str, route: str, **kwargs) -> requests.Response:
+    def request(self, method: str, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a request.
 
         :param method: Method for the request. See requests.request.
         :param route: URL for the request, relative to self.server.
+        :param retries: Description of how to retry if the request failes. Default is no retry.
         :param kwargs: See requests.request
         """
 
-        return requests.request(
-                method,
-                urljoin(self._server, route),
-                auth=kwargs.pop('auth', self._auth),
-                verify=kwargs.pop('verify', False),
-                **kwargs)
+        with requests.Session() as session:
+            if retries:
+                session.mount(self._server, HTTPAdapter(max_retries=retries))
 
-    def get(self, route: str, **kwargs) -> requests.Response:
+            return session.request(
+                    method,
+                    urljoin(self._server, route),
+                    auth=kwargs.pop('auth', self._auth),
+                    verify=kwargs.pop('verify', False),
+                    **kwargs)
+
+    def get(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a get request. See self.request for parameter details.
         """
 
-        return self.request('GET', route, **kwargs)
+        return self.request('GET', route, retries, **kwargs)
 
-    def patch(self, route: str, **kwargs) -> requests.Response:
+    def patch(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a patch request. See self.request for parameter details.
         """
 
-        return self.request('PATCH', route, **kwargs)
+        return self.request('PATCH', route, retries, **kwargs)
 
-    def post(self, route: str, **kwargs) -> requests.Response:
+    def post(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a post request. See self.request for parameter details.
         """
 
-        return self.request('POST', route, **kwargs)
+        return self.request('POST', route, retries, **kwargs)
 
-    def put(self, route: str, **kwargs) -> requests.Response:
+    def put(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a put request. See self.request for parameter details.
         """
 
-        return self.request('PUT', route, **kwargs)
+        return self.request('PUT', route, retries, **kwargs)
 
     def read_recorded_data(
             self,
@@ -128,7 +135,7 @@ class ManualTestBase:
             record_type,
             create_folder_if_missing=True)
         with open(file_path, 'w') as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=2)
 
     def __build_recording_file_path(
             self,
