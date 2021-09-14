@@ -67,7 +67,7 @@ class TestSystemStates(ManualTestBase):
 
         assert len(source_service_snapshot) == migrated_record_count
 
-    def __get_all_state_data(self) -> Dict[str, Any]:
+    def __get_all_state_data(self) -> List[Dict[str, Any]]:
         all_state_ids = self.__get_all_state_ids()
         all_state_data = []
         for id in all_state_ids:
