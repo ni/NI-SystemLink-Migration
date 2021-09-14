@@ -128,7 +128,7 @@ class ManualTestBase:
             record_type,
             create_folder_if_missing=True)
         with open(file_path, 'w') as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=2)
 
     def __build_recording_file_path(
             self,
