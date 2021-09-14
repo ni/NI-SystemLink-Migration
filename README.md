@@ -73,7 +73,8 @@ There are plans to support the following services in the near future:
 - Repository: `--repo`
     - Feeds may require additional updates if servers used for migration have different domain names
 - User Data: `--userdata`
-- States: `--systemstates`
+- Systems: `--systems`
+- System States: `--systemstates`
     - Feeds may require additional updates if servers used for migration have different domain names
     - Cannot be migrated between 2020R1 and 2020R2 servers
 - Security `--security`
