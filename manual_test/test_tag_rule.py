@@ -85,7 +85,7 @@ class TestTagRule(ManualTestBase):
             'keywords': [TEST_NAME],
             'properties': {'forTest': 'True'}
         }
-        response = self.post(CREATE_TAG_RULE_ROUTE, json=rule)
+        response = self.post(CREATE_TAG_RULE_ROUTE, retries=self.build_default_400_retry(), json=rule)
         response.raise_for_status()
 
     def __build_test_rule_condition(self, notification_strategy_id: str) -> Dict[str, Any]:

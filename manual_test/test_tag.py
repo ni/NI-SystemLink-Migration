@@ -102,7 +102,7 @@ class TestTag(ManualTestBase):
     def __upload_tag(self, tag):
         url = CREATE_ROUTE + tag['workspace'] + '/' + tag['path']
         print('Uploading tag to: ' + url)
-        response = self.put(url, json=tag)
+        response = self.put(url, retries=self.build_default_400_retry('PUT'), json=tag)
         response.raise_for_status()
         print('Done uploading tag')
 
