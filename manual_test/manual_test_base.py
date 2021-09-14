@@ -77,6 +77,13 @@ class ManualTestBase:
 
         return self.request('GET', route, **kwargs)
 
+    def patch(self, route: str, **kwargs) -> requests.Response:
+        """
+        Sends a patch request. See self.request for parameter details.
+        """
+
+        return self.request('PATCH', route, **kwargs)
+
     def post(self, route: str, **kwargs) -> requests.Response:
         """
         Sends a post request. See self.request for parameter details.
