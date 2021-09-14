@@ -84,6 +84,13 @@ class ManualTestBase:
 
         return self.request('GET', route, retries, **kwargs)
 
+    def patch(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
+        """
+        Sends a patch request. See self.request for parameter details.
+        """
+
+        return self.request('PATCH', route, retries, **kwargs)
+
     def post(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a post request. See self.request for parameter details.
@@ -97,6 +104,17 @@ class ManualTestBase:
         """
 
         return self.request('PUT', route, retries, **kwargs)
+
+    def build_default_400_retry(self, rout='POST') -> Retry:
+        """
+        Builds a standard Retry object for retrying 400 errors on a route.
+
+        This is necessary due to a caching issue encountered by tests that create
+        new workspaces. For a short window after the workspace is created, the auth
+        token will not have refreshed and operations that reference the workspace will
+        fail.
+        """
+        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT'])
 
     def read_recorded_data(
             self,
@@ -173,8 +191,8 @@ class ManualTestBase:
         """Finds a record in a collection which has an 'id' field matching the input."""
         return self.find_record_by_property_value(id, collection, 'id')
 
+    @staticmethod
     def find_record_by_property_value(
-            self,
             property_value: Any,
             collection: List[Dict[str, Any]],
             property: str
