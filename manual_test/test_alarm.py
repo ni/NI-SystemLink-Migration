@@ -86,7 +86,11 @@ class TestAlarm(ManualTestBase):
         return response.json()['filterMatches']
 
     def __raise_alarm(self, alarm: Dict[str, Any]) -> str:
-        response = self.post(CREATE_OR_UPDATE_ALARM_ROUTE, json=alarm)
+        response = self.post(
+            CREATE_OR_UPDATE_ALARM_ROUTE,
+            retries=self.build_default_400_retry(),
+            json=alarm
+        )
         response.raise_for_status()
         return response.json()['instanceId']
 
