@@ -173,8 +173,8 @@ class ManualTestBase:
         """Finds a record in a collection which has an 'id' field matching the input."""
         return self.find_record_by_property_value(id, collection, 'id')
 
+    @staticmethod
     def find_record_by_property_value(
-            self,
             property_value: Any,
             collection: List[Dict[str, Any]],
             property: str

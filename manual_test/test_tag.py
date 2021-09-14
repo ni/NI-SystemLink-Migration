@@ -174,11 +174,11 @@ class TestTag(ManualTestBase):
         clean_server_tags = self.__read_clean_server_tags()
         populated_server_tags = self.__read_populated_server_tags()
         for tag in all_tags:
-            expected_tag = self.find_record_by_path(tag, populated_server_tags)
+            expected_tag = self.find_record_with_matching_path(tag, populated_server_tags)
             if expected_tag is not None:
                 self.__validate_tag(tag, expected_tag, True)
             else:
-                expected_tag = self.find_record_by_path(tag, clean_server_tags)
+                expected_tag = self.find_record_with_matching_path(tag, clean_server_tags)
                 self.__validate_tag(tag, expected_tag, False)
 
     @staticmethod
@@ -220,9 +220,12 @@ class TestTag(ManualTestBase):
         response.raise_for_status()
         return response.json()['values']
 
-    @staticmethod
-    def find_record_by_path(record: Dict[str, Any], collection: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        return next((item for item in collection if item['path'] == record['path']), None)
+    def find_record_with_matching_path(
+            self,
+            source: Dict[str, Any],
+            collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        return self.find_record_with_matching_property_value(source, collection, 'path')
 
     def __record_clean_server_tags(self):
         data = self.__get_all_tags()
