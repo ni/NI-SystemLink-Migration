@@ -3,7 +3,7 @@ import json
 import os
 from requests.auth import HTTPBasicAuth
 import requests
-from typing import Type
+from typing import Any, Dict, List, Optional, Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 
@@ -104,7 +104,7 @@ class ManualTestBase:
             collection: str,
             record_type: str,
             required: bool = True
-    ) -> list:
+    ) -> List[Dict[str, Any]]:
         file_path = self.__build_recording_file_path(
             category,
             collection,
@@ -121,7 +121,7 @@ class ManualTestBase:
 
         return []
 
-    def record_data(self, category: str, collection: str, record_type: str, data) -> None:
+    def record_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
         file_path = self.__build_recording_file_path(
             category,
             collection,
@@ -147,6 +147,40 @@ class ManualTestBase:
     def datetime_to_string(self, time) -> str:
         """Converts a datetime object to a string in the format expected by SystemLink"""
         return time.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def find_record_with_matching_id(
+            self,
+            source: Dict[str, Any],
+            collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection with the same 'id' value as target."""
+        return self.find_record_with_matching_property_value(source, collection, 'id')
+
+    def find_record_with_matching_property_value(
+        self,
+        source: Dict[str, Any],
+        collection: List[Dict[str, Any]],
+        property: str,
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection with the same value for property as target"""
+        return self.find_record_by_property_value(source[property], collection, property)
+
+    def find_record_by_id(
+            self,
+            id: str,
+            collection: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection which has an 'id' field matching the input."""
+        return self.find_record_by_property_value(id, collection, 'id')
+
+    def find_record_by_property_value(
+            self,
+            property_value: Any,
+            collection: List[Dict[str, Any]],
+            property: str
+    ) -> Optional[Dict[str, Any]]:
+        """Finds a record in a collection which has an field matching value for the given property."""
+        return next((record for record in collection if record[property] == property_value), None)
 
 
 def handle_command_line(test_class: Type[ManualTestBase]) -> None:
