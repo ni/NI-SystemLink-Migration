@@ -12,7 +12,7 @@ class SystemStatesMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return 'SystemsStateManager'
+        return 'SystemsState'
 
     @property
     def argument(self):
@@ -39,7 +39,7 @@ class SystemStatesMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory(
+        file_facade.copy_directory_if_exists(
             self.__data_directory,
             file_migration_directory,
             False)
@@ -54,7 +54,7 @@ class SystemStatesMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory(
+        file_facade.copy_directory_if_exists(
             file_migration_directory,
             self.__data_directory,
             True)
