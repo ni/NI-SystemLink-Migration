@@ -1,7 +1,7 @@
 # Setup
 Ideal setup would include:
-1. A 'dev' machine where you will run the populate/validate scripts. That machine needs python 3.8 and this git repo. Each step that is run on the dev machine stores data locally that will be used by subsequent steps.
-1. A SystemLink server to use as the original machine, with nislmigrate installed as described in the top-level [read-me](..\README.md)
+1. A 'dev' machine where you will run the populate/validate scripts. That machine needs the setup described in [CONTRIBUTING.md](../CONTRIBUTING.md), including `poetry install`. Each step that is run on the dev machine stores data locally that will be used by subsequent steps.
+1. A SystemLink server to use as the original machine, with nislmigrate installed as described in the top-level [README.md](../README.md)
 1. A SystemLink server to use as the destination machine, also with nislmigrate installed. If you don't have 2 machines, you can use a vm, and restore to a 'clean' snapshot before restoring.
 
 # Basic Steps for all of the manual tests
