@@ -58,6 +58,31 @@ def test_copy_directory_source_directory_does_not_exist_raises_error(directory):
 
 @pytest.mark.unit
 @tempdir()
+def test_copy_directory_if_exists_source_directory_does_not_exist_returns_false(directory):
+    source_path = os.path.join(directory.path, 'source')
+    destination_path = make_directory(directory, 'destination')
+    file_system_facade = FileSystemFacade()
+
+    result = file_system_facade.copy_directory_if_exists(source_path, destination_path, False)
+    assert not result
+
+
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_if_exists_source_directory_exists_copies_data(directory):
+    source_path = make_directory(directory, 'source')
+    make_file(source_path, 'demofile.txt')
+    destination_path = make_directory(directory, 'destination')
+    file_system_facade = FileSystemFacade()
+
+    result = file_system_facade.copy_directory_if_exists(source_path, destination_path, False)
+    assert result
+    destination_file_path = os.path.join(destination_path, 'demofile.txt')
+    assert os.path.isfile(destination_file_path)
+
+
+@pytest.mark.unit
+@tempdir()
 def test_copy_file(directory):
     source_path = make_directory(directory, 'source')
     destination_path = make_directory(directory, 'destination')
