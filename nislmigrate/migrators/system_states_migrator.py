@@ -7,6 +7,16 @@ from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from typing import Any, Dict
 
+DEFAULT_GIT_REPOT_PATH = os.path.join(
+    str(os.environ.get('ProgramData')),
+    'National Instruments',
+    'Skyline',
+    'Data',
+    'SystemsStateManager',
+    'States')
+
+GIT_REPO_CONFIG_CONFIGURATION_KEY = 'Git.RepoPath'
+
 
 class SystemStatesMigrator(MigratorPlugin):
 
@@ -22,13 +32,6 @@ class SystemStatesMigrator(MigratorPlugin):
     def help(self):
         return 'Migrate system states'
 
-    __data_directory = os.path.join(
-        str(os.environ.get('ProgramData')),
-        'National Instruments',
-        'Skyline',
-        'Data',
-        'SystemsStateManager')
-
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
@@ -40,7 +43,7 @@ class SystemStatesMigrator(MigratorPlugin):
             migration_directory,
             self.name)
         file_facade.copy_directory_if_exists(
-            self.__data_directory,
+            self.__find_git_repo_directory(facade_factory),
             file_migration_directory,
             False)
 
@@ -56,7 +59,7 @@ class SystemStatesMigrator(MigratorPlugin):
             self.name)
         file_facade.copy_directory_if_exists(
             file_migration_directory,
-            self.__data_directory,
+            self.__find_git_repo_directory(facade_factory),
             True)
 
     def pre_restore_check(
@@ -68,3 +71,7 @@ class SystemStatesMigrator(MigratorPlugin):
         mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,
             self.name)
+
+    def __find_git_repo_directory(self, facade_factory: FacadeFactory) -> str:
+        config = self.config(facade_factory)
+        return config.get(GIT_REPO_CONFIG_CONFIGURATION_KEY) or DEFAULT_GIT_REPOT_PATH
