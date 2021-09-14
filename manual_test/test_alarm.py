@@ -1,6 +1,7 @@
 import datetime
 from typing import Any, Dict, List, Optional
-from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, POPULATED_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE
+from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE
 from manual_test.utilities.notification_utilities import NotificationUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
@@ -86,7 +87,11 @@ class TestAlarm(ManualTestBase):
         return response.json()['filterMatches']
 
     def __raise_alarm(self, alarm: Dict[str, Any]) -> str:
-        response = self.post(CREATE_OR_UPDATE_ALARM_ROUTE, json=alarm)
+        response = self.post(
+            CREATE_OR_UPDATE_ALARM_ROUTE,
+            retries=self.build_default_400_retry(),
+            json=alarm
+        )
         response.raise_for_status()
         return response.json()['instanceId']
 
