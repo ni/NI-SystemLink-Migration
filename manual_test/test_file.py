@@ -1,3 +1,4 @@
+import base64
 import json
 
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
@@ -35,19 +36,28 @@ class TestFile(ManualTestBase):
         self.__assert_files_match(actual_files, expected_files)
 
     def __upload_files(self, workspaces):
-        file_data = self.__get_files_to_create(workspaces)
-        for data in file_data:
-            file = {
-                    'file': (data['filename'], data['contents']),
-                    'metadata': json.dumps(data['properties'])
+        file_specs = self.__get_files_to_create(workspaces)
+        for file_spec in file_specs:
+            upload: Dict[str, Any] = {
+                    'metadata': json.dumps(file_spec['properties'])
                    }
-            workspace = data['workspace']
-            response = self.post(
-                UPLOAD_ROUTE,
-                params={'workspace': workspace},
-                files=file,
-                retries=self.build_default_400_retry())
-            response.raise_for_status()
+            workspace = file_spec['workspace']
+
+            if file_spec.get('inlineTextContents', None):
+                upload['file'] = (file_spec['filename'], file_spec['inlineTextContents'])
+                self.__upload_file(upload, workspace)
+            else:
+                with open(file_spec['contentsFile'], 'rb') as contents:
+                    upload['file'] = (file_spec['filename'], contents)
+                    self.__upload_file(upload, workspace)
+
+    def __upload_file(self, upload, workspace):
+        response = self.post(
+            UPLOAD_ROUTE,
+            params={'workspace': workspace},
+            files=upload,
+            retries=self.build_default_400_retry())
+        response.raise_for_status()
 
     def __get_files(self):
         take = 100
@@ -81,7 +91,7 @@ class TestFile(ManualTestBase):
         response = self.get(url)
         response.raise_for_status()
 
-        return response.text
+        return base64.b64encode(response.content).decode('utf-8')
 
     @staticmethod
     def __sorted_by_id(files):
@@ -94,19 +104,31 @@ class TestFile(ManualTestBase):
 
     @staticmethod
     def __get_files_to_create(workspaces) -> List[Dict[str, Any]]:
-        files: List[Dict[str, Any]] = []
+        files_specs: List[Dict[str, Any]] = []
         for i in range(len(workspaces)):
-            files.append(TestFile.__create_text_file(i, workspaces[i]))
+            files_specs.append(TestFile.__create_text_file(i, workspaces[i]))
+            files_specs.append(TestFile.__create_png_file(i, workspaces[i]))
 
-        return files
+        return files_specs
 
     @staticmethod
     def __create_text_file(index: int, workspace: str) -> Dict[str, Any]:
         return {
                 'filename': f'File {index}.txt',
-                'contents': f'Contents {index}',
+                'inlineTextContents': f'Contents {index}',
                 'properties': {
                     f'key{index}': f'value{index}'
+                },
+                'workspace': workspace
+            }
+
+    @staticmethod
+    def __create_png_file(index: int, workspace: str) -> Dict[str, Any]:
+        return {
+                'filename': 'Image.png',
+                'contentsFile': IMAGE_PATH,
+                'properties': {
+                    f'image{index}': f'imageValue{index}'
                 },
                 'workspace': workspace
             }
