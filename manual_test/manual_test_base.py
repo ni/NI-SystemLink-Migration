@@ -98,6 +98,17 @@ class ManualTestBase:
 
         return self.request('PUT', route, retries, **kwargs)
 
+    def build_default_400_retry(self, rout='POST') -> Retry:
+        """
+        Builds a standard Retry object for retrying 400 errors on a route.
+
+        This is necessary due to a caching issue encountered by tests that create
+        new workspaces. For a short window after the workspace is created, the auth
+        token will not have refreshed and operations that reference the workspace will
+        fail.
+        """
+        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT'])
+
     def read_recorded_data(
             self,
             category: str,
