@@ -5,8 +5,8 @@ from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTes
 from typing import Any, Dict, List
 
 
-upload_route = '/nifile/v1/service-groups/Default/upload-files'
-get_route = '/nifile/v1/service-groups/Default/files'
+UPLOAD_ROUTE = '/nifile/v1/service-groups/Default/upload-files'
+GET_ROUTE = '/nifile/v1/service-groups/Default/files'
 
 SERVICE_NAME = 'Files'
 COLLECTION_NAME = 'FileIngestion'
@@ -39,7 +39,7 @@ class TestFile(ManualTestBase):
                    }
             workspace = data['workspace']
             response = self.post(
-                upload_route,
+                UPLOAD_ROUTE,
                 params={'workspace': workspace},
                 files=file,
                 retries=self.build_default_400_retry())
@@ -51,7 +51,7 @@ class TestFile(ManualTestBase):
         count = take
         all_files = []
         while count == take:
-            response = self.get(get_route, params={'take': take, 'skip': skip})
+            response = self.get(GET_ROUTE, params={'take': take, 'skip': skip})
             response.raise_for_status()
 
             received_files = response.json()['availableFiles']
