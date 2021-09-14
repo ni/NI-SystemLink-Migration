@@ -125,7 +125,7 @@ class TestSystemStates(ManualTestBase):
             'packages': [self.__build_test_package('initial_package', '1.0')],
             'workspace': workspace
         }
-        response = self.post(CREATE_SYSTEM_STATE_ROUTE, json=state)
+        response = self.post(CREATE_SYSTEM_STATE_ROUTE, retries=self.build_default_400_retry(), json=state)
         response.raise_for_status()
 
         return response.json()['id']
