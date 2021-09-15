@@ -1,6 +1,6 @@
 # Setup
 Ideal setup would include:
-1. A 'dev' machine where you will run the populate/validate scripts. That machine needs the setup described in [CONTRIBUTING.md](../CONTRIBUTING.md), including `poetry install`. Each step that is run on the dev machine stores data locally that will be used by subsequent steps.
+1. A 'dev' machine where you will run the populate/validate scripts. That machine needs the setup described in [CONTRIBUTING.md](../CONTRIBUTING.md). Each step that is run on the dev machine stores data locally that will be used by subsequent steps.
 1. A SystemLink server to use as the original machine, with nislmigrate installed as described in the top-level [README.md](../README.md)
 1. A SystemLink server to use as the destination machine, also with nislmigrate installed. If you don't have 2 machines, you can use a vm, and restore to a 'clean' snapshot before restoring.
 
@@ -8,8 +8,8 @@ Ideal setup would include:
 1. On dev machine, populate a server with sample data for one or more services:
 
    ```
-   python test_<service1>.py -s https://<original-systemlink-server> -u <username> -p <password> populate
-   python test_<service2>.py -s https://<original-systemlink-server> -u <username> -p <password> populate
+   poetry run py .\manual_test\test_<service1>.py -s https://<original-systemlink-server> -u <username> -p <password> populate
+   poetry run py .\manual_test\test_<service2>.py -s https://<original-systemlink-server> -u <username> -p <password> populate
    ...
    ```
 
@@ -21,8 +21,8 @@ Ideal setup would include:
 1. On the 'dev' machine record any prepopulated data for the services you are testing:
 
    ```
-   python test_<service1>.py -s https://<destination-systemlink-server> -u <username> -p <password> record
-   python test_<service2>.py -s https://<destination-systemlink-server> -u <username> -p <password> record
+   poetry run py .\manual_test\test_<service1>.py -s https://<destination-systemlink-server> -u <username> -p <password> record
+   poetry run py .\manual_test\test_<service2>.py -s https://<destination-systemlink-server> -u <username> -p <password> record
    ...
    ```
 
@@ -33,8 +33,8 @@ Ideal setup would include:
 1. On the 'dev' machine, validate that the data was restored properly for each service that you are testing. The command will report an error if the data on the destination server doesn't match the initial data from the original server.
 
    ```
-   python test_<service1>.py -s https://<destination-systemlink-server> -u <username> -p <password> validate
-   python test_<service2>.py -s https://<destination-systemlink-server> -u <username> -p <password> validate
+   poetry run py .\manual_test\test_<service1>.py -s https://<destination-systemlink-server> -u <username> -p <password> validate
+   poetry run py .\manual_test\test_<service2>.py -s https://<destination-systemlink-server> -u <username> -p <password> validate
    ...
    ```
    
