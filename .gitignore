@@ -145,3 +145,6 @@ poetry.lock
 
 # Test output
 .test/
+
+# Windows thumbnail database
+Thumbs.db
