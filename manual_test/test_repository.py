@@ -1,4 +1,5 @@
-import base64
+import json
+from pathlib import Path
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.utilities.notification_utilities import NotificationUtilities
 from manual_test.manual_test_base import (
@@ -15,10 +16,16 @@ TEST_NAME = f'{SERVICE_NAME}MigrationTest'
 TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 GET_FEEDS_ROUTE = 'nirepo/v1/feeds?omitPackageReferences=false'
 CREATE_FEEDS_ROUTE = 'nirepo/v1/feeds'
+ADD_PACKAGE_REFERENCE_ROUTE_FORMAT = 'nirepo/v1/feeds/{feed_id}/add-package-references'
 GET_PACKAGES_ROUTE = 'nirepo/v1/packages?omitAttributes=false&omitFeedReferences=false'
+UPLOAD_PACKAGES_ROUTE = 'nirepo/v1/upload-packages?shouldOverwrite=true'
 GET_JOBS_ROUTE = 'nirepo/v1/jobs'
 GET_JOB_ROUTE_FORMAT = 'nirepo/v1/jobs?id={job_id}'
 GET_STORE_ITEMS_ROUTE_FORMAT = 'nirepo/v1/store/items?pageSize={page_size}&pageNumber={page_number}'
+
+# Package to add to our test feed
+ASSETS_PATH = Path(__file__).parent / 'assets'
+TEST_PACKAGE_PATH = ASSETS_PATH / 'test-package_1.0.0-0_x64.ipk'
 
 # 10s wait time
 WAIT_INCREMENT_SECONDS = 0.1
@@ -29,8 +36,14 @@ class TestRepository(ManualTestBase):
     def populate_data(self):
         workspace_utilities = WorkspaceUtilities()
         workspace_utilities.create_workspace(TEST_WORKSPACE_NAME, self)
+        feed_ids = []
         for workspace in workspace_utilities.get_workspaces(self):
-            feed_id = self.__create_feed(workspace)
+            feed_ids.append(self.__create_feed(workspace))
+
+        package_id = self.__upload_package(TEST_PACKAGE_PATH)
+
+        for feed_id in feed_ids:
+            self.__add_package_reference(feed_id, package_id)
 
         self.__record_data(POPULATED_SERVER_RECORD_TYPE)
 
@@ -115,7 +128,7 @@ class TestRepository(ManualTestBase):
             'feedName': f'{TEST_NAME}-test-feed',
             'name': f'Feed for {TEST_NAME}',
             'description': f'Test feed created for {TEST_NAME}',
-            'platform': f'windows',
+            'platform': f'ni-linux-rt',
             'workspace': workspace_id
         }
         response = self.post(
@@ -128,6 +141,26 @@ class TestRepository(ManualTestBase):
         job_id = response.json()['jobId']
         feed_id = self.__wait_until_job_completed(job_id)
         return feed_id
+
+    def __upload_package(self, package_path: str) -> str:
+        file_spec = {'filename': open(package_path,'rb')}
+        response = self.post(UPLOAD_PACKAGES_ROUTE, files=file_spec)
+        response.raise_for_status()
+
+        job_id = response.json()['jobIds'][0]
+        package_id = self.__wait_until_job_completed(job_id)
+        return package_id
+
+    def __add_package_reference(self, feed_id: str, package_id: str):
+        uri = ADD_PACKAGE_REFERENCE_ROUTE_FORMAT.format(feed_id=feed_id)
+        references = {
+            'packageReferences': [package_id]
+        }
+        response = self.post(uri, json=references)
+        response.raise_for_status()
+
+        job_id = response.json()['jobId']
+        self.__wait_until_job_completed(job_id)
 
     def __wait_until_job_completed(self, job_id: str) -> str:
         job = None
