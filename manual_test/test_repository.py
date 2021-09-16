@@ -8,6 +8,7 @@ TEST_NAME = 'AlarmMigrationTest'
 TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 GET_FEEDS_ROUTE = 'nirepo/v1/feeds?omitPackageReferences=false'
 GET_PACKAGES_ROUTE = 'nirepo/v1/packages?omitAttributes=false&omitFeedReferences=false'
+GET_JOBS_ROUTE = 'nirepo/v1/jobs'
 GET_STORE_ITEMS_ROUTE_FORMAT = 'nirepo/v1/store/items?pageSize={page_size}&pageNumber={page_number}'
 
 
@@ -32,6 +33,11 @@ class TestRepository(ManualTestBase):
             'packages',
             record_type,
             self.__get_packages())
+        self.record_data(
+            SERVICE_NAME,
+            'jobs',
+            record_type,
+            self.__get_jobs())
         # We don't control the store, but query a subset of items to verify
         # the service is configured correctly.
         self.record_data(
@@ -47,6 +53,11 @@ class TestRepository(ManualTestBase):
 
     def __get_packages(self) -> List[Dict[str, Any]]:
         response = self.get(GET_PACKAGES_ROUTE)
+        response.raise_for_status()
+        return response.json()
+
+    def __get_jobs(self) -> List[Dict[str, Any]]:
+        response = self.get(GET_JOBS_ROUTE)
         response.raise_for_status()
         return response.json()
 
