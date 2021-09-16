@@ -60,11 +60,11 @@ class TestFile(ManualTestBase):
             retries=self.build_default_400_retry())
         response.raise_for_status()
 
-    def __get_files(self):
+    def __get_files(self) -> Dict[str, Dict[str, Any]]:
         take = 100
         skip = 0
         count = take
-        all_files = []
+        all_files = {}
         while count == take:
             response = self.get(GET_ROUTE, params={'take': take, 'skip': skip})
             response.raise_for_status()
@@ -72,15 +72,14 @@ class TestFile(ManualTestBase):
             received_files = response.json()['availableFiles']
             count = len(received_files)
             details = self.__extract_file_details(received_files)
-            all_files.extend(details)
+            all_files.update(details)
 
             skip += take
 
         return all_files
 
-    def __extract_file_details(self, files) -> List[Dict[str, Any]]:
-        return [self.__extract_single_file_details(file)
-                for file in files]
+    def __extract_file_details(self, files) -> Dict[str, Dict[str, Any]]:
+        return {file['id']: file for file in [self.__extract_single_file_details(file) for file in files]}
 
     def __extract_single_file_details(self, file) -> Dict[str, Any]:
         data_url = file['_links']['data']['href']
@@ -94,14 +93,21 @@ class TestFile(ManualTestBase):
 
         return base64.b64encode(response.content).decode('utf-8')
 
-    @staticmethod
-    def __sorted_by_id(files):
-        return sorted(files, key=lambda i: i['id'])
+    def __assert_files_match(self, actual_files, expected_files):
+        if self._relax_validation:
+            self.__assert_files_relaxed_match(actual_files, expected_files)
+        else:
+            self.__assert_files_strict_match(actual_files, expected_files)
 
     @staticmethod
-    def __assert_files_match(actual_files, expected_files):
-        assert len(actual_files) == len(expected_files)
-        assert TestFile.__sorted_by_id(actual_files) == TestFile.__sorted_by_id(expected_files)
+    def __assert_files_strict_match(actual_files, expected_files):
+        assert actual_files == expected_files
+
+    @staticmethod
+    def __assert_files_relaxed_match(actual_files, expected_files):
+        assert len(actual_files) >= len(expected_files)
+        for id, file in expected_files.items():
+            assert actual_files[id] == file
 
     @staticmethod
     def __get_files_to_create(workspaces) -> List[Dict[str, Any]]:
@@ -151,13 +157,14 @@ class TestFile(ManualTestBase):
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
-            self.__get_files())
+            [self.__get_files()])
 
     def __read_recorded_data(self, record_type: str):
-        return self.read_recorded_data(
+        files = self.read_recorded_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type)
+        return files[0]
 
 
 if __name__ == '__main__':
