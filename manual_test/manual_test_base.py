@@ -125,6 +125,12 @@ class ManualTestBase:
     ) -> List[Dict[str, Any]]:
         """
             Read recorded JSON data from a file.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being read.
+            :param record_type: Record type being read.
+            :required: If true, this method will fail if the file does not exist.
+            :return: The file contents, or an empty list if not required and the file does not exist.
         """
         file_path = self.__build_recording_file_path(
             category,
@@ -152,6 +158,12 @@ class ManualTestBase:
     ) -> str:
         """
             Read recorded text data from a file.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being read.
+            :param record_type: Record type being read.
+            :required: If true, this method will fail if the file does not exist.
+            :return: The file contents, or an empty string if not required and the file does not exist.
         """
         file_path = self.__build_recording_file_path(
             category,
@@ -173,6 +185,11 @@ class ManualTestBase:
     def record_json_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
         """
             Save service data to a file as JSON for later validation.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being recorded.
+            :param record_type: Record type being recorded.
+            :data: The data to record.
         """
         file_path = self.__build_recording_file_path(
             category,
@@ -186,6 +203,11 @@ class ManualTestBase:
     def record_text(self, category: str, collection: str, record_type: str, data: str) -> None:
         """
             Save service data to a file as raw text for later validation.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being recorded.
+            :param record_type: Record type being recorded.
+            :data: The data to record.
         """
         file_path = self.__build_recording_file_path(
             category,
