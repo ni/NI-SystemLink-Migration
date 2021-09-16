@@ -1,13 +1,12 @@
 import base64
-import json
 
+from manual_test.utilities.file_utilities import FileUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
 from pathlib import Path
 from typing import Any, Dict, List
 
 
-UPLOAD_ROUTE = '/nifile/v1/service-groups/Default/upload-files'
 GET_ROUTE = '/nifile/v1/service-groups/Default/files'
 
 ASSETS_PATH = Path(__file__).parent / 'assets'
@@ -19,6 +18,8 @@ COLLECTION_NAME = 'FileIngestion'
 
 
 class TestFile(ManualTestBase):
+
+    __file_utilities = FileUtilities()
 
     def populate_data(self):
         WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
@@ -39,26 +40,26 @@ class TestFile(ManualTestBase):
     def __upload_files(self, workspaces):
         file_specs = self.__get_files_to_create(workspaces)
         for file_spec in file_specs:
-            upload: Dict[str, Any] = {
-                    'metadata': json.dumps(file_spec['properties'])
-                   }
             workspace = file_spec['workspace']
+            properties = file_spec['properties']
+            inline_text_contents = file_spec.get('inlineTextContents', None)
+            filename = file_spec['filename']
 
-            if file_spec.get('inlineTextContents', None):
-                upload['file'] = (file_spec['filename'], file_spec['inlineTextContents'])
-                self.__upload_file(upload, workspace)
+            if inline_text_contents:
+                self.__file_utilities.upload_inline_text_file(
+                    self,
+                    workspace,
+                    inline_text_contents,
+                    filename,
+                    properties)
             else:
-                with open(file_spec['contentsFile'], 'rb') as contents:
-                    upload['file'] = (file_spec['filename'], contents)
-                    self.__upload_file(upload, workspace)
-
-    def __upload_file(self, upload, workspace):
-        response = self.post(
-            UPLOAD_ROUTE,
-            params={'workspace': workspace},
-            files=upload,
-            retries=self.build_default_400_retry())
-        response.raise_for_status()
+                path = file_spec['contentsFile']
+                self.__file_utilities.upload_file(
+                    self,
+                    workspace,
+                    path,
+                    filename,
+                    properties)
 
     def __get_files(self) -> Dict[str, Dict[str, Any]]:
         take = 100
