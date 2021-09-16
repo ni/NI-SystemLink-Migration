@@ -41,7 +41,7 @@ class RepositoryMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory(
+        file_facade.copy_directory_if_exists(
             self.__find_repository_path(),
             file_migration_directory,
             False)
@@ -56,7 +56,7 @@ class RepositoryMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory(
+        file_facade.copy_directory_if_exists(
             file_migration_directory,
             self.__find_repository_path(),
             True)
