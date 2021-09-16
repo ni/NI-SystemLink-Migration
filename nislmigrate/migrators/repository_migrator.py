@@ -7,12 +7,21 @@ from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from typing import Any, Dict
 
+BASE_REPOSITORY_PATH_CONFIG_TOKEN = 'BaseFilePath'
+DEFAULT_BASE_REPOSITORY_PATH = os.path.join(
+    str(os.environ.get('ProgramW6432')),
+    'National Instruments',
+    'Shared',
+    'Web Services',
+    'NI',
+    'repo_webservice',
+    'files')
 
 class RepositoryMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return 'Repository'
+        return 'PackageRepository'
 
     @property
     def argument(self):
@@ -21,15 +30,6 @@ class RepositoryMigrator(MigratorPlugin):
     @property
     def help(self):
         return 'Migrate packages and feeds'
-
-    __data_directory = os.path.join(
-        str(os.environ.get('ProgramW6432')),
-        'National Instruments',
-        'Shared',
-        'Web Services',
-        'NI',
-        'repo_webservice',
-        'files')
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
@@ -42,7 +42,7 @@ class RepositoryMigrator(MigratorPlugin):
             migration_directory,
             self.name)
         file_facade.copy_directory(
-            self.__data_directory,
+            self.__find_repository_path(),
             file_migration_directory,
             False)
 
@@ -58,7 +58,7 @@ class RepositoryMigrator(MigratorPlugin):
             self.name)
         file_facade.copy_directory(
             file_migration_directory,
-            self.__data_directory,
+            self.__find_repository_path(),
             True)
 
     def pre_restore_check(
@@ -70,3 +70,7 @@ class RepositoryMigrator(MigratorPlugin):
         mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,
             self.name)
+
+    def __find_repository_path(self, facade_factory: FacadeFactory) -> str:
+        config = self.config(facade_factory)
+        return config.get(BASE_REPOSITORY_PATH_CONFIG_TOKEN) or DEFAULT_BASE_REPOSITORY_PATH
