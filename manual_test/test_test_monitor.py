@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 RESULTS_ROUTE='/nitestmonitor/v2/results'
 STEPS_ROUTE='/nitestmonitor/v2/steps'
+PRODUCTS_ROUTE='/nitestmonitor/v2/products'
 
 class TestTestMonitor(ManualTestBase):
     statuses = [
@@ -15,6 +16,7 @@ class TestTestMonitor(ManualTestBase):
         {'statusType': 'RUNNING', 'statusName': 'Running'},
         {'statusType': 'DONE', 'statusName': 'Done'},
     ]
+    parts = ['Product1', 'Product2', 'Product3']
 
     __datetime_base: Optional[datetime] = None
 
@@ -35,13 +37,34 @@ class TestTestMonitor(ManualTestBase):
         self.__assert_test_monitor_data_matches(actual_test_monitor_data, expected_test_monitor_data)
 
     def __populate_test_monitor_data(self, workspaces: List[str]):
+        self.__create_products()
+        self.__create_results(workspaces)
+
+    def __create_products(self):
+        #fileId = self.__upload_file()
+        products = [
+            {
+                'name': f'{part} Name',
+                'partNumber': part,
+                'family': f'{part}-family',
+                'keywords': [f'{part}-keyword-1', f'{part}-keyword-2'],
+                'properties': {f'{part}Property': f'{part}Value'},
+                #'fileIds': [fileId]
+            }
+            for part in self.parts
+        ]
+
+        response = self.post(PRODUCTS_ROUTE, json={'products': products})
+        print(response.json())
+        response.raise_for_status()
+
+    def __create_results(self, workspaces: List[str]):
         for workspace in workspaces:
             for i in range(10):
                 result_id = self.__create_result(workspace)
                 self.__create_steps(result_id)
 
     def __create_result(self, workspace: str):
-        parts = ['Product1', 'Product2', 'Product3']
         programs = ['Program1', 'Program2', 'Program3']
         systems = ['Tester1', 'Tester2', 'Tester3']
         hosts = ['Host1', 'Host2', 'Host3']
@@ -59,7 +82,7 @@ class TestTestMonitor(ManualTestBase):
             'keywords': [random.choice(keywords), random.choice(keywords)],
             'serialNumber': str(random.randint(111111, 999999)),
             'operator': random.choice(operators),
-            'partNumber': random.choice(parts),
+            'partNumber': random.choice(self.parts),
             #'fileIds': [fileId],
             'startedAt': self.__random_date(),
             'totalTimeInSeconds': random.randint(1, 120),
