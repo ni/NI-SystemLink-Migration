@@ -23,7 +23,7 @@ class TestSystemStates(ManualTestBase):
             # Push an update so the state has a non-trivial history
             self.__update_test_state(state_id)
 
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             SYSTEM_STATE_DATABASE_NAME,
             POPULATED_SERVER_RECORD_TYPE,
@@ -31,7 +31,7 @@ class TestSystemStates(ManualTestBase):
         )
 
     def record_initial_data(self) -> None:
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             SYSTEM_STATE_DATABASE_NAME,
             CLEAN_SERVER_RECORD_TYPE,
@@ -39,12 +39,12 @@ class TestSystemStates(ManualTestBase):
         )
 
     def validate_data(self) -> None:
-        source_service_snapshot = self.read_recorded_data(
+        source_service_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             SYSTEM_STATE_DATABASE_NAME,
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-        target_service_snaphot = self.read_recorded_data(
+        target_service_snaphot = self.read_recorded_json_data(
             SERVICE_NAME,
             SYSTEM_STATE_DATABASE_NAME,
             CLEAN_SERVER_RECORD_TYPE,

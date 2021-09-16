@@ -116,17 +116,21 @@ class ManualTestBase:
         """
         return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT'])
 
-    def read_recorded_data(
+    def read_recorded_json_data(
             self,
             category: str,
             collection: str,
             record_type: str,
             required: bool = True
     ) -> List[Dict[str, Any]]:
+        """
+            Read recorded JSON data from a file.
+        """
         file_path = self.__build_recording_file_path(
             category,
             collection,
             record_type,
+            '.json',
             create_folder_if_missing=False)
 
         try:
@@ -139,27 +143,72 @@ class ManualTestBase:
 
         return []
 
-    def record_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
+    def read_recorded_text(
+            self,
+            category: str,
+            collection: str,
+            record_type: str,
+            required: bool = True
+    ) -> str:
+        """
+            Read recorded text data from a file.
+        """
         file_path = self.__build_recording_file_path(
             category,
             collection,
             record_type,
+            '.txt',
+            create_folder_if_missing=False)
+
+        try:
+            with open(file_path, 'r') as file:
+                return file.read()
+        except Exception:
+            if required:
+                msg = f'Unable to read recording file for category="{category}"; collection="{collection}"'
+                raise RuntimeError(msg)
+
+        return ''
+
+    def record_json_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
+        """
+            Save service data to a file as JSON for later validation.
+        """
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            '.json',
             create_folder_if_missing=True)
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=2)
+
+    def record_text(self, category: str, collection: str, record_type: str, data: str) -> None:
+        """
+            Save service data to a file as raw text for later validation.
+        """
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            '.txt',
+            create_folder_if_missing=True)
+        with open(file_path, 'w') as file:
+            file.write(data)
 
     def __build_recording_file_path(
             self,
             category: str,
             collection: str,
             record_type: str,
+            extension: str,
             create_folder_if_missing: bool
     ) -> str:
         folder_path = os.path.join(os.getcwd(), '.test', category)
         if create_folder_if_missing:
             os.makedirs(folder_path, exist_ok=True)
 
-        filename = collection + '.' + record_type + '.json'
+        filename = collection + '.' + record_type + extension
         return os.path.join(folder_path, filename)
 
     def datetime_to_string(self, time) -> str:

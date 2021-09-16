@@ -147,14 +147,14 @@ class TestFile(ManualTestBase):
             }
 
     def __record_data(self, record_type: str):
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
             self.__get_files())
 
     def __read_recorded_data(self, record_type: str):
-        return self.read_recorded_data(
+        return self.read_recorded_json_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type)

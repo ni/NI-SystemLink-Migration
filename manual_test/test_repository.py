@@ -1,3 +1,4 @@
+import base64
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.utilities.notification_utilities import NotificationUtilities
 from manual_test.manual_test_base import (
@@ -40,28 +41,47 @@ class TestRepository(ManualTestBase):
         pass
 
     def __record_data(self, record_type: str):
-        self.record_data(
+        feeds = self.__get_feeds()
+        self.record_json_data(
             SERVICE_NAME,
             'feeds',
             record_type,
-            self.__get_feeds())
-        self.record_data(
+            feeds)
+        self.__save_packages_files(record_type, feeds)
+        self.record_json_data(
             SERVICE_NAME,
             'packages',
             record_type,
             self.__get_packages())
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             'jobs',
             record_type,
             self.__get_jobs())
         # We don't control the store, but query a subset of items to verify
         # the service is configured correctly.
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             'store',
             record_type,
             self.__get_store_items(100))
+
+    def __save_packages_files(self, record_type: str, feeds: Dict[str, Any]):
+        for feed in feeds['feeds']:
+            contents = self.__read_packages_file_contents(feed)
+            feed_id = feed['id']
+            self.record_text(
+                SERVICE_NAME,
+                f'Packages_{feed_id}',
+                record_type,
+                contents)
+
+    def __read_packages_file_contents(self, feed: Dict[str, Any]) -> str:
+        uri = feed['directoryUri'] + '/Packages'
+        response = self.get(uri, auth=None) # Disable auth for this route
+        response.raise_for_status()
+
+        return response.content.decode('utf-8')
 
     def __get_feeds(self) -> List[Dict[str, Any]]:
         response = self.get(GET_FEEDS_ROUTE)
@@ -92,7 +112,7 @@ class TestRepository(ManualTestBase):
 
     def __create_feed(self, workspace_id: str) -> str:
         feed = {
-            'feedName': f'Feed for {TEST_NAME}',
+            'feedName': f'{TEST_NAME}-test-feed',
             'name': f'Feed for {TEST_NAME}',
             'description': f'Test feed created for {TEST_NAME}',
             'platform': f'windows',
