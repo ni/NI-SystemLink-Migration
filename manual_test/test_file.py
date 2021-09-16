@@ -1,6 +1,6 @@
 import base64
 
-from manual_test.utilities.file_utilities import FileUtilities
+from manual_test.utilities.file_utilities import FileUtilities, IMAGE_PATH, TDMS_PATH
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
 from pathlib import Path
@@ -8,10 +8,6 @@ from typing import Any, Dict, List
 
 
 GET_ROUTE = '/nifile/v1/service-groups/Default/files'
-
-ASSETS_PATH = Path(__file__).parent / 'assets'
-IMAGE_PATH = ASSETS_PATH / 'Image.png'
-TDMS_PATH = ASSETS_PATH / 'Data.tdms'
 
 SERVICE_NAME = 'Files'
 COLLECTION_NAME = 'FileIngestion'

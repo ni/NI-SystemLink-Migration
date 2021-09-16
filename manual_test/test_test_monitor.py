@@ -1,9 +1,11 @@
 from manual_test.manual_test_base import ManualTestBase, handle_command_line, POPULATED_SERVER_RECORD_TYPE
+from manual_test.utilities.file_utilities import FileUtilities, TDMS_PATH
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from datetime import datetime, timedelta
 import random
 from random import randrange
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 RESULTS_ROUTE='/nitestmonitor/v2/results'
 STEPS_ROUTE='/nitestmonitor/v2/steps'
@@ -19,6 +21,7 @@ class TestTestMonitor(ManualTestBase):
     parts = ['Product1', 'Product2', 'Product3']
 
     __datetime_base: Optional[datetime] = None
+    __file_utilities = FileUtilities()
 
     def populate_data(self):
         WorkspaceUtilities().create_workspace('WorkspaceForManualTestMonitorMigrationTest', self)
@@ -37,11 +40,11 @@ class TestTestMonitor(ManualTestBase):
         self.__assert_test_monitor_data_matches(actual_test_monitor_data, expected_test_monitor_data)
 
     def __populate_test_monitor_data(self, workspaces: List[str]):
-        self.__create_products()
+        self.__create_products(workspaces[0])
         self.__create_results(workspaces)
 
-    def __create_products(self):
-        #fileId = self.__upload_file()
+    def __create_products(self, workspace: str):
+        fileId = self.__upload_file(workspace)
         products = [
             {
                 'name': f'{part} Name',
@@ -49,7 +52,7 @@ class TestTestMonitor(ManualTestBase):
                 'family': f'{part}-family',
                 'keywords': [f'{part}-keyword-1', f'{part}-keyword-2'],
                 'properties': {f'{part}Property': f'{part}Value'},
-                #'fileIds': [fileId]
+                'fileIds': [fileId]
             }
             for part in self.parts
         ]
@@ -73,7 +76,7 @@ class TestTestMonitor(ManualTestBase):
         propertyKeys = ['property1', 'property2', 'property3']
         propertyValues =  ['value1', 'value2', 'value3']
 
-        #fileId = self.__upload_file()
+        fileId = self.__upload_file(workspace)
         result = {
             'programName': random.choice(programs), 'status': random.choice(self.statuses),
             'systemId': random.choice(systems),
@@ -83,7 +86,7 @@ class TestTestMonitor(ManualTestBase):
             'serialNumber': str(random.randint(111111, 999999)),
             'operator': random.choice(operators),
             'partNumber': random.choice(self.parts),
-            #'fileIds': [fileId],
+            'fileIds': [fileId],
             'startedAt': self.__random_date(),
             'totalTimeInSeconds': random.randint(1, 120),
             'workspace': workspace
@@ -133,8 +136,14 @@ class TestTestMonitor(ManualTestBase):
         self.__datetime_base += timedelta(seconds=randrange(120))
         return self.datetime_to_string(self.__datetime_base)
 
-    def __upload_file():
-        raise NotImplemented
+    def __upload_file(self, workspace: str) -> str:
+        response = self.__file_utilities.upload_file(
+                self,
+                workspace,
+                TDMS_PATH)
+        uri = response['uri']
+        id = urlparse(uri).path.split('/').pop()
+        return id
 
     def __get_test_monitor_data(self):
         raise NotImplemented
