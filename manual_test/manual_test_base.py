@@ -193,6 +193,8 @@ class ManualTestBase:
             record_type,
             '.txt',
             create_folder_if_missing=True)
+        # Fixup line endings
+        data = data.replace('\r\n', '\n')
         with open(file_path, 'w') as file:
             file.write(data)
 

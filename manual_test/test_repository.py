@@ -13,6 +13,7 @@ from typing import Any, Dict, List
 
 SERVICE_NAME = 'PackageRepository'
 TEST_NAME = f'{SERVICE_NAME}MigrationTest'
+TEST_FEED_NAME = f'{TEST_NAME}-test-feed'
 TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 GET_FEEDS_ROUTE = 'nirepo/v1/feeds?omitPackageReferences=false'
 CREATE_FEEDS_ROUTE = 'nirepo/v1/feeds'
@@ -25,7 +26,9 @@ GET_STORE_ITEMS_ROUTE_FORMAT = 'nirepo/v1/store/items?pageSize={page_size}&pageN
 
 # Package to add to our test feed
 ASSETS_PATH = Path(__file__).parent / 'assets'
-TEST_PACKAGE_PATH = ASSETS_PATH / 'test-package_1.0.0-0_x64.ipk'
+TEST_PACKAGE_NAME = 'test-package_1.0.0-0_x64.ipk'
+TEST_PACKAGE_PATH = ASSETS_PATH / TEST_PACKAGE_NAME
+TEST_PACKAGE_DOWNLOAD_ROUTE = f'nirepo/v1/files/packages/{TEST_PACKAGE_NAME}'
 
 # 10s wait time
 WAIT_INCREMENT_SECONDS = 0.1
@@ -51,7 +54,14 @@ class TestRepository(ManualTestBase):
         self.__record_data(CLEAN_SERVER_RECORD_TYPE)
 
     def validate_data(self):
-        pass
+        self.__validate_test_package_exists()
+        current_feeds = self.__get_feeds()
+        current_packages = self.__get_packages()
+        workspaces = WorkspaceUtilities().get_workspaces(self)
+        self.__validate_feeds(current_feeds, current_packages, workspaces)
+        # self.__validate_packages(current_feeds, current_packages)
+        # self.__validate_jobs()
+        # self.__validate_store_items()
 
     def __record_data(self, record_type: str):
         feeds = self.__get_feeds()
@@ -80,36 +90,56 @@ class TestRepository(ManualTestBase):
             self.__get_store_items(100))
 
     def __save_packages_files(self, record_type: str, feeds: Dict[str, Any]):
-        for feed in feeds['feeds']:
-            contents = self.__read_packages_file_contents(feed)
+        for feed in feeds:
+            contents = self.__download_packages_file_contents(feed)
             feed_id = feed['id']
             self.record_text(
                 SERVICE_NAME,
-                f'Packages_{feed_id}',
+                self.__build_packages_file_record_name(feed_id),
                 record_type,
                 contents)
 
-    def __read_packages_file_contents(self, feed: Dict[str, Any]) -> str:
+    def __read_packages_file_record(
+        self,
+        record_type: str,
+        feed: Dict[str, Any],
+        required: bool = True
+    ) -> str:
+        feed_id = feed['id']
+        return self.read_recorded_text(
+            SERVICE_NAME,
+            self.__build_packages_file_record_name(feed_id),
+            record_type,
+            required
+        )
+
+    def __build_packages_file_record_name(self, feed_id: str) -> str:
+        return f'Packages_{feed_id}'
+
+    def __download_packages_file_contents(self, feed: Dict[str, Any]) -> str:
         uri = feed['directoryUri'] + '/Packages'
+        content = self.__download_file_from_feed(uri)
+        return content.decode('utf-8')
+
+    def __download_file_from_feed(self, uri) -> bytes:
         response = self.get(uri, auth=None) # Disable auth for this route
         response.raise_for_status()
-
-        return response.content.decode('utf-8')
+        return response.content
 
     def __get_feeds(self) -> List[Dict[str, Any]]:
         response = self.get(GET_FEEDS_ROUTE)
         response.raise_for_status()
-        return response.json()
+        return response.json()['feeds']
 
     def __get_packages(self) -> List[Dict[str, Any]]:
         response = self.get(GET_PACKAGES_ROUTE)
         response.raise_for_status()
-        return response.json()
+        return response.json()['packages']
 
     def __get_jobs(self) -> List[Dict[str, Any]]:
         response = self.get(GET_JOBS_ROUTE)
         response.raise_for_status()
-        return response.json()
+        return response.json()['jobs']
 
     def __get_job(self, job_id: str) -> Dict[str, Any]:
         uri = GET_JOB_ROUTE_FORMAT.format(job_id=job_id)
@@ -121,11 +151,11 @@ class TestRepository(ManualTestBase):
         uri = GET_STORE_ITEMS_ROUTE_FORMAT.format(page_size=page_size, page_number=page_number)
         response = self.get(uri)
         response.raise_for_status()
-        return response.json()
+        return response.json()['items']
 
     def __create_feed(self, workspace_id: str) -> str:
         feed = {
-            'feedName': f'{TEST_NAME}-test-feed',
+            'feedName': TEST_FEED_NAME,
             'name': f'Feed for {TEST_NAME}',
             'description': f'Test feed created for {TEST_NAME}',
             'platform': f'ni-linux-rt',
@@ -181,6 +211,71 @@ class TestRepository(ManualTestBase):
             iteration = iteration + 1
 
         return job['resourceId']
+
+    def __validate_test_package_exists(self):
+        expected_content = self.__read_test_package()
+        actual_content = self.__download_file_from_feed(TEST_PACKAGE_DOWNLOAD_ROUTE)
+        assert expected_content == actual_content
+
+    def __read_test_package(self) -> bytes:
+        with open(TEST_PACKAGE_PATH, 'rb') as file:
+            return file.read()
+
+    def __validate_feeds(
+        self,
+        current_feeds: List[Dict[str, Any]],
+        current_packages: List[Dict[str, Any]],
+        workspaces: List[Dict[str, Any]]
+    ):
+        source_service_snapshot = self.read_recorded_json_data(
+            SERVICE_NAME,
+            'feeds',
+            POPULATED_SERVER_RECORD_TYPE,
+            required=True)
+        target_service_snaphot = self.read_recorded_json_data(
+            SERVICE_NAME,
+            'feeds',
+            CLEAN_SERVER_RECORD_TYPE,
+            required=False)
+
+        migrated_record_count = 0
+        for feed in current_feeds:
+            expected_feed = self.find_record_with_matching_id(feed, source_service_snapshot)
+            if expected_feed is not None:
+                self.__assert_feeds_equal(expected_feed, feed)
+                self.__assert_has_valid_workspace(feed, workspaces)
+                self.__assert_has_valid_package_references(feed, current_packages)
+                self.__assert_matching_packages_files(feed)
+                migrated_record_count = migrated_record_count + 1
+            else:
+                # This test does not expect any auto-generated feeds. It just verifies that if any extra
+                # feeds exist, they were present when the server first started.
+                expected_feed = self.__find_feed_by_name(feed, target_service_snaphot)
+                assert expected_feed is not None
+
+        assert len(source_service_snapshot) == migrated_record_count
+
+    def __assert_feeds_equal(self, expected_feed: Dict[str, Any], actual_feed: Dict[str, Any]):
+        assert expected_feed == actual_feed
+
+    def __assert_has_valid_workspace(self, feed: Dict[str, Any], workspaces: List[str]):
+        matching_workspace = next((workspace for workspace in workspaces if workspace == feed['workspace']), None)
+        assert matching_workspace is not None
+
+    def __assert_has_valid_package_references(self, feed: Dict[str, Any], current_packages: List[str]):
+        for package_id in feed['packageReferences']:
+            matching_package = self.find_record_by_id(package_id, current_packages)
+            assert matching_package is not None
+
+    def __find_feed_by_name(self, feed: Dict[str, Any], collection: List[Dict[str, Any]]):
+        name = feed['feedName']
+        return next((record for record in collection if record['feedName'] == name))
+
+    def __assert_matching_packages_files(self, feed: Dict[str, Any]):
+        expected_contents = self.__read_packages_file_record(POPULATED_SERVER_RECORD_TYPE, feed)
+        actual_contents = self.__download_packages_file_contents(feed)
+        # Ignore line ending differences
+        assert expected_contents.splitlines() == actual_contents.splitlines()
 
 
 if __name__ == '__main__':
