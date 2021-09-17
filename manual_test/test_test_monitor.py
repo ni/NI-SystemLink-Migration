@@ -152,11 +152,19 @@ class TestTestMonitor(ManualTestBase):
         actual_products = self.__get_product_data()
         expected_products = self.read_recorded_data(CATEGORY, 'products', POPULATED_SERVER_RECORD_TYPE)
 
+        if self._relax_validation:
+            actual_products = self.__items_with_test_only_property(actual_products)
+            expected_products = self.__items_with_test_only_property(expected_products)
+
         assert expected_products == actual_products
 
     def __validate_results(self):
         actual_results = self.__get_result_data()
         expected_results = self.read_recorded_data(CATEGORY, 'results', POPULATED_SERVER_RECORD_TYPE)
+
+        if self._relax_validation:
+            actual_results = self.__items_with_test_only_property(actual_results)
+            expected_results = self.__items_with_test_only_property(expected_results)
 
         assert expected_results == actual_results
 
@@ -164,13 +172,27 @@ class TestTestMonitor(ManualTestBase):
         actual_steps = self.__get_step_data()
         expected_steps = self.read_recorded_data(CATEGORY, 'steps', POPULATED_SERVER_RECORD_TYPE)
 
+        if self._relax_validation:
+            actual_steps = self.__steps_for_test_only(actual_steps)
+            expected_steps = self.__steps_for_test_only(expected_steps)
+
         assert expected_steps == actual_steps
 
     def __validate_paths(self):
+        if self._relax_validation:
+            print('Skipping paths for relaxed validation')
+            return
+
         actual_paths = self.__get_path_data()
         expected_paths = self.read_recorded_data(CATEGORY, 'paths', POPULATED_SERVER_RECORD_TYPE)
 
         assert expected_paths == actual_paths
+
+    def __items_with_test_only_property(self, items):
+        return [item for item in items if item.get('properties', {}).get('forTest', False)]
+
+    def __steps_for_test_only(self, steps):
+        return [step for step in steps if step.get('stepType', '') == 'forTest']
 
     def __record_data(self, record_type: str):
         self.__record_product_data(record_type)
