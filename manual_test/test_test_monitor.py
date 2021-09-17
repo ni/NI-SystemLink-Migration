@@ -2,8 +2,6 @@ from manual_test.manual_test_base import ManualTestBase, handle_command_line, PO
 from manual_test.utilities.file_utilities import FileUtilities, TDMS_PATH
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from datetime import datetime, timedelta
-import random
-from random import randrange
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
@@ -23,6 +21,7 @@ class TestTestMonitor(ManualTestBase):
         {'statusType': 'DONE', 'statusName': 'Done'},
     ]
     parts = ['Product1', 'Product2', 'Product3']
+    times = [1.3, 2.4, 8.9, 5.2]
 
     __datetime_base: Optional[datetime] = None
     __file_utilities = FileUtilities()
@@ -66,10 +65,10 @@ class TestTestMonitor(ManualTestBase):
     def __create_results_with_steps(self, workspaces: List[str]):
         for workspace in workspaces:
             for i in range(10):
-                result_id = self.__create_result(workspace)
+                result_id = self.__create_result(workspace, i)
                 self.__create_steps(result_id)
 
-    def __create_result(self, workspace: str):
+    def __create_result(self, workspace: str, index: int):
         programs = ['Program1', 'Program2', 'Program3']
         systems = ['Tester1', 'Tester2', 'Tester3']
         hosts = ['Host1', 'Host2', 'Host3']
@@ -80,20 +79,21 @@ class TestTestMonitor(ManualTestBase):
 
         fileId = self.__upload_file(workspace)
         result = {
-            'programName': random.choice(programs), 'status': random.choice(self.statuses),
-            'systemId': random.choice(systems),
-            'hostName': random.choice(hosts),
+            'programName': self.__select_item(programs, index),
+            'status': self.__select_item(self.statuses, index),
+            'systemId': self.__select_item(systems, index),
+            'hostName': self.__select_item(hosts, index),
             'properties': {
-                random.choice(propertyKeys): random.choice(propertyValues),
+                self.__select_item(propertyKeys, index): self.__select_item(propertyValues, index),
                 'forTest': 'True'
             },
-            'keywords': [random.choice(keywords), random.choice(keywords)],
-            'serialNumber': str(random.randint(111111, 999999)),
-            'operator': random.choice(operators),
-            'partNumber': random.choice(self.parts),
+            'keywords': [self.__select_item(keywords, index), self.__select_item(keywords, index+1)],
+            'serialNumber': str(111111 * index),
+            'operator': self.__select_item(operators, index),
+            'partNumber': self.__select_item(self.parts, index),
             'fileIds': [fileId],
-            'startedAt': self.__random_date(),
-            'totalTimeInSeconds': random.randint(1, 120),
+            'startedAt': self.__select_date(),
+            'totalTimeInSeconds': self.__select_item(self.times, index),
             'workspace': workspace
         }
 
@@ -119,9 +119,9 @@ class TestTestMonitor(ManualTestBase):
             'name': f'{name}{index}',
             'resultId': result_id,
             'stepType': 'forTest',
-            'status': random.choice(self.statuses),
-            'startedAt': self.__random_date(),
-            'totalTimeInSeconds': random.randint(1, 120),
+            'status': self.__select_item(self.statuses, index),
+            'startedAt': self.__select_date(),
+            'totalTimeInSeconds': self.__select_item(self.times, index),
             'dataModel': f'model{index}',
             'data': {
                 'text': f'text{index}',
@@ -133,12 +133,15 @@ class TestTestMonitor(ManualTestBase):
             'children': []
         }
 
-    def __random_date(self):
+    def __select_date(self):
         if not self.__datetime_base:
-            delta = timedelta(seconds=randrange(20 * 24 * 60 * 60))
-            self.__datetime_base = datetime.now() + delta
-        self.__datetime_base += timedelta(seconds=randrange(120))
+            delta = timedelta(days=1)
+            self.__datetime_base = datetime.now() - delta
+        self.__datetime_base += timedelta(seconds=120)
         return self.datetime_to_string(self.__datetime_base)
+
+    def __select_item(self, items: list, index: int):
+        return items[index % len(items)]
 
     def __upload_file(self, workspace: str) -> str:
         response = self.__file_utilities.upload_file(
