@@ -9,8 +9,10 @@ import winreg
 
 
 @pytest.mark.unit
+@patch('winreg.OpenKey')
 @patch('winreg.QueryValueEx')
-def test_get_ni_application_data_directory_path_returns_configured_path(query_value_ex):
+def test_get_ni_application_data_directory_path_returns_configured_path(query_value_ex, open_key):
+    open_key.return_value = FakeRegKey()
     path = 'd:\\My Custom Path\\NI'
     query_value_ex.return_value = (path, winreg.REG_SZ)
 
@@ -18,9 +20,9 @@ def test_get_ni_application_data_directory_path_returns_configured_path(query_va
 
 
 @pytest.mark.unit
-@patch('winreg.QueryValueEx')
-def test_get_ni_application_data_directory_path_returns_default_if_not_configured(query_value_ex):
-    query_value_ex.side_effect = RuntimeError
+@patch('winreg.OpenKey')
+def test_get_ni_application_data_directory_path_returns_default_if_not_configured(open_key):
+    open_key.side_effect = RuntimeError
 
     expected_path = os.path.join(
         str(os.environ.get('ProgramData')),
@@ -30,8 +32,10 @@ def test_get_ni_application_data_directory_path_returns_default_if_not_configure
 
 
 @pytest.mark.unit
+@patch('winreg.OpenKey')
 @patch('winreg.QueryValueEx')
-def test_get_ni_shared_directory_64_path_returns_configured_path(query_value_ex):
+def test_get_ni_shared_directory_64_path_returns_configured_path(query_value_ex, open_key):
+    open_key.return_value = FakeRegKey()
     path = 'q:\\Some Path\\NI\\Shared'
     query_value_ex.return_value = (path, winreg.REG_SZ)
 
@@ -39,9 +43,9 @@ def test_get_ni_shared_directory_64_path_returns_configured_path(query_value_ex)
 
 
 @pytest.mark.unit
-@patch('winreg.QueryValueEx')
-def test_get_ni_shared_directory_64_path_throws_runtime_error_if_not_configured(query_value_ex):
-    query_value_ex.side_effect = RuntimeError
+@patch('winreg.OpenKey')
+def test_get_ni_shared_directory_64_path_throws_runtime_error_if_not_configured(open_key):
+    open_key.side_effect = RuntimeError
 
     expected_path = os.path.join(
         str(os.environ.get('ProgramW6432')),
@@ -49,3 +53,11 @@ def test_get_ni_shared_directory_64_path_throws_runtime_error_if_not_configured(
         'Shared'
     )
     return expected_path == get_ni_shared_directory_64_path()
+
+
+class FakeRegKey(object):
+    def __enter__(self):
+        pass
+
+    def __exit__(self, _type, _value, _traceback):
+        pass

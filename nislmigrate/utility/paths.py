@@ -16,7 +16,7 @@ def get_ni_application_data_directory_path() -> str:
 
     try:
         return __get_ni_installer_path('NIPUBAPPDATADIR')
-    except Exception:
+    except Exception as e:
         # If not found, we will probably fail, but go ahead and use the OS default.
         # This is mostly for convenience of the unit tests.
         return os.path.join(
