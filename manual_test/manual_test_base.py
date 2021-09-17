@@ -137,7 +137,7 @@ class ManualTestBase:
         token will not have refreshed and operations that reference the workspace will
         fail.
         """
-        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT'])
+        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT', 'POST'])
 
     def read_recorded_data(
             self,
