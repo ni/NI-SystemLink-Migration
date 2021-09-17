@@ -217,36 +217,16 @@ class TestTestMonitor(ManualTestBase):
         self.record_data(CATEGORY, 'paths', record_type, paths)
 
     def __get_product_data(self):
-        return self.__get_all_with_continuation_token(PRODUCTS_ROUTE, 'products')
+        return self.get_all_with_continuation_token(PRODUCTS_ROUTE, 'products')
 
     def __get_result_data(self):
-        return self.__get_all_with_continuation_token(RESULTS_ROUTE, 'results')
+        return self.get_all_with_continuation_token(RESULTS_ROUTE, 'results')
 
     def __get_step_data(self):
-        return self.__get_all_with_continuation_token(STEPS_ROUTE, 'steps')
+        return self.get_all_with_continuation_token(STEPS_ROUTE, 'steps')
 
     def __get_path_data(self):
-        return self.__get_all_with_continuation_token(PATHS_ROUTE, 'paths')
-
-    def __get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
-        data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
-        while continuation_token:
-            additional_data, continuation_token = self.__get_data_and_continuation_token(route, data_key, continuation_token)
-            data.extend(additional_data)
-
-        return data
-
-    def __get_data_and_continuation_token(
-        self,
-        route: str,
-        data_key: str,
-        continuation_token: Optional[str]
-    ) -> Tuple[List[Dict[str, Any]], str]:
-        params = {} if not continuation_token else {'continuationToken': continuation_token}
-        response = self.get(route, params=params)
-        response.raise_for_status()
-        data = response.json()
-        return data[data_key], data.get('continuationToken', None)
+        return self.get_all_with_continuation_token(PATHS_ROUTE, 'paths')
 
 
 if __name__ == '__main__':

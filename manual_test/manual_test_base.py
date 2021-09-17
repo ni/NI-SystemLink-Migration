@@ -4,7 +4,7 @@ import os
 from requests.auth import HTTPBasicAuth
 from requests.adapters import HTTPAdapter
 import requests
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 from urllib3.util import Retry
@@ -51,7 +51,7 @@ class ManualTestBase:
 
     def validate_data(self) -> None:
         """
-        Derived class should override to validate the SystemLink server containst the test
+        Derived class should override to validate the SystemLink server contains the test
         data added by populate_data. validate_data and populate_data can be called from
         separate processes, so cannot depend on state to validate data.
         """
@@ -106,6 +106,26 @@ class ManualTestBase:
         """
 
         return self.request('PUT', route, retries, **kwargs)
+
+    def get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
+        data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
+        while continuation_token:
+            additional_data, continuation_token = self.__get_data_and_continuation_token(route, data_key, continuation_token)
+            data.extend(additional_data)
+
+        return data
+
+    def __get_data_and_continuation_token(
+        self,
+        route: str,
+        data_key: str,
+        continuation_token: Optional[str]
+    ) -> Tuple[List[Dict[str, Any]], str]:
+        params = {} if not continuation_token else {'continuationToken': continuation_token}
+        response = self.get(route, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data[data_key], data.get('continuationToken', None)
 
     def build_default_400_retry(self, rout='POST') -> Retry:
         """
