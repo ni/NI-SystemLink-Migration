@@ -128,7 +128,7 @@ class ManualTestBase:
         data = response.json()
         return data[data_key], data.get('continuationToken', None)
 
-    def build_default_400_retry(self, rout='POST') -> Retry:
+    def build_default_400_retry(self, method='POST') -> Retry:
         """
         Builds a standard Retry object for retrying 400 errors on a route.
 
@@ -137,7 +137,7 @@ class ManualTestBase:
         token will not have refreshed and operations that reference the workspace will
         fail.
         """
-        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT', 'POST'])
+        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=method)
 
     def read_recorded_data(
             self,
