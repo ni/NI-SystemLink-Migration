@@ -41,7 +41,8 @@ class TestTestMonitor(ManualTestBase):
 
     def __populate_test_monitor_data(self, workspaces: List[str]):
         self.__create_products(workspaces[0])
-        self.__create_results(workspaces)
+        self.__create_results_with_steps(workspaces)
+        # paths are automatically populated, there is not a write api
 
     def __create_products(self, workspace: str):
         fileId = self.__upload_file(workspace)
@@ -61,7 +62,7 @@ class TestTestMonitor(ManualTestBase):
         print(response.json())
         response.raise_for_status()
 
-    def __create_results(self, workspaces: List[str]):
+    def __create_results_with_steps(self, workspaces: List[str]):
         for workspace in workspaces:
             for i in range(10):
                 result_id = self.__create_result(workspace)
