@@ -41,8 +41,15 @@ Ideal setup would include:
 # Considerations for specific services
 
 ## File
+### Relationship to other service tests
+By default, the file test validates that only the files that were present at the time `populate` was run. If `populate` for other tests also add files, that will cause file `validate` to fail. Ideally file `populate` should be run as late as possible, after other test that create files. If that is not possible, you can alternatively pass a parameter to file `validate` which will cause it to ignore extra files:
+
+`poetry run py .\manual_test\test_file.py -s https://<destination-systemlink-server> -u <username> -p <password> --relax-validation validate`
+
+### Test cases
 Test file with 3 storage locations (configurable in NI SystemLink Server Configuration, on the FileIngestion page):
 1. File System, Default file location
 2. File System, Non-default file location
 3. Amazon Simple Storage Service (S3)
-   Note that the storage location configuration on the server being restored must be identical to the storage location configuration on the server when data was captured.
+
+ Note that the storage location configuration on the server being restored must be identical to the storage location configuration on the server when data was captured.
