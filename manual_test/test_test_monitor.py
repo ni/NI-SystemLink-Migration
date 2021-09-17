@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 RESULTS_ROUTE='/nitestmonitor/v2/results'
 STEPS_ROUTE='/nitestmonitor/v2/steps'
 PRODUCTS_ROUTE='/nitestmonitor/v2/products'
+PATHS_ROUTE='/nitestmonitor/v2/paths'
 
 CATEGORY='test_monitor'
 
@@ -178,7 +179,8 @@ class TestTestMonitor(ManualTestBase):
         self.record_data(CATEGORY, 'steps', record_type, steps)
 
     def __record_path_data(self, record_type: str):
-        raise NotImplementedError
+        paths = self.__get_path_data()
+        self.record_data(CATEGORY, 'paths', record_type, paths)
 
     def __get_product_data(self):
         return self.__get_all_with_continuation_token(PRODUCTS_ROUTE, 'products')
@@ -188,6 +190,9 @@ class TestTestMonitor(ManualTestBase):
 
     def __get_step_data(self):
         return self.__get_all_with_continuation_token(STEPS_ROUTE, 'steps')
+
+    def __get_path_data(self):
+        return self.__get_all_with_continuation_token(PATHS_ROUTE, 'paths')
 
     def __get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
         data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
