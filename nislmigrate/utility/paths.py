@@ -23,5 +23,4 @@ def get_ni_application_data_directory_path() -> str:
             (directory, _) = winreg.QueryValueEx(key, 'NIPUBAPPDATADIR')
             return directory
     except Exception:
-        print('WARNING: NIPUBAPPDATADIR not configured. NI software may not be correctly installed.')
-        return 'c:\\ProgramData\\National Instruments'
+        raise RuntimeError('NIPUBAPPDATADIR not configured. NI software may not be correctly installed.')
