@@ -17,6 +17,7 @@ DEFAULT_BASE_REPOSITORY_PATH = os.path.join(
     'repo_webservice',
     'files')
 
+
 class RepositoryMigrator(MigratorPlugin):
 
     @property
@@ -42,7 +43,7 @@ class RepositoryMigrator(MigratorPlugin):
             migration_directory,
             self.name)
         file_facade.copy_directory_if_exists(
-            self.__find_repository_path(),
+            self.__find_repository_path(facade_factory),
             file_migration_directory,
             False)
 
@@ -58,7 +59,7 @@ class RepositoryMigrator(MigratorPlugin):
             self.name)
         file_facade.copy_directory_if_exists(
             file_migration_directory,
-            self.__find_repository_path(),
+            self.__find_repository_path(facade_factory),
             True)
 
     def pre_restore_check(

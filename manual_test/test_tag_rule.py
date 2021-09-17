@@ -23,7 +23,12 @@ class TestTagRule(ManualTestBase):
         for workspace_id in workspace_utilities.get_workspaces(self):
             self.__create_test_rules(workspace_id, notification_strategy_id)
 
-        self.record_json_data(SERVICE_NAME, TAG_RULE_DATABASE_NAME, POPULATED_SERVER_RECORD_TYPE, self.__get_all_rules())
+        self.record_json_data(
+            SERVICE_NAME,
+            TAG_RULE_DATABASE_NAME,
+            POPULATED_SERVER_RECORD_TYPE,
+            self.__get_all_rules()
+        )
 
     def record_initial_data(self) -> None:
         self.record_json_data(SERVICE_NAME, TAG_RULE_DATABASE_NAME, CLEAN_SERVER_RECORD_TYPE, self.__get_all_rules())

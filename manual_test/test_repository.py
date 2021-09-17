@@ -1,7 +1,5 @@
-import json
 from pathlib import Path
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
-from manual_test.utilities.notification_utilities import NotificationUtilities
 from manual_test.manual_test_base import (
     ManualTestBase,
     handle_command_line,
@@ -88,7 +86,7 @@ class TestRepository(ManualTestBase):
             record_type,
             self.__get_store_items(100))
 
-    def __save_packages_files(self, record_type: str, feeds: Dict[str, Any]):
+    def __save_packages_files(self, record_type: str, feeds: List[Dict[str, Any]]):
         for feed in feeds:
             contents = self.__download_packages_file_contents(feed)
             feed_id = feed['id']
@@ -121,7 +119,7 @@ class TestRepository(ManualTestBase):
         return content.decode('utf-8')
 
     def __download_file_from_feed(self, uri) -> bytes:
-        response = self.get(uri, auth=None) # Disable auth for this route
+        response = self.get(uri, auth=None)  # Disable auth for this route
         response.raise_for_status()
         return response.content
 
@@ -157,7 +155,7 @@ class TestRepository(ManualTestBase):
             'feedName': TEST_FEED_NAME,
             'name': f'Feed for {TEST_NAME}',
             'description': f'Test feed created for {TEST_NAME}',
-            'platform': f'ni-linux-rt',
+            'platform': 'ni-linux-rt',
             'workspace': workspace_id
         }
         response = self.post(
@@ -172,7 +170,7 @@ class TestRepository(ManualTestBase):
         return feed_id
 
     def __upload_package(self, package_path: str) -> str:
-        file_spec = {'filename': open(package_path,'rb')}
+        file_spec = {'filename': open(package_path, 'rb')}
         response = self.post(UPLOAD_PACKAGES_ROUTE, files=file_spec)
         response.raise_for_status()
 
@@ -192,7 +190,7 @@ class TestRepository(ManualTestBase):
         self.__wait_until_job_completed(job_id)
 
     def __wait_until_job_completed(self, job_id: str) -> str:
-        job = None
+        job = {}
         complete = False
         iteration = 0
         while not complete:
@@ -215,7 +213,7 @@ class TestRepository(ManualTestBase):
         self,
         current_feeds: List[Dict[str, Any]],
         current_packages: List[Dict[str, Any]],
-        workspaces: List[Dict[str, Any]]
+        workspaces: List[str]
     ):
         source_service_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
@@ -320,7 +318,7 @@ class TestRepository(ManualTestBase):
         matching_workspace = next((workspace for workspace in workspaces if workspace == feed['workspace']), None)
         assert matching_workspace is not None
 
-    def __assert_has_valid_package_references(self, feed: Dict[str, Any], current_packages: List[str]):
+    def __assert_has_valid_package_references(self, feed: Dict[str, Any], current_packages: List[Dict[str, Any]]):
         for package_id in feed['packageReferences']:
             matching_package = self.find_record_by_id(package_id, current_packages)
             assert matching_package is not None
@@ -334,7 +332,11 @@ class TestRepository(ManualTestBase):
     def __assert_packages_equal(self, expected_package: Dict[str, Any], actual_package: Dict[str, Any]):
         assert expected_package == actual_package
 
-    def __assert_has_valid_feed_references(self, package: Dict[str, Any], current_feeds: List[str]):
+    def __assert_has_valid_feed_references(
+        self,
+        package: Dict[str, Any],
+        current_feeds: List[Dict[str, Any]]
+    ):
         for feed_id in package['feedReferences']:
             matching_feed = self.find_record_by_id(feed_id, current_feeds)
             assert matching_feed is not None
@@ -364,9 +366,9 @@ class TestRepository(ManualTestBase):
     def __has_matching_name_and_version(self, package: Dict[str, Any], other_package: Dict[str, Any]) -> bool:
         metadata = package['metadata']
         other_metadata = package['metadata']
-        return metadata['packageName'] == other_metadata['packageName'] and metadata['version'] == other_metadata['version']
+        return (metadata['packageName'] == other_metadata['packageName']
+                and metadata['version'] == other_metadata['version'])
 
 
 if __name__ == '__main__':
     handle_command_line(TestRepository)
-
