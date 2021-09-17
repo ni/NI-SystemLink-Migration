@@ -26,9 +26,9 @@ GET_STORE_ITEMS_ROUTE_FORMAT = 'nirepo/v1/store/items?pageSize={page_size}&pageN
 
 # Package to add to our test feed
 ASSETS_PATH = Path(__file__).parent / 'assets'
-TEST_PACKAGE_NAME = 'test-package_1.0.0-0_x64.ipk'
-TEST_PACKAGE_PATH = ASSETS_PATH / TEST_PACKAGE_NAME
-TEST_PACKAGE_DOWNLOAD_ROUTE = f'nirepo/v1/files/packages/{TEST_PACKAGE_NAME}'
+TEST_PACKAGE_NAME = 'test-package'
+TEST_PACKAGE_FILE_NAME = f'{TEST_PACKAGE_NAME}_1.0.0-0_x64.ipk'
+TEST_PACKAGE_PATH = ASSETS_PATH / TEST_PACKAGE_FILE_NAME
 
 # 10s wait time
 WAIT_INCREMENT_SECONDS = 0.1
@@ -54,12 +54,11 @@ class TestRepository(ManualTestBase):
         self.__record_data(CLEAN_SERVER_RECORD_TYPE)
 
     def validate_data(self):
-        self.__validate_test_package_exists()
         current_feeds = self.__get_feeds()
         current_packages = self.__get_packages()
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__validate_feeds(current_feeds, current_packages, workspaces)
-        # self.__validate_packages(current_feeds, current_packages)
+        self.__validate_packages(current_feeds, current_packages)
         # self.__validate_jobs()
         # self.__validate_store_items()
 
@@ -212,15 +211,6 @@ class TestRepository(ManualTestBase):
 
         return job['resourceId']
 
-    def __validate_test_package_exists(self):
-        expected_content = self.__read_test_package()
-        actual_content = self.__download_file_from_feed(TEST_PACKAGE_DOWNLOAD_ROUTE)
-        assert expected_content == actual_content
-
-    def __read_test_package(self) -> bytes:
-        with open(TEST_PACKAGE_PATH, 'rb') as file:
-            return file.read()
-
     def __validate_feeds(
         self,
         current_feeds: List[Dict[str, Any]],
@@ -255,6 +245,42 @@ class TestRepository(ManualTestBase):
 
         assert len(source_service_snapshot) == migrated_record_count
 
+    def __validate_packages(
+        self,
+        current_feeds: List[Dict[str, Any]],
+        current_packages: List[Dict[str, Any]]
+    ):
+        source_service_snapshot = self.read_recorded_json_data(
+            SERVICE_NAME,
+            'packages',
+            POPULATED_SERVER_RECORD_TYPE,
+            required=True)
+        target_service_snaphot = self.read_recorded_json_data(
+            SERVICE_NAME,
+            'packages',
+            CLEAN_SERVER_RECORD_TYPE,
+            required=False)
+
+        migrated_record_count = 0
+        found_test_package = False
+        for package in current_packages:
+            expected_package = self.find_record_with_matching_id(package, source_service_snapshot)
+            if expected_package is not None:
+                self.__assert_packages_equal(expected_package, package)
+                self.__assert_has_valid_feed_references(package, current_feeds)
+                if self.__is_test_package(package):
+                    self.__assert_can_download_test_package(package)
+                    found_test_package = True
+                migrated_record_count = migrated_record_count + 1
+            else:
+                # This test does not expect any auto-generated feeds. It just verifies that if any extra
+                # feeds exist, they were present when the server first started.
+                expected_package = self.__find_package_by_name_and_version(package, target_service_snaphot)
+                assert expected_package is not None
+
+        assert len(source_service_snapshot) == migrated_record_count
+        assert found_test_package
+
     def __assert_feeds_equal(self, expected_feed: Dict[str, Any], actual_feed: Dict[str, Any]):
         assert expected_feed == actual_feed
 
@@ -267,15 +293,43 @@ class TestRepository(ManualTestBase):
             matching_package = self.find_record_by_id(package_id, current_packages)
             assert matching_package is not None
 
-    def __find_feed_by_name(self, feed: Dict[str, Any], collection: List[Dict[str, Any]]):
-        name = feed['feedName']
-        return next((record for record in collection if record['feedName'] == name))
-
     def __assert_matching_packages_files(self, feed: Dict[str, Any]):
         expected_contents = self.__read_packages_file_record(POPULATED_SERVER_RECORD_TYPE, feed)
         actual_contents = self.__download_packages_file_contents(feed)
         # Ignore line ending differences
         assert expected_contents.splitlines() == actual_contents.splitlines()
+
+    def __assert_packages_equal(self, expected_package: Dict[str, Any], actual_package: Dict[str, Any]):
+        assert expected_package == actual_package
+
+    def __assert_has_valid_feed_references(self, package: Dict[str, Any], current_feeds: List[str]):
+        for feed_id in package['feedReferences']:
+            matching_feed = self.find_record_by_id(feed_id, current_feeds)
+            assert matching_feed is not None
+
+    def __assert_can_download_test_package(self, package: Dict[str, Any]):
+        expected_content = self.__read_test_package()
+        actual_content = self.__download_file_from_feed(package['fileUri'])
+        assert expected_content == actual_content
+
+    def __read_test_package(self) -> bytes:
+        with open(TEST_PACKAGE_PATH, 'rb') as file:
+            return file.read()
+
+    def __is_test_package(self, package) -> bool:
+        return package['metadata']['packageName'] == TEST_PACKAGE_NAME
+
+    def __find_feed_by_name(self, feed: Dict[str, Any], collection: List[Dict[str, Any]]):
+        name = feed['feedName']
+        return next((record for record in collection if record['feedName'] == name))
+
+    def __find_package_by_name_and_version(self, package: Dict[str, Any], collection: List[Dict[str, Any]]):
+        return next((record for record in collection if self.__has_matching_name_and_version(package, record)))
+
+    def __has_matching_name_and_version(self, package: Dict[str, Any], other_package: Dict[str, Any]) -> bool:
+        metadata = package['metadata']
+        other_metadata = package['metadata']
+        return metadata['packageName'] == other_metadata['packageName'] and metadata['version'] == other_metadata['version']
 
 
 if __name__ == '__main__':
