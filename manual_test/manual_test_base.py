@@ -19,18 +19,20 @@ class ManualTestBase:
 
     disable_warnings(exceptions.InsecureRequestWarning)
 
-    def __init__(self, server: str, username: str, password: str) -> None:
+    def __init__(self, server: str, username: str, password: str, relax_validation: bool) -> None:
         """
         Constructs the manual test base class.
 
         :param server: The url of the SystemLink Server, for example https://systemlink.example.com
         :param username: The username to use to log in to the server.
         :param password: The password to use to log in to the server.
+        :param relax_validation: Relax validation for tests that cannot easily validate extra data.
         :return: None.
         """
 
         self._server = server
         self._auth = HTTPBasicAuth(username, password)
+        self._relax_validation = relax_validation
 
     def populate_data(self) -> None:
         """
@@ -84,6 +86,13 @@ class ManualTestBase:
 
         return self.request('GET', route, retries, **kwargs)
 
+    def patch(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
+        """
+        Sends a patch request. See self.request for parameter details.
+        """
+
+        return self.request('PATCH', route, retries, **kwargs)
+
     def post(self, route: str, retries: Optional[Retry] = None, **kwargs) -> requests.Response:
         """
         Sends a post request. See self.request for parameter details.
@@ -97,6 +106,17 @@ class ManualTestBase:
         """
 
         return self.request('PUT', route, retries, **kwargs)
+
+    def build_default_400_retry(self, rout='POST') -> Retry:
+        """
+        Builds a standard Retry object for retrying 400 errors on a route.
+
+        This is necessary due to a caching issue encountered by tests that create
+        new workspaces. For a short window after the workspace is created, the auth
+        token will not have refreshed and operations that reference the workspace will
+        fail.
+        """
+        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT'])
 
     def read_recorded_data(
             self,
@@ -173,8 +193,8 @@ class ManualTestBase:
         """Finds a record in a collection which has an 'id' field matching the input."""
         return self.find_record_by_property_value(id, collection, 'id')
 
+    @staticmethod
     def find_record_by_property_value(
-            self,
             property_value: Any,
             collection: List[Dict[str, Any]],
             property: str
@@ -195,6 +215,13 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     parser.add_argument('--server', '-s', required=True, help='systemlink server url. eg https://server')
     parser.add_argument('--username', '-u', required=True, help='server username')
     parser.add_argument('--password', '-p', required=True, help='server password.')
+    parser.add_argument(
+        '--relax-validation',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Relax validation. Only supported by some tests, such as file, '
+             + 'which cannot easly validate extra data present on the server.')
     subparsers = parser.add_subparsers(dest='command', required=True)
     subparsers.add_parser('populate', help='populate the server with test data')
     subparsers.add_parser(
@@ -206,8 +233,9 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     server = options.server
     username = options.username
     password = options.password
+    relax_validation = options.relax_validation
 
-    test = test_class(server, username, password)
+    test = test_class(server, username, password, relax_validation)
 
     if 'populate' == options.command:
         test.populate_data()

@@ -160,3 +160,15 @@ class FileSystemFacade:
 
         self.remove_dir(to_directory)
         shutil.copytree(from_directory, to_directory)
+
+    def copy_directory_if_exists(self, from_directory: str, to_directory: str, force: bool) -> bool:
+        """
+        Calls copy_directory only if the source directory exists. See copy_directory for parameter descriptions.
+
+        :return True if a copy happened, otherwise false.
+        """
+        if os.path.exists(from_directory):
+            self.copy_directory(from_directory, to_directory, force)
+            return True
+        else:
+            return False

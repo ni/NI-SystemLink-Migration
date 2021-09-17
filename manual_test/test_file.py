@@ -1,19 +1,25 @@
-import json
+import base64
 
+from manual_test.utilities.file_utilities import FileUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
+from pathlib import Path
 from typing import Any, Dict, List
-from urllib3.util import Retry
 
 
-upload_route = '/nifile/v1/service-groups/Default/upload-files'
-get_route = '/nifile/v1/service-groups/Default/files'
+GET_ROUTE = '/nifile/v1/service-groups/Default/files'
+
+ASSETS_PATH = Path(__file__).parent / 'assets'
+IMAGE_PATH = ASSETS_PATH / 'Image.png'
+TDMS_PATH = ASSETS_PATH / 'Data.tdms'
 
 SERVICE_NAME = 'Files'
 COLLECTION_NAME = 'FileIngestion'
 
 
 class TestFile(ManualTestBase):
+
+    __file_utilities = FileUtilities()
 
     def populate_data(self):
         WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
@@ -32,38 +38,49 @@ class TestFile(ManualTestBase):
         self.__assert_files_match(actual_files, expected_files)
 
     def __upload_files(self, workspaces):
-        file_data = self.__get_files_to_create(workspaces)
-        for data in file_data:
-            file = {
-                    'file': (data['filename'], data['contents']),
-                    'metadata': json.dumps(data['properties'])
-                   }
-            workspace = data['workspace']
-            retries = Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['POST'])
-            response = self.post(upload_route, params={'workspace': workspace}, files=file, retries=retries)
-            response.raise_for_status()
+        file_specs = self.__get_files_to_create(workspaces)
+        for file_spec in file_specs:
+            workspace = file_spec['workspace']
+            properties = file_spec['properties']
+            inline_text_contents = file_spec.get('inlineTextContents', None)
+            filename = file_spec['filename']
 
-    def __get_files(self):
+            if inline_text_contents:
+                self.__file_utilities.upload_inline_text_file(
+                    self,
+                    workspace,
+                    inline_text_contents,
+                    filename,
+                    properties)
+            else:
+                path = file_spec['contentsFile']
+                self.__file_utilities.upload_file(
+                    self,
+                    workspace,
+                    path,
+                    filename,
+                    properties)
+
+    def __get_files(self) -> Dict[str, Dict[str, Any]]:
         take = 100
         skip = 0
         count = take
-        all_files = []
+        all_files = {}
         while count == take:
-            response = self.get(get_route, params={'take': take, 'skip': skip})
+            response = self.get(GET_ROUTE, params={'take': take, 'skip': skip})
             response.raise_for_status()
 
             received_files = response.json()['availableFiles']
             count = len(received_files)
             details = self.__extract_file_details(received_files)
-            all_files.extend(details)
+            all_files.update(details)
 
             skip += take
 
         return all_files
 
-    def __extract_file_details(self, files) -> List[Dict[str, Any]]:
-        return [self.__extract_single_file_details(file)
-                for file in files]
+    def __extract_file_details(self, files) -> Dict[str, Dict[str, Any]]:
+        return {file['id']: file for file in [self.__extract_single_file_details(file) for file in files]}
 
     def __extract_single_file_details(self, file) -> Dict[str, Any]:
         data_url = file['_links']['data']['href']
@@ -75,46 +92,80 @@ class TestFile(ManualTestBase):
         response = self.get(url)
         response.raise_for_status()
 
-        return response.text
+        return base64.b64encode(response.content).decode('utf-8')
+
+    def __assert_files_match(self, actual_files, expected_files):
+        if self._relax_validation:
+            self.__assert_files_relaxed_match(actual_files, expected_files)
+        else:
+            self.__assert_files_strict_match(actual_files, expected_files)
 
     @staticmethod
-    def __sorted_by_id(files):
-        return sorted(files, key=lambda i: i['id'])
+    def __assert_files_strict_match(actual_files, expected_files):
+        assert actual_files == expected_files
 
     @staticmethod
-    def __assert_files_match(actual_files, expected_files):
-        assert len(actual_files) == len(expected_files)
-        assert TestFile.__sorted_by_id(actual_files) == TestFile.__sorted_by_id(expected_files)
+    def __assert_files_relaxed_match(actual_files, expected_files):
+        assert len(actual_files) >= len(expected_files)
+        for id, file in expected_files.items():
+            assert actual_files[id] == file
 
     @staticmethod
     def __get_files_to_create(workspaces) -> List[Dict[str, Any]]:
-        files: List[Dict[str, Any]] = []
+        files_specs: List[Dict[str, Any]] = []
         for i in range(len(workspaces)):
-            for j in range(10):
-                count = i * 10 + j
-                files.append({
-                    'filename': f'File {count}.txt',
-                    'contents': f'Contents {count}',
-                    'properties': {
-                        f'key{count}': f'value{count}'
-                    },
-                    'workspace': workspaces[i]
-                })
+            files_specs.append(TestFile.__create_text_file_spec(i, workspaces[i]))
+            files_specs.append(TestFile.__create_png_file_spec(i, workspaces[i]))
+            files_specs.append(TestFile.__create_tdms_file_spec(i, workspaces[i]))
 
-        return files
+        return files_specs
+
+    @staticmethod
+    def __create_text_file_spec(index: int, workspace: str) -> Dict[str, Any]:
+        return {
+                'filename': f'File {index}.txt',
+                'inlineTextContents': f'Contents {index}',
+                'properties': {
+                    f'key{index}': f'value{index}'
+                },
+                'workspace': workspace
+            }
+
+    @staticmethod
+    def __create_png_file_spec(index: int, workspace: str) -> Dict[str, Any]:
+        return {
+                'filename': IMAGE_PATH.name,
+                'contentsFile': IMAGE_PATH,
+                'properties': {
+                    f'image{index}': f'imageValue{index}'
+                },
+                'workspace': workspace
+            }
+
+    @staticmethod
+    def __create_tdms_file_spec(index: int, workspace: str) -> Dict[str, Any]:
+        return {
+                'filename': TDMS_PATH.name,
+                'contentsFile': TDMS_PATH,
+                'properties': {
+                    f'tdms{index}': f'tdmsValue{index}'
+                },
+                'workspace': workspace
+            }
 
     def __record_data(self, record_type: str):
         self.record_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
-            self.__get_files())
+            [self.__get_files()])
 
     def __read_recorded_data(self, record_type: str):
-        return self.read_recorded_data(
+        files = self.read_recorded_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type)
+        return files[0]
 
 
 if __name__ == '__main__':
