@@ -19,18 +19,20 @@ class ManualTestBase:
 
     disable_warnings(exceptions.InsecureRequestWarning)
 
-    def __init__(self, server: str, username: str, password: str) -> None:
+    def __init__(self, server: str, username: str, password: str, relax_validation: bool) -> None:
         """
         Constructs the manual test base class.
 
         :param server: The url of the SystemLink Server, for example https://systemlink.example.com
         :param username: The username to use to log in to the server.
         :param password: The password to use to log in to the server.
+        :param relax_validation: Relax validation for tests that cannot easily validate extra data.
         :return: None.
         """
 
         self._server = server
         self._auth = HTTPBasicAuth(username, password)
+        self._relax_validation = relax_validation
 
     def populate_data(self) -> None:
         """
@@ -286,6 +288,13 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     parser.add_argument('--server', '-s', required=True, help='systemlink server url. eg https://server')
     parser.add_argument('--username', '-u', required=True, help='server username')
     parser.add_argument('--password', '-p', required=True, help='server password.')
+    parser.add_argument(
+        '--relax-validation',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Relax validation. Only supported by some tests, such as file, '
+             + 'which cannot easly validate extra data present on the server.')
     subparsers = parser.add_subparsers(dest='command', required=True)
     subparsers.add_parser('populate', help='populate the server with test data')
     subparsers.add_parser(
@@ -297,8 +306,9 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     server = options.server
     username = options.username
     password = options.password
+    relax_validation = options.relax_validation
 
-    test = test_class(server, username, password)
+    test = test_class(server, username, password, relax_validation)
 
     if 'populate' == options.command:
         test.populate_data()
