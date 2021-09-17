@@ -59,7 +59,7 @@ class TestRepository(ManualTestBase):
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__validate_feeds(current_feeds, current_packages, workspaces)
         self.__validate_packages(current_feeds, current_packages)
-        # self.__validate_jobs()
+        self.__validate_jobs()
         # self.__validate_store_items()
 
     def __record_data(self, record_type: str):
@@ -281,6 +281,27 @@ class TestRepository(ManualTestBase):
         assert len(source_service_snapshot) == migrated_record_count
         assert found_test_package
 
+    def __validate_jobs(self):
+        source_service_snapshot = self.read_recorded_json_data(
+            SERVICE_NAME,
+            'jobs',
+            POPULATED_SERVER_RECORD_TYPE,
+            required=True)
+        current_jobs = self.__get_jobs()
+
+        migrated_record_count = 0
+        for job in current_jobs:
+            expected_job = self.find_record_with_matching_id(job, source_service_snapshot)
+            if expected_job is not None:
+                self.__assert_jobs_equal(expected_job, job)
+                migrated_record_count = migrated_record_count + 1
+            else:
+                # Not expecting any jobs to be created after restore.
+                job_id = job['id']
+                print(f'WARNING: Found unexpected job {job_id}')
+
+        assert len(source_service_snapshot) == migrated_record_count
+
     def __assert_feeds_equal(self, expected_feed: Dict[str, Any], actual_feed: Dict[str, Any]):
         assert expected_feed == actual_feed
 
@@ -311,6 +332,9 @@ class TestRepository(ManualTestBase):
         expected_content = self.__read_test_package()
         actual_content = self.__download_file_from_feed(package['fileUri'])
         assert expected_content == actual_content
+
+    def __assert_jobs_equal(self, expected_job: Dict[str, Any], actual_job: Dict[str, Any]):
+        assert expected_job == actual_job
 
     def __read_test_package(self) -> bytes:
         with open(TEST_PACKAGE_PATH, 'rb') as file:
