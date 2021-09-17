@@ -149,16 +149,28 @@ class TestTestMonitor(ManualTestBase):
         return id
 
     def __validate_products(self):
-        raise NotImplementedError
+        actual_products = self.__get_product_data()
+        expected_products = self.read_recorded_data(CATEGORY, 'products', POPULATED_SERVER_RECORD_TYPE)
+
+        assert expected_products == actual_products
 
     def __validate_results(self):
-        raise NotImplementedError
+        actual_results = self.__get_result_data()
+        expected_results = self.read_recorded_data(CATEGORY, 'results', POPULATED_SERVER_RECORD_TYPE)
+
+        assert expected_results == actual_results
 
     def __validate_steps(self):
-        raise NotImplementedError
+        actual_steps = self.__get_step_data()
+        expected_steps = self.read_recorded_data(CATEGORY, 'steps', POPULATED_SERVER_RECORD_TYPE)
+
+        assert expected_steps == actual_steps
 
     def __validate_paths(self):
-        raise NotImplementedError
+        actual_paths = self.__get_path_data()
+        expected_paths = self.read_recorded_data(CATEGORY, 'paths', POPULATED_SERVER_RECORD_TYPE)
+
+        assert expected_paths == actual_paths
 
     def __record_data(self, record_type: str):
         self.__record_product_data(record_type)
@@ -213,9 +225,6 @@ class TestTestMonitor(ManualTestBase):
         response.raise_for_status()
         data = response.json()
         return data[data_key], data.get('continuationToken', None)
-
-    def __read_recorded_data(self, record_type: str):
-        raise NotImplementedError
 
 
 if __name__ == '__main__':
