@@ -174,7 +174,8 @@ class TestTestMonitor(ManualTestBase):
         self.record_data(CATEGORY, 'results', record_type, results)
 
     def __record_step_data(self, record_type: str):
-        raise NotImplementedError
+        steps = self.__get_step_data()
+        self.record_data(CATEGORY, 'steps', record_type, steps)
 
     def __record_path_data(self, record_type: str):
         raise NotImplementedError
@@ -184,6 +185,9 @@ class TestTestMonitor(ManualTestBase):
 
     def __get_result_data(self):
         return self.__get_all_with_continuation_token(RESULTS_ROUTE, 'results')
+
+    def __get_step_data(self):
+        return self.__get_all_with_continuation_token(STEPS_ROUTE, 'steps')
 
     def __get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
         data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
