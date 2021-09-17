@@ -64,4 +64,7 @@ whitelist_externals = poetry
 commands =
     poetry install -v
     poetry run pytest {posargs}
+passenv =
+    ProgramW6432
+    ProgramData
 """
