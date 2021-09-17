@@ -60,7 +60,7 @@ class TestRepository(ManualTestBase):
         self.__validate_feeds(current_feeds, current_packages, workspaces)
         self.__validate_packages(current_feeds, current_packages)
         self.__validate_jobs()
-        # self.__validate_store_items()
+        self.__validate_store_items()
 
     def __record_data(self, record_type: str):
         feeds = self.__get_feeds()
@@ -301,6 +301,17 @@ class TestRepository(ManualTestBase):
                 print(f'WARNING: Found unexpected job {job_id}')
 
         assert len(source_service_snapshot) == migrated_record_count
+
+    def __validate_store_items(self):
+        source_service_snapshot = self.read_recorded_json_data(
+            SERVICE_NAME,
+            'store',
+            POPULATED_SERVER_RECORD_TYPE,
+            required=True)
+        current_store_items = self.__get_store_items(len(source_service_snapshot))
+
+        # ASSUMPTION: The store remains stable for the duration of this test.
+        assert source_service_snapshot == current_store_items
 
     def __assert_feeds_equal(self, expected_feed: Dict[str, Any], actual_feed: Dict[str, Any]):
         assert expected_feed == actual_feed
