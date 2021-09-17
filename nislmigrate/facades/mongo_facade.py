@@ -14,7 +14,7 @@ from pymongo.database import Database
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
 from nislmigrate.logs.migration_error import MigrationError
-from nislmigrate.utility.paths import get_ni_application_data_directory_path
+from nislmigrate.utility.paths import get_ni_application_data_directory_path, get_ni_shared_directory_64_path
 
 MONGO_CONFIGURATION_PATH: str = os.path.join(
     get_ni_application_data_directory_path(),
@@ -22,9 +22,7 @@ MONGO_CONFIGURATION_PATH: str = os.path.join(
     'NoSqlDatabase',
     'mongodb.conf')
 MONGO_BINARIES_DIRECTORY: str = os.path.join(
-    str(os.environ.get('ProgramW6432')),
-    'National Instruments',
-    'Shared',
+    get_ni_shared_directory_64_path(),
     'Skyline',
     'NoSqlDatabase',
     'bin')

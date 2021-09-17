@@ -5,6 +5,7 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
+from nislmigrate.utility.paths import get_ni_shared_directory_64_path
 from typing import Any, Dict
 
 
@@ -23,9 +24,7 @@ class RepositoryMigrator(MigratorPlugin):
         return 'Migrate packages and feeds'
 
     __data_directory = os.path.join(
-        str(os.environ.get('ProgramW6432')),
-        'National Instruments',
-        'Shared',
+        get_ni_shared_directory_64_path(),
         'Web Services',
         'NI',
         'repo_webservice',
