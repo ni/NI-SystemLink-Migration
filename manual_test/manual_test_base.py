@@ -110,7 +110,8 @@ class ManualTestBase:
     def get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
         data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
         while continuation_token:
-            additional_data, continuation_token = self.__get_data_and_continuation_token(route, data_key, continuation_token)
+            additional_data, continuation_token = self.__get_data_and_continuation_token(
+                route, data_key, continuation_token)
             data.extend(additional_data)
 
         return data

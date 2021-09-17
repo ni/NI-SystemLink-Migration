@@ -130,7 +130,7 @@ class TestFile(ManualTestBase):
     @staticmethod
     def __create_png_file_spec(index: int, workspace: str) -> Dict[str, Any]:
         return {
-                'filename': IMAGE_PATH.name,
+                'filename': Path(IMAGE_PATH).name,
                 'contentsFile': IMAGE_PATH,
                 'properties': {
                     f'image{index}': f'imageValue{index}'
@@ -141,7 +141,7 @@ class TestFile(ManualTestBase):
     @staticmethod
     def __create_tdms_file_spec(index: int, workspace: str) -> Dict[str, Any]:
         return {
-                'filename': TDMS_PATH.name,
+                'filename': Path(TDMS_PATH).name,
                 'contentsFile': TDMS_PATH,
                 'properties': {
                     f'tdms{index}': f'tdmsValue{index}'

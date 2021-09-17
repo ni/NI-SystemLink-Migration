@@ -4,15 +4,16 @@ from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from datetime import datetime, timedelta
 import random
 from random import randrange
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-RESULTS_ROUTE='/nitestmonitor/v2/results'
-STEPS_ROUTE='/nitestmonitor/v2/steps'
-PRODUCTS_ROUTE='/nitestmonitor/v2/products'
-PATHS_ROUTE='/nitestmonitor/v2/paths'
+RESULTS_ROUTE = '/nitestmonitor/v2/results'
+STEPS_ROUTE = '/nitestmonitor/v2/steps'
+PRODUCTS_ROUTE = '/nitestmonitor/v2/products'
+PATHS_ROUTE = '/nitestmonitor/v2/paths'
 
-CATEGORY='test_monitor'
+CATEGORY = 'test_monitor'
+
 
 class TestTestMonitor(ManualTestBase):
     statuses = [
@@ -75,7 +76,7 @@ class TestTestMonitor(ManualTestBase):
         operators = ['Operator1', 'Operator2', 'Operator3']
         keywords = ['keyword1', 'keyword2', 'keyword2', 'keyword4']
         propertyKeys = ['property1', 'property2', 'property3']
-        propertyValues =  ['value1', 'value2', 'value3']
+        propertyValues = ['value1', 'value2', 'value3']
 
         fileId = self.__upload_file(workspace)
         result = {
@@ -96,7 +97,7 @@ class TestTestMonitor(ManualTestBase):
             'workspace': workspace
         }
 
-        response = self.post(RESULTS_ROUTE, json={'results':[result]})
+        response = self.post(RESULTS_ROUTE, json={'results': [result]})
         response.raise_for_status()
         return response.json()['results'][0]['id']
 
