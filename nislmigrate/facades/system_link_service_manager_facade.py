@@ -3,8 +3,8 @@ import os
 import logging
 from nislmigrate.logs.migration_error import MigrationError
 
-STOP_SERVICE_MANAGER_COMMAND = 'net stop "NI Skyline Service Manager"'
-START_SERVICE_MANAGER_COMMAND = 'net start "NI Skyline Service Manager"'
+STOP_SERVICE_MANAGER_COMMAND = 'net.exe stop "NI Skyline Service Manager" /y'
+START_SERVICE_MANAGER_COMMAND = 'net.exe start "NI Skyline Service Manager" /y'
 
 
 class SystemLinkServiceManagerFacade:
