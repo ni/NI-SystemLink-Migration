@@ -154,7 +154,7 @@ class TestTestMonitor(ManualTestBase):
 
     def __validate_products(self):
         actual_products = self.__get_product_data()
-        expected_products = self.read_recorded_data(CATEGORY, 'products', POPULATED_SERVER_RECORD_TYPE)
+        expected_products = self.read_recorded_json_data(CATEGORY, 'products', POPULATED_SERVER_RECORD_TYPE)
 
         if self._relax_validation:
             actual_products = self.__items_with_test_only_property(actual_products)
@@ -164,7 +164,7 @@ class TestTestMonitor(ManualTestBase):
 
     def __validate_results(self):
         actual_results = self.__get_result_data()
-        expected_results = self.read_recorded_data(CATEGORY, 'results', POPULATED_SERVER_RECORD_TYPE)
+        expected_results = self.read_recorded_json_data(CATEGORY, 'results', POPULATED_SERVER_RECORD_TYPE)
 
         if self._relax_validation:
             actual_results = self.__items_with_test_only_property(actual_results)
@@ -174,7 +174,7 @@ class TestTestMonitor(ManualTestBase):
 
     def __validate_steps(self):
         actual_steps = self.__get_step_data()
-        expected_steps = self.read_recorded_data(CATEGORY, 'steps', POPULATED_SERVER_RECORD_TYPE)
+        expected_steps = self.read_recorded_json_data(CATEGORY, 'steps', POPULATED_SERVER_RECORD_TYPE)
 
         if self._relax_validation:
             actual_steps = self.__steps_for_test_only(actual_steps)
@@ -188,7 +188,7 @@ class TestTestMonitor(ManualTestBase):
             return
 
         actual_paths = self.__get_path_data()
-        expected_paths = self.read_recorded_data(CATEGORY, 'paths', POPULATED_SERVER_RECORD_TYPE)
+        expected_paths = self.read_recorded_json_data(CATEGORY, 'paths', POPULATED_SERVER_RECORD_TYPE)
 
         assert expected_paths == actual_paths
 
@@ -206,19 +206,19 @@ class TestTestMonitor(ManualTestBase):
 
     def __record_product_data(self, record_type: str):
         products = self.__get_product_data()
-        self.record_data(CATEGORY, 'products', record_type, products)
+        self.record_json_data(CATEGORY, 'products', record_type, products)
 
     def __record_result_data(self, record_type: str):
         results = self.__get_result_data()
-        self.record_data(CATEGORY, 'results', record_type, results)
+        self.record_json_data(CATEGORY, 'results', record_type, results)
 
     def __record_step_data(self, record_type: str):
         steps = self.__get_step_data()
-        self.record_data(CATEGORY, 'steps', record_type, steps)
+        self.record_json_data(CATEGORY, 'steps', record_type, steps)
 
     def __record_path_data(self, record_type: str):
         paths = self.__get_path_data()
-        self.record_data(CATEGORY, 'paths', record_type, paths)
+        self.record_json_data(CATEGORY, 'paths', record_type, paths)
 
     def __get_product_data(self):
         return self.get_all_with_continuation_token(PRODUCTS_ROUTE, 'products')
