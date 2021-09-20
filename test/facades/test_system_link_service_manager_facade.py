@@ -1,7 +1,6 @@
 from unittest.mock import patch, Mock
 
 from nislmigrate.facades import system_link_service_manager_facade
-from nislmigrate.logs.migration_error import MigrationError
 import pytest
 
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
