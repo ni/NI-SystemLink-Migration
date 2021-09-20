@@ -1,5 +1,4 @@
 import subprocess
-import os
 import logging
 from nislmigrate.logs.migration_error import MigrationError
 
