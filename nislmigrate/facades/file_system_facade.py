@@ -13,12 +13,13 @@ class FileSystemFacade:
     """
     Handles operations that act on the real file system.
     """
-    def remove_readonly(self, func, path):
+    def remove_readonly(self, func, path, execinfo):
         """
         Removes the readonly attribute from a file path.
 
         :param func: A continuation to run with the path.
         :param path: The path to remove the readonly attribute from.
+        :param execinfo: Will be the exception information returned by sys.exc_info()
         :return: None.
         """
         os.chmod(path, stat.S_IWRITE)
