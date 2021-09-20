@@ -112,12 +112,12 @@ def test_copy_file_does_not_copy_wrong_file(directory):
 
 @pytest.mark.unit
 @tempdir()
-def test_remove_dir_removes_readonly_dir(directory):
+def test_remove_directory_removes_readonly_directory(directory):
     to_remove = make_directory(directory, 'to_remove')
     make_file(to_remove, 'some_file.txt')
     file_system_facade = FileSystemFacade()
 
-    file_system_facade.remove_dir(to_remove)
+    file_system_facade.remove_directory(to_remove)
 
     assert not os.path.exists(to_remove)
 

@@ -55,7 +55,7 @@ class FileSystemFacade:
         """
         return os.path.isfile(file_path)
 
-    def remove_dir(self, directory: str):
+    def remove_directory(self, directory: str):
         """
         Deletes the given directory and its children.
 
@@ -81,7 +81,7 @@ class FileSystemFacade:
         root = migration_directory_root
         migration_dir = self.determine_migration_directory_for_service(root, service_name)
         if action == MigrationAction.CAPTURE:
-            self.remove_dir(migration_dir)
+            self.remove_directory(migration_dir)
             os.mkdir(migration_dir)
             singlefile_full_path = os.path.join(
                 single_file_source_directory,
@@ -92,14 +92,14 @@ class FileSystemFacade:
             singlefile_full_path = os.path.join(migration_dir, single_file_name)
             shutil.copy(singlefile_full_path, single_file_source_directory)
 
-    def capture_singlefile(self,
-                           migration_directory_root: str,
-                           service_name: str,
-                           restore_directory: str,
-                           file: str):
+    def capture_single_file(self,
+                            migration_directory_root: str,
+                            service_name: str,
+                            restore_directory: str,
+                            file: str):
         root = migration_directory_root
         migration_dir = self.determine_migration_directory_for_service(root, service_name)
-        self.remove_dir(migration_dir)
+        self.remove_directory(migration_dir)
         os.mkdir(migration_dir)
         singlefile_full_path = os.path.join(
             restore_directory,
@@ -107,11 +107,11 @@ class FileSystemFacade:
         )
         shutil.copy(singlefile_full_path, migration_dir)
 
-    def restore_singlefile(self,
-                           migration_directory_root: str,
-                           service_name: str,
-                           restore_directory: str,
-                           file: str):
+    def restore_single_file(self,
+                            migration_directory_root: str,
+                            service_name: str,
+                            restore_directory: str,
+                            file: str):
         root = migration_directory_root
         migration_dir = self.determine_migration_directory_for_service(root, service_name)
         singlefile_full_path = os.path.join(migration_dir, file)
@@ -156,7 +156,7 @@ class FileSystemFacade:
         if not os.path.exists(from_directory):
             raise MigrationError("No data found at: '%s'" % from_directory)
 
-        self.remove_dir(to_directory)
+        self.remove_directory(to_directory)
         shutil.copytree(from_directory, to_directory)
 
     def copy_directory_if_exists(self, from_directory: str, to_directory: str, force: bool) -> bool:
