@@ -112,7 +112,7 @@ def test_copy_file_does_not_copy_wrong_file(directory):
 
 @pytest.mark.unit
 @tempdir()
-def test_remove_dir_remvoves_readonly_dir(directory):
+def test_remove_dir_removes_readonly_dir(directory):
     to_remove = make_directory(directory, 'to_remove')
     make_file(to_remove, 'some_file.txt')
     file_system_facade = FileSystemFacade()
@@ -122,10 +122,50 @@ def test_remove_dir_remvoves_readonly_dir(directory):
     assert not os.path.exists(to_remove)
 
 
+@pytest.mark.unit
+@tempdir()
+@pytest.mark.parametrize('should_exist', [(False), (True)])
+def test_does_directory_exist_returns_directory_status(directory, should_exist: bool):
+    to_check = conditionally_make_directory(directory, 'to_check', should_exist)
+    file_system_facade = FileSystemFacade()
+
+    assert should_exist == file_system_facade.does_directory_exist(to_check)
+
+
+@pytest.mark.unit
+@tempdir()
+@pytest.mark.parametrize('should_exist', [(False), (True)])
+def test_does_file_exist_returns_file_status(directory, should_exist: bool):
+    sub_directory = make_directory(directory, 'sub')
+    to_check = conditionally_make_file(sub_directory, 'to_check', should_exist)
+    file_system_facade = FileSystemFacade()
+
+    assert should_exist == file_system_facade.does_file_exist(to_check)
+
+
+@pytest.mark.unit
+@tempdir()
+@pytest.mark.parametrize('should_exist', [(False), (True)])
+def test_does_file_exist_in_directory_returns_file_status(directory, should_exist: bool):
+    sub_directory = make_directory(directory, 'sub')
+    conditionally_make_file(sub_directory, 'to_check', should_exist)
+    file_system_facade = FileSystemFacade()
+
+    exists = file_system_facade.does_file_exist_in_directory(sub_directory, 'to_check')
+    assert should_exist == exists
+
+
 def make_directory(temp_directory: TempDirectory, name: str) -> str:
     path = os.path.join(temp_directory.path, name)
     os.mkdir(path)
     return path
+
+
+def conditionally_make_directory(temp_directory: TempDirectory, name: str, should_exist: bool) -> str:
+    if should_exist:
+        return make_directory(temp_directory, name)
+    else:
+        return os.path.join(temp_directory.path, name)
 
 
 def make_file(path: str, name: str) -> str:
@@ -133,3 +173,10 @@ def make_file(path: str, name: str) -> str:
     file = open(file_path, 'w')
     file.close()
     return file_path
+
+
+def conditionally_make_file(parent: str, name: str, should_exist: bool) -> str:
+    if should_exist:
+        return make_file(parent, name)
+    else:
+        return os.path.join(parent, name)
