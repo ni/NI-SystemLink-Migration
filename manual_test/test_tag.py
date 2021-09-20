@@ -229,7 +229,7 @@ class TestTag(ManualTestBase):
 
     def __record_clean_server_tags(self):
         data = self.__get_all_tags()
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             RECORDED_DATA_IDENTIFIER,
             CLEAN_SERVER_RECORD_TYPE,
@@ -237,21 +237,21 @@ class TestTag(ManualTestBase):
 
     def __record_populated_server_tags(self):
         data = self.__get_all_tags()
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             RECORDED_DATA_IDENTIFIER,
             POPULATED_SERVER_RECORD_TYPE,
             data)
 
     def __read_clean_server_tags(self):
-        return self.read_recorded_data(
+        return self.read_recorded_json_data(
             SERVICE_NAME,
             RECORDED_DATA_IDENTIFIER,
             CLEAN_SERVER_RECORD_TYPE,
             required=True)
 
     def __read_populated_server_tags(self):
-        return self.read_recorded_data(
+        return self.read_recorded_json_data(
             SERVICE_NAME,
             RECORDED_DATA_IDENTIFIER,
             POPULATED_SERVER_RECORD_TYPE,

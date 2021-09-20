@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict
 
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 from nislmigrate.facades.facade_factory import FacadeFactory
@@ -6,11 +7,10 @@ from nislmigrate.facades.file_system_facade import FileSystemFacade
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.logs.migration_error import MigrationError
-from typing import Any, Dict
+from nislmigrate.utility.paths import get_ni_application_data_directory_path
 
 DEFAULT_DATA_DIRECTORY = os.path.join(
-    str(os.environ.get('ProgramData')),
-    'National Instruments',
+    get_ni_application_data_directory_path(),
     'Skyline',
     'Data',
     'FileIngestion')

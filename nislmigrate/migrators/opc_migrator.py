@@ -3,6 +3,7 @@ import os
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
+from nislmigrate.utility.paths import get_ni_application_data_directory_path
 from typing import Any, Dict
 
 
@@ -20,7 +21,7 @@ class OPCMigrator(MigratorPlugin):
     def help(self):
         return 'Migrate OPCUA sessions and certificates'
 
-    __ni_directory = os.path.join(str(os.environ.get('ProgramData')), 'National Instruments')
+    __ni_directory = get_ni_application_data_directory_path()
     __data_directory = os.path.join(__ni_directory, 'Skyline', 'Data', 'OpcClient')
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
