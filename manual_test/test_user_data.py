@@ -57,7 +57,7 @@ class TestUserData(ManualTestBase):
         user_data = [{
             'application': 'fake-application',
             'name': 'name',
-            'value': 'User data for {TEST_NAME}',
+            'value': f'User data for {TEST_NAME}',
             'visibleToOthers': 'false',
             'expectedRevision': 0,
             'category': 'test-category',
