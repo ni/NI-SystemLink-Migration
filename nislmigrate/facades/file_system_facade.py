@@ -13,18 +13,6 @@ class FileSystemFacade:
     """
     Handles operations that act on the real file system.
     """
-    def remove_readonly(self, func, path, execinfo):
-        """
-        Removes the readonly attribute from a file path.
-
-        :param func: A continuation to run with the path.
-        :param path: The path to remove the readonly attribute from.
-        :param execinfo: Will be the exception information returned by sys.exc_info()
-        :return: None.
-        """
-        os.chmod(path, stat.S_IWRITE)
-        func(path)
-
     def determine_migration_directory_for_service(self,
                                                   migration_directory_root: str,
                                                   service_name: str):
@@ -66,7 +54,7 @@ class FileSystemFacade:
         :return: None.
         """
         if os.path.isdir(dir_):
-            shutil.rmtree(dir_, onerror=self.remove_readonly)
+            shutil.rmtree(dir_, onerror=self.__on_error_remove_readonly_and_retry)
 
     def migrate_singlefile(self,
                            migration_directory_root: str,
@@ -173,3 +161,24 @@ class FileSystemFacade:
             return True
         else:
             return False
+
+    def __on_error_remove_readonly_and_retry(self, func, path, execinfo):
+        """
+        Error handler that removes the readonly attribute from a file path
+        and then retries the previous operation.
+
+        :param func: A continuation to run with the path.
+        :param path: The path to remove the readonly attribute from.
+        :param execinfo: Will be the exception information returned by sys.exc_info()
+        :return: None.
+        """
+        self.__remove_readonly(path)
+        func(path)
+
+    def __remove_readonly(self, path):
+        """
+        Removes the read-only attribute from a file or directory.
+
+        :param path: The path to remove the readonly attribute from.
+        """
+        os.chmod(path, stat.S_IWRITE)
