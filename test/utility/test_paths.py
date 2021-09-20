@@ -12,8 +12,8 @@ except ImportError:
     pass  # Ignore on non-Windows
 
 
-if not sys.platform.startswith("win"):
-    pytest.skip("skipping windows-only tests", allow_module_level=True)
+if not sys.platform.startswith('win'):
+    pytest.skip('skipping windows-only tests', allow_module_level=True)
 
 
 @pytest.mark.unit
