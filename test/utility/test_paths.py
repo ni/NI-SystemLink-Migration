@@ -4,8 +4,16 @@ from nislmigrate.utility.paths import (
 )
 import os
 import pytest as pytest
+import sys
 from unittest.mock import patch
-import winreg
+try:
+    import winreg
+except ImportError:
+    pass  # Ignore on non-Windows
+
+
+if not sys.platform.startswith("win"):
+    pytest.skip("skipping windows-only tests", allow_module_level=True)
 
 
 @pytest.mark.unit
