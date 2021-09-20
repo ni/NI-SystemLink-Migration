@@ -11,7 +11,8 @@ PKI_PATH = os.path.join(
     'National Instruments',
     'salt',
     'conf',
-    'pki')
+    'pki',
+    'master')
 
 class SystemsManagementMigrator(MigratorPlugin):
 
@@ -37,10 +38,10 @@ class SystemsManagementMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory_if_exists(
+        file_facade.copy_directory(
             PKI_PATH,
             file_migration_directory,
-            False)
+            True)
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
@@ -52,10 +53,10 @@ class SystemsManagementMigrator(MigratorPlugin):
             mongo_configuration,
             migration_directory,
             self.name)
-        file_facade.copy_directory_if_exists(
+        file_facade.copy_directory(
             PKI_PATH,
             file_migration_directory,
-            False)
+            True)
 
     def pre_restore_check(
             self,
