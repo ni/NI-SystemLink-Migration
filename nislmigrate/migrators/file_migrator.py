@@ -50,7 +50,7 @@ class _FileMigratorConfiguration:
         self.file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
         self.mongo_configuration: MongoConfiguration = MongoConfiguration(config)
         self.file_migration_directory: str = os.path.join(migration_directory, 'files')
-        self.file_migration_directory_exists: bool = self.file_facade.migration_dir_exists(
+        self.file_migration_directory_exists: bool = self.file_facade.does_directory_exist(
                 self.file_migration_directory)
 
         self.data_directory: str = config.get(PATH_CONFIGURATION_KEY) or DEFAULT_DATA_DIRECTORY
