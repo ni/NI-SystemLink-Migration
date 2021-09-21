@@ -26,7 +26,7 @@ class TestTestMonitor(ManualTestBase):
     __file_utilities = FileUtilities()
 
     def populate_data(self):
-        WorkspaceUtilities().create_workspace('WorkspaceForManualTestMonitorMigrationTest', self)
+        WorkspaceUtilities().create_workspace_for_test(self)
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__populate_test_monitor_data(workspaces)
         self.__record_data(POPULATED_SERVER_RECORD_TYPE)

@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 SERVICE_NAME = 'TagRuleEngine'
 TAG_RULE_DATABASE_NAME = 'nitagrule'
 TEST_NAME = 'TagRuleMigrationTest'
-TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 CREATE_TAG_RULE_ROUTE = 'nitagrule/v1/rules'
 QUERY_TAG_RULES_ROUTE = 'nitagrule/v1/query-rules'
 
@@ -19,7 +18,7 @@ class TestTagRule(ManualTestBase):
     def populate_data(self) -> None:
         notification_strategy_id = self.__create_test_notification_strategy()
         workspace_utilities = WorkspaceUtilities()
-        workspace_utilities.create_workspace(TEST_WORKSPACE_NAME, self)
+        workspace_utilities.create_workspace_for_test(self)
         for workspace_id in workspace_utilities.get_workspaces(self):
             self.__create_test_rules(workspace_id, notification_strategy_id)
 
