@@ -5,7 +5,6 @@ from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 SERVICE_NAME = 'SystemStateManager'
 SYSTEM_STATE_DATABASE_NAME = 'nisystemstate'
 TEST_NAME = 'SystemStateMigrationTest'
-TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 GET_SYSTEM_STATES_ROUTE = 'nisystemsstate/v1/states'
 CREATE_SYSTEM_STATE_ROUTE = 'nisystemsstate/v1/states'
 PATCH_SYSTEM_STATE_ROUTE_FORMAT = 'nisystemsstate/v1/states/{id}'
@@ -17,7 +16,7 @@ GET_SYSTEM_STATE_BY_VERSION_ROUTE_FORMAT = 'nisystemsstate/v1/states/{id}/histor
 class TestSystemStates(ManualTestBase):
     def populate_data(self) -> None:
         workspace_utilities = WorkspaceUtilities()
-        workspace_utilities.create_workspace(TEST_WORKSPACE_NAME, self)
+        workspace_utilities.create_workspace_for_test(self)
         for workspace in workspace_utilities.get_workspaces(self):
             state_id = self.__create_test_state(workspace)
             # Push an update so the state has a non-trivial history
