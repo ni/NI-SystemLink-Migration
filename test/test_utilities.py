@@ -7,6 +7,7 @@ from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.process_facade import ProcessError, ProcessFacade, BackgroundProcess
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
+import os
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
@@ -64,6 +65,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_read_json_file_path: Optional[str] = None
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
+        self.missing_files: List[str] = []
         self.config = {}
         self.directory_exists_value = True
 
@@ -75,8 +77,12 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_read_json_file_path = path
         return self.config
 
+    def does_file_exist(self, file_path: str):
+        (_, file_name) = os.path.split(file_path)
+        return file_name not in self.missing_files
+
     def directory_exists(self, dir_):
-        return self.directory_exists
+        return self.directory_exists_value
 
 
 class FakeMigratorPluginLoader(MigratorPluginLoader):

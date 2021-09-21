@@ -77,7 +77,7 @@ class MigratorPlugin(abc.ABC):
         :returns: Gets the configuration dictionary this plugin provides.
         """
         if self.__cached_config is None:
-            config_file = os.path.join(self.service_configuration_directory, self.name + '.json')
+            config_file = self.__build_config_file_path()
             filesystem_facade = facade_factory.get_file_system_facade()
             self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
         return self.__cached_config
@@ -135,6 +135,15 @@ class MigratorPlugin(abc.ABC):
         """
         pass
 
+    def is_service_installed(self, facade_factory: FacadeFactory) -> bool:
+        """
+        Checks whether the service corresponding to a given migrator is installed locally.
+
+        :param facade_factory: Factory for migration facades.
+        :return: True if the service is installed.
+        """
+        return facade_factory.file_system_facade.does_file_exist(self.__build_config_file_path())
+
     def add_additional_arguments(self, argument_manager: ArgumentManager) -> None:
         """
         Adds additional command line arguments to control the behavior of the migration.
@@ -143,3 +152,6 @@ class MigratorPlugin(abc.ABC):
         :param argument_mananger: API for adding arguments to this MigratorPlugin.
         """
         pass
+
+    def __build_config_file_path(self) -> str:
+        return os.path.join(self.service_configuration_directory, self.name + '.json')
