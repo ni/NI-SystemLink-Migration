@@ -1,6 +1,6 @@
 import base64
 
-from manual_test.utilities.file_utilities import FileUtilities
+from manual_test.utilities.file_utilities import FileUtilities, IMAGE_PATH, TDMS_PATH
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
 from pathlib import Path
@@ -8,10 +8,6 @@ from typing import Any, Dict, List
 
 
 GET_ROUTE = '/nifile/v1/service-groups/Default/files'
-
-ASSETS_PATH = Path(__file__).parent / 'assets'
-IMAGE_PATH = ASSETS_PATH / 'Image.png'
-TDMS_PATH = ASSETS_PATH / 'Data.tdms'
 
 SERVICE_NAME = 'Files'
 COLLECTION_NAME = 'FileIngestion'
@@ -22,7 +18,7 @@ class TestFile(ManualTestBase):
     __file_utilities = FileUtilities()
 
     def populate_data(self):
-        WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
+        WorkspaceUtilities().create_workspace_for_test(self)
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__upload_files(workspaces)
         self.__record_data(POPULATED_SERVER_RECORD_TYPE)
@@ -134,7 +130,7 @@ class TestFile(ManualTestBase):
     @staticmethod
     def __create_png_file_spec(index: int, workspace: str) -> Dict[str, Any]:
         return {
-                'filename': IMAGE_PATH.name,
+                'filename': Path(IMAGE_PATH).name,
                 'contentsFile': IMAGE_PATH,
                 'properties': {
                     f'image{index}': f'imageValue{index}'
@@ -145,7 +141,7 @@ class TestFile(ManualTestBase):
     @staticmethod
     def __create_tdms_file_spec(index: int, workspace: str) -> Dict[str, Any]:
         return {
-                'filename': TDMS_PATH.name,
+                'filename': Path(TDMS_PATH).name,
                 'contentsFile': TDMS_PATH,
                 'properties': {
                     f'tdms{index}': f'tdmsValue{index}'
@@ -154,14 +150,14 @@ class TestFile(ManualTestBase):
             }
 
     def __record_data(self, record_type: str):
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
             [self.__get_files()])
 
     def __read_recorded_data(self, record_type: str):
-        files = self.read_recorded_data(
+        files = self.read_recorded_json_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type)

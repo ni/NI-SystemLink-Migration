@@ -4,7 +4,7 @@ import os
 from requests.auth import HTTPBasicAuth
 from requests.adapters import HTTPAdapter
 import requests
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 from urllib.parse import urljoin
 from urllib3 import disable_warnings, exceptions
 from urllib3.util import Retry
@@ -51,7 +51,7 @@ class ManualTestBase:
 
     def validate_data(self) -> None:
         """
-        Derived class should override to validate the SystemLink server containst the test
+        Derived class should override to validate the SystemLink server contains the test
         data added by populate_data. validate_data and populate_data can be called from
         separate processes, so cannot depend on state to validate data.
         """
@@ -107,7 +107,28 @@ class ManualTestBase:
 
         return self.request('PUT', route, retries, **kwargs)
 
-    def build_default_400_retry(self, rout='POST') -> Retry:
+    def get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
+        data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
+        while continuation_token:
+            additional_data, continuation_token = self.__get_data_and_continuation_token(
+                route, data_key, continuation_token)
+            data.extend(additional_data)
+
+        return data
+
+    def __get_data_and_continuation_token(
+        self,
+        route: str,
+        data_key: str,
+        continuation_token: Optional[str]
+    ) -> Tuple[List[Dict[str, Any]], str]:
+        params = {} if not continuation_token else {'continuationToken': continuation_token}
+        response = self.get(route, params=params)
+        response.raise_for_status()
+        data = response.json()
+        return data[data_key], data.get('continuationToken', None)
+
+    def build_default_400_retry(self, method='POST') -> Retry:
         """
         Builds a standard Retry object for retrying 400 errors on a route.
 
@@ -116,19 +137,29 @@ class ManualTestBase:
         token will not have refreshed and operations that reference the workspace will
         fail.
         """
-        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=['PUT'])
+        return Retry(total=5, backoff_factor=2, status_forcelist=[400], allowed_methods=method)
 
-    def read_recorded_data(
+    def read_recorded_json_data(
             self,
             category: str,
             collection: str,
             record_type: str,
             required: bool = True
     ) -> List[Dict[str, Any]]:
+        """
+            Read recorded JSON data from a file.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being read.
+            :param record_type: Record type being read.
+            :required: If true, this method will fail if the file does not exist.
+            :return: The file contents, or an empty list if not required and the file does not exist.
+        """
         file_path = self.__build_recording_file_path(
             category,
             collection,
             record_type,
+            '.json',
             create_folder_if_missing=False)
 
         try:
@@ -141,27 +172,90 @@ class ManualTestBase:
 
         return []
 
-    def record_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
+    def read_recorded_text(
+            self,
+            category: str,
+            collection: str,
+            record_type: str,
+            required: bool = True
+    ) -> str:
+        """
+            Read recorded text data from a file.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being read.
+            :param record_type: Record type being read.
+            :required: If true, this method will fail if the file does not exist.
+            :return: The file contents, or an empty string if not required and the file does not exist.
+        """
         file_path = self.__build_recording_file_path(
             category,
             collection,
             record_type,
+            '.txt',
+            create_folder_if_missing=False)
+
+        try:
+            with open(file_path, 'r') as file:
+                return file.read()
+        except Exception:
+            if required:
+                msg = f'Unable to read recording file for category="{category}"; collection="{collection}"'
+                raise RuntimeError(msg)
+
+        return ''
+
+    def record_json_data(self, category: str, collection: str, record_type: str, data: List[Dict[str, Any]]) -> None:
+        """
+            Save service data to a file as JSON for later validation.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being recorded.
+            :param record_type: Record type being recorded.
+            :data: The data to record.
+        """
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            '.json',
             create_folder_if_missing=True)
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=2)
+
+    def record_text(self, category: str, collection: str, record_type: str, data: str) -> None:
+        """
+            Save service data to a file as raw text for later validation.
+
+            :param category: Unique category for this record. Corresponds to a folder on disk.
+            :param collection: Unique collection name being recorded.
+            :param record_type: Record type being recorded.
+            :data: The data to record.
+        """
+        file_path = self.__build_recording_file_path(
+            category,
+            collection,
+            record_type,
+            '.txt',
+            create_folder_if_missing=True)
+        # Fixup line endings
+        data = data.replace('\r\n', '\n')
+        with open(file_path, 'w') as file:
+            file.write(data)
 
     def __build_recording_file_path(
             self,
             category: str,
             collection: str,
             record_type: str,
+            extension: str,
             create_folder_if_missing: bool
     ) -> str:
         folder_path = os.path.join(os.getcwd(), '.test', category)
         if create_folder_if_missing:
             os.makedirs(folder_path, exist_ok=True)
 
-        filename = collection + '.' + record_type + '.json'
+        filename = collection + '.' + record_type + extension
         return os.path.join(folder_path, filename)
 
     def datetime_to_string(self, time) -> str:

@@ -169,7 +169,7 @@ def configure_fake_file_system_facade(
     directory_exists: bool = True,
 ) -> FakeFileSystemFacade:
     file_system_facade = facade_factory.file_system_facade
-    file_system_facade.directory_exists = directory_exists
+    file_system_facade.directory_exists_value = directory_exists
 
     properties: Dict[str, Any] = {
             'Mongo.CustomConnectionString': 'mongodb://localhost',

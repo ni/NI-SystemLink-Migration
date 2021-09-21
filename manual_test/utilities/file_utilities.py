@@ -5,6 +5,10 @@ from typing import Any, Dict, Optional
 
 UPLOAD_ROUTE = '/nifile/v1/service-groups/Default/upload-files'
 
+ASSETS_PATH = Path(__file__).parent.parent / 'assets'
+IMAGE_PATH = str(ASSETS_PATH / 'Image.png')
+TDMS_PATH = str(ASSETS_PATH / 'Data.tdms')
+
 
 class FileUtilities:
     def upload_inline_text_file(

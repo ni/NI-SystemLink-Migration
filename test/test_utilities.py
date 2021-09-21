@@ -65,7 +65,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
         self.config = {}
-        self.directory_exists = True
+        self.directory_exists_value = True
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
         self.last_from_directory = from_directory
@@ -75,7 +75,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_read_json_file_path = path
         return self.config
 
-    def migration_dir_exists(self, dir_):
+    def directory_exists(self, dir_):
         return self.directory_exists
 
 

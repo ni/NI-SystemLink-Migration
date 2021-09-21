@@ -2,6 +2,7 @@ from manual_test.manual_test_base import ManualTestBase
 
 AUTH_ROUTE = '/niauth/v1/auth'
 WORKSPACES_ROUTE = '/niuser/v1/workspaces'
+TEST_WORKSPACE_NAME = 'WorkspaceForMigrationTests'
 
 
 class WorkspaceUtilities:
@@ -28,5 +29,9 @@ class WorkspaceUtilities:
         return None
 
     @staticmethod
-    def create_workspace(workspace_name: str, test: ManualTestBase):
+    def __create_workspace(workspace_name: str, test: ManualTestBase):
         test.post(WORKSPACES_ROUTE, json={'name': workspace_name})
+
+    @staticmethod
+    def create_workspace_for_test(test: ManualTestBase):
+        WorkspaceUtilities.__create_workspace(TEST_WORKSPACE_NAME, test)
