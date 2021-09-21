@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 MONGO_HOST_NAME_CONFIGURATION_KEY = 'Mongo.Host'
 MONGO_DATABASE_NAME_CONFIGURATION_KEY = 'Mongo.Database'
@@ -13,25 +13,25 @@ class MongoConfiguration:
         self.service_config = service_config
 
     @property
-    def password(self) -> Optional[str]:
-        return self.service_config.get(MONGO_PASSWORD_CONFIGURATION_KEY)
+    def password(self) -> str:
+        return self.service_config.get(MONGO_PASSWORD_CONFIGURATION_KEY, '')
 
     @property
-    def user(self) -> Optional[str]:
-        return self.service_config.get(MONGO_USER_CONFIGURATION_KEY)
+    def user(self) -> str:
+        return self.service_config.get(MONGO_USER_CONFIGURATION_KEY, '')
 
     @property
-    def connection_string(self) -> Optional[str]:
-        return self.service_config.get(MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY)
+    def connection_string(self) -> str:
+        return self.service_config.get(MONGO_CUSTOM_CONNECTION_STRING_CONFIGURATION_KEY, '')
 
     @property
-    def port(self) -> Optional[str]:
-        return self.service_config.get(MONGO_PORT_NAME_CONFIGURATION_KEY)
+    def port(self) -> str:
+        return self.service_config.get(MONGO_PORT_NAME_CONFIGURATION_KEY, '')
 
     @property
-    def database_name(self) -> Optional[str]:
-        return self.service_config.get(MONGO_DATABASE_NAME_CONFIGURATION_KEY)
+    def database_name(self) -> str:
+        return self.service_config.get(MONGO_DATABASE_NAME_CONFIGURATION_KEY, '')
 
     @property
-    def host_name(self) -> Optional[str]:
-        return self.service_config.get(MONGO_HOST_NAME_CONFIGURATION_KEY)
+    def host_name(self) -> str:
+        return self.service_config.get(MONGO_HOST_NAME_CONFIGURATION_KEY, '')
