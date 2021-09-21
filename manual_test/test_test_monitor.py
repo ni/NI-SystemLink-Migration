@@ -17,7 +17,6 @@ class TestTestMonitor(ManualTestBase):
     statuses = [
         {'statusType': 'FAILED', 'statusName': 'Failed'},
         {'statusType': 'PASSED', 'statusName': 'Passed'},
-        {'statusType': 'RUNNING', 'statusName': 'Running'},
         {'statusType': 'DONE', 'statusName': 'Done'},
     ]
     parts = ['Product1', 'Product2', 'Product3']
