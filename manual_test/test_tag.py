@@ -3,11 +3,10 @@ from typing import List, Dict, Any, Optional
 
 from manual_test.manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, \
     POPULATED_SERVER_RECORD_TYPE
-from manual_test.utilities.workspace_utilities import WorkspaceUtilities
+from manual_test.utilities.workspace_utilities import WorkspaceUtilities, TEST_WORKSPACE_NAME
 from nislmigrate.logs.migration_error import MigrationError
 
 SERVICE_NAME = 'Tag'
-TEST_WORKSPACE_NAME = 'CustomWorkspaceForManualTagMigrationTest'
 TAGS_ROUTE = '/nitag/v2/tags/'
 TAGS_WITH_VALUES_ROUTE = '/nitag/v2/tags-with-values/'
 TAG_HISTORY_ROUTE = '/nitaghistorian/v2/tags/query-history'
@@ -67,7 +66,7 @@ EXPECTED_COUNTS = {
 class TestTag(ManualTestBase):
 
     def populate_data(self) -> None:
-        WorkspaceUtilities().create_workspace(TEST_WORKSPACE_NAME, self)
+        WorkspaceUtilities().create_workspace_for_test(self)
         self.__generate_tag_data_on_server()
         self.__record_populated_server_tags()
 
