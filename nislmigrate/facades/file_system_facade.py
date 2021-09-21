@@ -44,7 +44,7 @@ class FileSystemFacade:
         :return: True if the file exists in the given directory.
         """
         path = os.path.join(directory, file_name)
-        return os.path.isfile(path)
+        return self.does_file_exist(path)
 
     def does_file_exist(self, file_path: str) -> bool:
         """
