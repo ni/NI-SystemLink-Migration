@@ -18,7 +18,7 @@ class TestFile(ManualTestBase):
     __file_utilities = FileUtilities()
 
     def populate_data(self):
-        WorkspaceUtilities().create_workspace('WorkspaceForManualFilesMigrationTest', self)
+        WorkspaceUtilities().create_workspace_for_test(self)
         workspaces = WorkspaceUtilities().get_workspaces(self)
         self.__upload_files(workspaces)
         self.__record_data(POPULATED_SERVER_RECORD_TYPE)
@@ -150,14 +150,14 @@ class TestFile(ManualTestBase):
             }
 
     def __record_data(self, record_type: str):
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
             [self.__get_files()])
 
     def __read_recorded_data(self, record_type: str):
-        files = self.read_recorded_data(
+        files = self.read_recorded_json_data(
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type)

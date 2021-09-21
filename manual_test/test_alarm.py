@@ -8,7 +8,6 @@ from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 SERVICE_NAME = 'Alarm'
 ALARM_DATABASE_NAME = 'nialarms'
 TEST_NAME = 'AlarmMigrationTest'
-TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 ACKNOWLEDGE_ALARMS_BY_ID_ROUTE = 'nialarm/v1/acknowledge-instances-by-instance-id'
 ADD_NOTES_TO_ALARM_ROUTE_FORMAT = 'nialarm/v1//instances/{instance_id}/notes'
 CREATE_OR_UPDATE_ALARM_ROUTE = 'nialarm/v1/instances'
@@ -25,7 +24,7 @@ class TestAlarm(ManualTestBase):
         if DEBUG_CLEANUP_EXISTING_DATA:
             self.__delete_existing_alarms()
 
-        WorkspaceUtilities().create_workspace(TEST_WORKSPACE_NAME, self)
+        WorkspaceUtilities().create_workspace_for_test(self)
         notification_strategy_id = self.__create_test_notification_strategy()
         index = 0
         startTime = datetime.datetime.now()
@@ -36,18 +35,18 @@ class TestAlarm(ManualTestBase):
             self.__clearIfNeeded(alarm, startTime + datetime.timedelta(hours=3), index)
             index = index + 1
 
-        self.record_data(SERVICE_NAME, ALARM_DATABASE_NAME, POPULATED_SERVER_RECORD_TYPE, self.__get_all_alarms())
+        self.record_json_data(SERVICE_NAME, ALARM_DATABASE_NAME, POPULATED_SERVER_RECORD_TYPE, self.__get_all_alarms())
 
     def record_initial_data(self) -> None:
-        self.record_data(SERVICE_NAME, ALARM_DATABASE_NAME, CLEAN_SERVER_RECORD_TYPE, self.__get_all_alarms())
+        self.record_json_data(SERVICE_NAME, ALARM_DATABASE_NAME, CLEAN_SERVER_RECORD_TYPE, self.__get_all_alarms())
 
     def validate_data(self) -> None:
-        source_service_snapshot = self.read_recorded_data(
+        source_service_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             ALARM_DATABASE_NAME,
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-        target_service_snaphot = self.read_recorded_data(
+        target_service_snaphot = self.read_recorded_json_data(
             SERVICE_NAME,
             ALARM_DATABASE_NAME,
             CLEAN_SERVER_RECORD_TYPE,
