@@ -218,8 +218,8 @@ def test_service_not_installed_throws_migration_error(operation: str):
     migrator2 = FakeMigrator('two', 'yours', True)
     loader = FakeMigratorPluginLoader([migrator1, migrator2])
     facade_factory = FakeFacadeFactory()
-    facade_factory.file_system_facade.missing_files.append('one.json')
-    arguments = [operation, '--one', '--one-mine', '--two', '--two-yours']
+    configure_not_installed_service(facade_factory, migrator2)
+    arguments = [operation, '--one', '--two']
     argument_handler = ArgumentHandler(
         arguments,
         facade_factory=facade_factory,
@@ -228,6 +228,54 @@ def test_service_not_installed_throws_migration_error(operation: str):
 
     with pytest.raises(MigrationError):
         argument_handler.get_list_of_services_to_capture_or_restore()
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    'capture',
+    'restore'
+])
+def test_all_argument_selects_all_supported_migrators(operation: str):
+    migrator1 = FakeMigrator('one', 'mine', True)
+    migrator2 = FakeMigrator('two', 'yours', True)
+    loader = FakeMigratorPluginLoader([migrator1, migrator2])
+    facade_factory = FakeFacadeFactory()
+    arguments = [operation, '--all']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=facade_factory,
+        plugin_loader=loader
+    )
+
+    migrators = argument_handler.get_list_of_services_to_capture_or_restore()
+
+    assert len(migrators) == 2
+    assert migrator1 in migrators
+    assert migrator2 in migrators
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    'capture',
+    'restore'
+])
+def test_all_argument_excludes_not_installed_migrators(operation: str):
+    migrator1 = FakeMigrator('one', 'mine', True)
+    migrator2 = FakeMigrator('two', 'yours', True)
+    loader = FakeMigratorPluginLoader([migrator1, migrator2])
+    facade_factory = FakeFacadeFactory()
+    configure_not_installed_service(facade_factory, migrator2)
+    arguments = [operation, '--all']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=facade_factory,
+        plugin_loader=loader
+    )
+
+    migrators = argument_handler.get_list_of_services_to_capture_or_restore()
+
+    assert len(migrators) == 1
+    assert migrator1 in migrators
 
 
 class FakeMigrator(MigratorPlugin):
@@ -260,3 +308,7 @@ class FakeMigrator(MigratorPlugin):
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         if self._add_argument:
             argument_manager.add_switch(self._extra_argument_name, f'{self._extra_argument_name} help')
+
+
+def configure_not_installed_service(facade_factory: FakeFacadeFactory, migrator: FakeMigrator):
+    facade_factory.file_system_facade.missing_files.append(f'{migrator.name}.json')

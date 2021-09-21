@@ -31,8 +31,8 @@ SERVICE_NOT_INSTALLED_ERROR_TEXT_FORMAT = """
 Service '{service_name}' cannot be migrated because the specified service is not installed locally.
 
 Remove unavailable services from the request and try again, or use --all to request all supported services
-that are currently installed.
-"""
+that are currently installed."""
+
 CAPTURE_COMMAND_HELP = 'use capture to pull data and settings off of a SystemLink server'
 RESTORE_COMMAND_HELP = 'use restore to push captured data and settings to a clean SystemLink server'
 DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (defaults to documents)'
@@ -103,8 +103,8 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, key, {})
 
     def __get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
-        # TODO
-        return self.plugin_loader.get_plugins()
+        return [plugin for plugin in self.plugin_loader.get_plugins()
+                if plugin.is_service_installed(self.facade_factory)]
 
     def __get_enabled_plugins(self) -> List[MigratorPlugin]:
         arguments: List[str] = self.__get_enabled_plugin_arguments()
