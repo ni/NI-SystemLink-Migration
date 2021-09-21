@@ -4,10 +4,11 @@ import os
 import abc
 
 from nislmigrate.facades.facade_factory import FacadeFactory
+from nislmigrate.utility.paths import get_ni_application_data_directory_path
+
 
 DEFAULT_SERVICE_CONFIGURATION_DIRECTORY: str = os.path.join(
-    str(os.environ.get('ProgramData')),
-    'National Instruments',
+    get_ni_application_data_directory_path(),
     'Skyline',
     'Config')
 

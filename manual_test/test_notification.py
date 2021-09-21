@@ -22,17 +22,17 @@ class TestNotification(ManualTestBase):
         self.__validate_notification_strategies()
 
     def __record_data(self, record_type: str):
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             'address_groups',
             record_type,
             NotificationUtilities().get_all_address_groups(self))
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             'message_templates',
             record_type,
             NotificationUtilities().get_all_message_templates(self))
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             'notification_strategies',
             record_type,
@@ -48,12 +48,12 @@ class TestNotification(ManualTestBase):
         return created_groups
 
     def __validate_address_groups(self):
-        source_service_snapshot = self.read_recorded_data(
+        source_service_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             'address_groups',
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-        target_service_snaphot = self.read_recorded_data(
+        target_service_snaphot = self.read_recorded_json_data(
             SERVICE_NAME,
             'address_groups',
             CLEAN_SERVER_RECORD_TYPE,
@@ -109,12 +109,12 @@ class TestNotification(ManualTestBase):
         return created_templates
 
     def __validate_message_templates(self):
-        source_service_snapshot = self.read_recorded_data(
+        source_service_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             'message_templates',
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-        target_service_snaphot = self.read_recorded_data(
+        target_service_snaphot = self.read_recorded_json_data(
             SERVICE_NAME,
             'message_templates',
             CLEAN_SERVER_RECORD_TYPE,
@@ -175,12 +175,12 @@ class TestNotification(ManualTestBase):
         return created_strategies
 
     def __validate_notification_strategies(self):
-        source_service_snapshot = self.read_recorded_data(
+        source_service_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             'notification_strategies',
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-        target_service_snaphot = self.read_recorded_data(
+        target_service_snaphot = self.read_recorded_json_data(
             SERVICE_NAME,
             'notification_strategies',
             CLEAN_SERVER_RECORD_TYPE,

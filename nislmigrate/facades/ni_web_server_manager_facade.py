@@ -2,11 +2,10 @@ import os
 import logging
 import subprocess
 from nislmigrate.logs.migration_error import MigrationError
+from nislmigrate.utility.paths import get_ni_shared_directory_64_path
 
 CONFIGURATION_EXECUTABLE_PATH = os.path.join(
-    str(os.environ.get('ProgramW6432')),
-    'National Instruments',
-    'Shared',
+    get_ni_shared_directory_64_path(),
     'Web Server Config',
     'NIWebServerConfigurationCmd.exe',
 )
