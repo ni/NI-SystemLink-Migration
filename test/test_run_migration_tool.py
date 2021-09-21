@@ -20,14 +20,22 @@ def test_run_migration_tool(tmp_path: Path) -> None:
     migration_directory = str(tmp_path / 'data')
 
     capture_arguments = ['capture', '--test-migrator', '--dir', migration_directory]
-    capture_argument_handler = ArgumentHandler(capture_arguments, plugin_loader)
+    capture_argument_handler = ArgumentHandler(
+        capture_arguments,
+        facade_factory=facade_factory,
+        plugin_loader=plugin_loader
+    )
     run_migration_tool(facade_factory, capture_argument_handler)
     assert facade_factory.process_facade.captured
     expected_output_path = os.path.join(migration_directory, migrator.name, migrator.name)
     assert os.path.isfile(expected_output_path)
 
     restore_arguments = ['restore', '--test-migrator', '--dir', migration_directory, '--force']
-    restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
+    restore_argument_handler = ArgumentHandler(
+        restore_arguments,
+        facade_factory=facade_factory,
+        plugin_loader=plugin_loader
+    )
     facade_factory.process_facade.reset()
     run_migration_tool(facade_factory, restore_argument_handler)
     assert facade_factory.process_facade.restored
@@ -43,12 +51,20 @@ def test_migrator_receives_extra_arguments(tmp_path) -> None:
     expected_arguments = {'extra': True}
 
     capture_arguments = ['capture', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory]
-    capture_argument_handler = ArgumentHandler(capture_arguments, plugin_loader)
+    capture_argument_handler = ArgumentHandler(
+        capture_arguments,
+        facade_factory=facade_factory,
+        plugin_loader=plugin_loader
+    )
     run_migration_tool(facade_factory, capture_argument_handler)
     assert facade_factory.process_facade.captured
 
     restore_arguments = ['restore', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory, '--force']
-    restore_argument_handler = ArgumentHandler(restore_arguments, plugin_loader)
+    restore_argument_handler = ArgumentHandler(
+        restore_arguments,
+        facade_factory=facade_factory,
+        plugin_loader=plugin_loader
+    )
     facade_factory.process_facade.reset()
     run_migration_tool(facade_factory, restore_argument_handler)
     assert migrator.pre_restore_extra_arguments == expected_arguments
@@ -112,6 +128,9 @@ class TestMigrator(MigratorPlugin):
             facade_factory: FacadeFactory,
             arguments: Dict[str, Any]) -> None:
         self.pre_restore_extra_arguments = arguments
+
+    def is_service_installed(self, facade_factory: FacadeFactory) -> bool:
+        return True
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch('extra', 'extra help')

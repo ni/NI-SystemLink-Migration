@@ -22,13 +22,12 @@ def main():
     The entry point for the NI SystemLink Migration tool.
     """
     try:
-        argument_handler = ArgumentHandler()
+        facade_factory = FacadeFactory()
+        argument_handler = ArgumentHandler(facade_factory=facade_factory)
 
         logging_verbosity = argument_handler.get_logging_verbosity()
         logging_setup.configure_logging_to_standard_output(logging_verbosity)
         permission_checker.verify_elevated_permissions()
-
-        facade_factory = FacadeFactory()
 
         run_migration_tool(facade_factory, argument_handler)
     except Exception as e:
