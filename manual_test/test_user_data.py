@@ -45,7 +45,10 @@ class TestUserData(ManualTestBase):
             if expected_value is not None:
                 assert expected_value == user_data
             else:
-                expected_value = self.find_record_with_matching_property_value(user_data, target_user_data_snapshot, 'user')
+                expected_value = self.find_record_with_matching_property_value(
+                    user_data,
+                    target_user_data_snapshot,
+                    'user')
                 assert expected_value is not None
 
     def __get_all_user_data(self) -> List[Dict[str, Any]]:
