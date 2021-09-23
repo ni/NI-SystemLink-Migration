@@ -12,7 +12,7 @@ class TestUserData(ManualTestBase):
     def populate_data(self) -> None:
         self.__create_test_user_data()
 
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             SERVICE_DATABASE_NAME,
             POPULATED_SERVER_RECORD_TYPE,
@@ -20,7 +20,7 @@ class TestUserData(ManualTestBase):
         )
 
     def record_initial_data(self) -> None:
-        self.record_data(
+        self.record_json_data(
             SERVICE_NAME,
             SERVICE_DATABASE_NAME,
             CLEAN_SERVER_RECORD_TYPE,
@@ -28,12 +28,12 @@ class TestUserData(ManualTestBase):
         )
 
     def validate_data(self) -> None:
-        source_user_data_snapshot = self.read_recorded_data(
+        source_user_data_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             SERVICE_DATABASE_NAME,
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-        target_user_data_snapshot = self.read_recorded_data(
+        target_user_data_snapshot = self.read_recorded_json_data(
             SERVICE_NAME,
             SERVICE_DATABASE_NAME,
             CLEAN_SERVER_RECORD_TYPE,
@@ -45,7 +45,7 @@ class TestUserData(ManualTestBase):
             if expected_value is not None:
                 assert expected_value == user_data
             else:
-                expected_value = self.find_record_with_matching_id(user_data, target_user_data_snapshot)
+                expected_value = self.find_record_with_matching_property_value(user_data, target_user_data_snapshot, 'user')
                 assert expected_value is not None
 
     def __get_all_user_data(self) -> List[Dict[str, Any]]:

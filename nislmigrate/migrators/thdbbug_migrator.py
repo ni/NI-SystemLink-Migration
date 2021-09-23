@@ -1,7 +1,6 @@
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.facades.facade_factory import FacadeFactory
-from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from typing import Any, Dict
 
 thdbbug_dict = {
