@@ -16,7 +16,11 @@ thdbbug_dict = {
 }
 
 
-class THDBBugMigrator(MigratorPlugin):
+# The TagHistorianDatabase bug migrator is intended to fix the database bug introduced in SystemLink 2020R1.
+# This class does not currently extend MigratorPlugin so it is not discovered as a plugin and can not be used.
+# As part of F1247651, this is the code that will fix the DB bug, we just need to expose it to the user in
+# a reasonable way.
+class THDBBugMigrator:
 
     @property
     def argument(self):
