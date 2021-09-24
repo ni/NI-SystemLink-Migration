@@ -108,7 +108,7 @@ class ManualTestBase:
         return self.request('PUT', route, retries, **kwargs)
 
     def get_all_with_skip_take(self, route: str, data_key: str) -> List[Dict[str, Any]]:
-        data = []
+        data: List[Dict[str, Any]] = []
         skip = 0
         take = 50
         additional_data = self.__get_data_with_skip_take(route, data_key, skip, take)
@@ -125,29 +125,48 @@ class ManualTestBase:
         data_key: str,
         skip: int,
         take: int
-    ) -> Tuple[List[Dict[str, Any]], bool]:
+    ) -> List[Dict[str, Any]]:
         params = {'skip': skip, 'take': take}
         response = self.get(route, params=params)
         response.raise_for_status()
         return response.json()[data_key]
 
     def get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
-        data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
+        data, continuation_token = self.__request_data_and_continuation_token('GET', route, data_key)
         while continuation_token:
-            additional_data, continuation_token = self.__get_data_and_continuation_token(
-                route, data_key, continuation_token)
+            additional_data, continuation_token = self.__request_data_and_continuation_token(
+                    'GET', route, data_key, params={'continuationToken': continuation_token})
             data.extend(additional_data)
 
         return data
 
-    def __get_data_and_continuation_token(
+    def query_all_with_continuation_token(
         self,
         route: str,
+        query: Dict[str, Any],
+        data_key: str
+    ) -> List[Dict[str, Any]]:
+        data, continuation_token = self.__request_data_and_continuation_token(
+            'POST',
+            route,
+            data_key,
+            json=query)
+        while continuation_token:
+            query['continuationToken'] = continuation_token
+            additional_data, continuation_token = self.__request_data_and_continuation_token(
+                'POST', route, data_key, json=query)
+            data.extend(additional_data)
+
+        return data
+
+    def __request_data_and_continuation_token(
+        self,
+        method: str,
+        route: str,
         data_key: str,
-        continuation_token: Optional[str]
+        **kwargs
     ) -> Tuple[List[Dict[str, Any]], str]:
-        params = {} if not continuation_token else {'continuationToken': continuation_token}
-        response = self.get(route, params=params)
+        response = self.request(method, route, **kwargs)
         response.raise_for_status()
         data = response.json()
         return data[data_key], data.get('continuationToken', None)
