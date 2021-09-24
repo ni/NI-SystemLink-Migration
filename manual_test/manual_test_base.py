@@ -107,6 +107,30 @@ class ManualTestBase:
 
         return self.request('PUT', route, retries, **kwargs)
 
+    def get_all_with_skip_take(self, route: str, data_key: str) -> List[Dict[str, Any]]:
+        data = []
+        skip = 0
+        take = 50
+        additional_data = self.__get_data_with_skip_take(route, data_key, skip, take)
+        while additional_data:
+            data.extend(additional_data)
+            skip = skip + take
+            additional_data = self.__get_data_with_skip_take(route, data_key, skip, take)
+
+        return data
+
+    def __get_data_with_skip_take(
+        self,
+        route: str,
+        data_key: str,
+        skip: int,
+        take: int
+    ) -> Tuple[List[Dict[str, Any]], bool]:
+        params = {'skip': skip, 'take': take}
+        response = self.get(route, params=params)
+        response.raise_for_status()
+        return response.json()[data_key]
+
     def get_all_with_continuation_token(self, route: str, data_key: str) -> List[Dict[str, Any]]:
         data, continuation_token = self.__get_data_and_continuation_token(route, data_key, None)
         while continuation_token:
