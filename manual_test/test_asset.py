@@ -24,7 +24,7 @@ class TestAsset(ManualTestBase):
         self.__record_data(POPULATED_SERVER_RECORD_TYPE)
 
     def record_initial_data(self):
-        """The file service should not be populated with initial data."""
+        """The asset service should not be populated with initial data."""
         pass
 
     def validate_data(self):
