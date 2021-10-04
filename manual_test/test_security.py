@@ -7,36 +7,39 @@ from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from typing import Any, Dict, List
 
 SERVICE_NAME = 'Security'
-DATABASE_NAME = 'auth'
 TEST_NAME = 'SecurityMigrationTest'
 ROUTE = '/niuser/v1'
 USER_ROUTE = ROUTE + '/users'
 QUERY_USER_ROUTE = USER_ROUTE + '/query'
 AUTH_MAPPING_ROUTE = ROUTE + '/auth-mappings'
 AUTH_POLICY_TEMPLATE_ROUTE = '/niauth/v1/policy-templates'
-RECORDED_DATA_IDENTIFIER = 'security'
+RECORDED_WORKSPACE_DATA_IDENTIFIER = 'workspaces'
+RECORDED_USERS_DATA_IDENTIFIER = 'users'
+RECORDED_AUTH_MAPPINGS_DATA_IDENTIFIER = 'auth-mappings'
 
 
 class TestSecurity(ManualTestBase):
     def populate_data(self) -> None:
         self.__populate_server_with_test_data()
-        self.__record_populated_server_security_data()
+        self.__record_security_service_data(POPULATED_SERVER_RECORD_TYPE)
 
     def record_initial_data(self) -> None:
-        self.__record_clean_server_security_data()
+        self.__record_security_service_data(CLEAN_SERVER_RECORD_TYPE)
 
     def validate_data(self) -> None:
-        source_service_snapshot = self.__read_populated_server_security_data()
-        target_service_snapshot = self.__read_clean_server_security_data()
-        current_snapshot = self.__get_all_security_data()
-        self.__validate_user_migration(current_snapshot, source_service_snapshot, target_service_snapshot)
-        self.__validate_workspace_migration(current_snapshot, source_service_snapshot)
-        self.__validate_auth_mapping_migration(current_snapshot, source_service_snapshot, target_service_snapshot)
+        self.__validate_user_migration()
+        self.__validate_workspace_migration()
+        self.__validate_auth_mapping_migration()
 
-    def __validate_user_migration(self, current_snapshot, source_service_snapshot, target_service_snapshot):
-        users_source_service_snapshot = source_service_snapshot['users']
-        users_target_service_snapshot = target_service_snapshot['users']
-        users_current_snapshot = current_snapshot['users']
+    def __record_security_service_data(self, record_type: str):
+        self.__record_workspace_data(record_type)
+        self.__record_users_data(record_type)
+        self.__record_auth_mapping_data(record_type)
+
+    def __validate_user_migration(self):
+        users_source_service_snapshot = self.__read_users_data(POPULATED_SERVER_RECORD_TYPE)
+        users_target_service_snapshot = self.__read_users_data(CLEAN_SERVER_RECORD_TYPE)
+        users_current_snapshot = self.__get_all_user_data()
         for user in users_current_snapshot:
             expected_user = self.find_record_with_matching_id(user, users_source_service_snapshot)
             if expected_user is not None:
@@ -47,16 +50,16 @@ class TestSecurity(ManualTestBase):
                 assert expected_user is not None
                 self.__assert_rules_equal(expected_user, user)
 
-    def __validate_workspace_migration(self, current_snapshot, source_service_snapshot):
-        workspaces_source_service_snapshot = source_service_snapshot['workspaces']
-        workspaces_current_snapshot = current_snapshot['workspaces']
+    def __validate_workspace_migration(self):
+        workspaces_source_service_snapshot = self.__read_workspace_data(POPULATED_SERVER_RECORD_TYPE)
+        workspaces_current_snapshot = self.__get_all_workspaces()
         for source_workspace in workspaces_source_service_snapshot:
             assert source_workspace in workspaces_current_snapshot
 
-    def __validate_auth_mapping_migration(self, current_snapshot, source_service_snapshot, target_service_snapshot):
-        mappings_source_snapshot = source_service_snapshot['auth_mappings']
-        mappings_target_snapshot = target_service_snapshot['auth_mappings']
-        mappings_current_snapshot = current_snapshot['auth_mappings']
+    def __validate_auth_mapping_migration(self):
+        mappings_source_snapshot = self.__read_auth_mapping_data(POPULATED_SERVER_RECORD_TYPE)
+        mappings_target_snapshot = self.__read_auth_mapping_data(CLEAN_SERVER_RECORD_TYPE)
+        mappings_current_snapshot = self.__get_all_auth_mappings()
         for mapping in mappings_current_snapshot:
             expected_mapping = self.find_record_with_matching_id(mapping, mappings_source_snapshot)
             if expected_mapping is not None:
@@ -71,7 +74,7 @@ class TestSecurity(ManualTestBase):
         workspace_utilities = WorkspaceUtilities()
         workspace_utilities.create_workspace_for_test(self)
         built_in_policy_template = self.__get_built_in_policy_templates()[0]
-        self.__create_test_user()
+        self.__create_test_user(built_in_policy_template['id'])
         for workspace in workspace_utilities.get_two_or_more_workspaces(self):
             self.__create_test_policy_template()
             self.__create_test_auth_mapping(workspace, built_in_policy_template['id'])
@@ -97,7 +100,7 @@ class TestSecurity(ManualTestBase):
         response = self.post(AUTH_MAPPING_ROUTE, json=auth_mapping)
         response.raise_for_status()
 
-    def __create_test_user(self):
+    def __create_test_user(self, policy_template_id: str):
         user = {
             'firstName': 'firstname',
             'lastName': 'lastname',
@@ -105,9 +108,9 @@ class TestSecurity(ManualTestBase):
             'niuaId': 'niuaId',
             'login': 'firstname',
             'acceptedToS': 'true',
-            'policies': [],
-            'keywords': [],
-            'properties': {},
+            'policies': [policy_template_id],
+            'keywords': ['test-keyword'],
+            'properties': {'key': 'value'},
         }
         response = self.post(USER_ROUTE, json=user)
         response.raise_for_status()
@@ -132,45 +135,50 @@ class TestSecurity(ManualTestBase):
         }
         response = self.post(AUTH_POLICY_TEMPLATE_ROUTE, json=policy_template)
         response.raise_for_status()
+        return response.json()
 
-    def __record_clean_server_security_data(self):
+    def __record_workspace_data(self, record_type: str):
         self.record_json_data(
             SERVICE_NAME,
-            RECORDED_DATA_IDENTIFIER,
-            CLEAN_SERVER_RECORD_TYPE,
-            self.__get_all_security_data())
+            RECORDED_WORKSPACE_DATA_IDENTIFIER,
+            record_type,
+            self.__get_all_workspaces())
 
-    def __record_populated_server_security_data(self):
+    def __read_workspace_data(self, record_type: str):
+        return self.read_recorded_json_data(
+            SERVICE_NAME,
+            RECORDED_WORKSPACE_DATA_IDENTIFIER,
+            record_type)
+
+    def __record_users_data(self, record_type: str):
         self.record_json_data(
             SERVICE_NAME,
-            RECORDED_DATA_IDENTIFIER,
-            POPULATED_SERVER_RECORD_TYPE,
-            self.__get_all_security_data())
+            RECORDED_USERS_DATA_IDENTIFIER,
+            record_type,
+            self.__get_all_user_data())
 
-    def __read_clean_server_security_data(self):
+    def __read_users_data(self, record_type: str):
         return self.read_recorded_json_data(
             SERVICE_NAME,
-            RECORDED_DATA_IDENTIFIER,
-            CLEAN_SERVER_RECORD_TYPE,
-            required=True)
+            RECORDED_USERS_DATA_IDENTIFIER,
+            record_type)
 
-    def __read_populated_server_security_data(self):
+    def __record_auth_mapping_data(self, record_type: str):
+        self.record_json_data(
+            SERVICE_NAME,
+            RECORDED_AUTH_MAPPINGS_DATA_IDENTIFIER,
+            record_type,
+            self.__get_all_auth_mappings())
+
+    def __read_auth_mapping_data(self, record_type: str):
         return self.read_recorded_json_data(
             SERVICE_NAME,
-            RECORDED_DATA_IDENTIFIER,
-            POPULATED_SERVER_RECORD_TYPE,
-            required=True)
+            RECORDED_AUTH_MAPPINGS_DATA_IDENTIFIER,
+            record_type)
 
-    def __get_all_security_data(self) -> Dict[str, Any]:
+    def __get_all_workspaces(self) -> List[Dict[str, Any]]:
         workspace_utilities = WorkspaceUtilities()
-        workspaces = workspace_utilities.get_workspaces(self)
-        users = self.__get_all_user_data()
-        auth_mappings = self.__get_all_auth_mappings()
-        return {
-            'workspaces': workspaces,
-            'users': users,
-            'auth_mappings': auth_mappings,
-        }
+        return workspace_utilities.get_workspaces(self)
 
     def __get_all_user_data(self) -> List[Dict[str, Any]]:
         query: Dict[str, str] = {}
