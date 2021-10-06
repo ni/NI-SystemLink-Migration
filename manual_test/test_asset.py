@@ -122,10 +122,6 @@ class TestAsset(ManualTestBase):
                 'busType': 'BUILT_IN_SYSTEM',
                 'location': {
                     'minionId': f'MINION_{uuid4()}',
-                    'state': {
-                        'assetPresence': 'PRESENT',
-                        'systemConnection': 'DISCONNECTED'
-                    }
                 }
             }]
         }
@@ -145,10 +141,6 @@ class TestAsset(ManualTestBase):
                 'busType': 'PCI_PXI',
                 'location': {
                     'minionId': systems[0]['location']['minionId'],
-                    'state': {
-                        'assetPresence': 'PRESENT',
-                        'systemConnection': 'DISCONNECTED'
-                    }
                 }
             }]
         }
