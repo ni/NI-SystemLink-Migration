@@ -57,6 +57,8 @@ See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and rele
 The following services can be migrated with this utility:
 
 - Alarm Instances: `--alarms`
+- Asset Management: `--assets`
+    - Cannot be migrated between 2020R1 and 2020R2 servers
 - File Ingestion: `--files`
     - Must migrate file to the same storage location on the new System Link server.
     - To capture/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
@@ -72,8 +74,6 @@ The following services can be migrated with this utility:
 There are plans to support the following services in the near future:
 - OPC UA Client: `--opc`
 - Test Monitor: `--tests`
-- Asset Management: `--assets`
-    - Cannot be migrated between 2020R1 and 2020R2 servers
 - Repository: `--repo`
     - Feeds may require additional updates if servers used for migration have different domain names
 - User Data: `--userdata`
