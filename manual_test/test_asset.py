@@ -11,6 +11,8 @@ START_UTILIZATION_ROUTE = '/niapm/v1/assets/start-utilization'
 END_UTILIZATION_ROUTE = '/niapm/v1/assets/end-utilization'
 UTILIZATION_HEARTBEAT_ROUTE = '/niapm/v1/assets/utilization-heartbeat'
 QUERY_ASSET_UTILIZIATION_HISTORY_ROUTE = '/niapm/v1/query-asset-utilization-history'
+GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
+PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 
 CATEGORY = 'assets'
 
@@ -30,10 +32,12 @@ class TestAsset(ManualTestBase):
     def validate_data(self):
         self.__validate_assets()
         self.__validate_utilization()
+        self.__validate_policy()
 
     def __populate_asset_data(self, workspaces):
         systems = self.__populate_assets(workspaces)
         self.__populate_utilization(systems)
+        self.__modify_policy()
 
     def __populate_assets(self, workspaces):
         systems = []
@@ -54,6 +58,18 @@ class TestAsset(ManualTestBase):
             date += delta
             self.__end_asset_utilization(date, identifier)
             date += delta
+
+    def __modify_policy(self):
+        policy = {
+            'calibrationPolicy': {
+                'daysForApproachingCalibrationDueDate': 123
+            },
+            'workingHoursPolicy': {
+                'startTime': '12:00:00',
+                'endTime': '16:00:00'
+            }
+        }
+        self.patch(PATCH_ASSET_POLICY_ROUTE, json=policy)
 
     def __ensure_system_asset_exists(self, workspace_id):
         systems = self.__query_assets(f'Workspace = "{workspace_id}" && AssetType = "SYSTEM"')
@@ -156,6 +172,7 @@ class TestAsset(ManualTestBase):
     def __record_data(self, record_type):
         self.__record_asset_data(record_type)
         self.__record_utilization_data(record_type)
+        self.__record_policy(record_type)
 
     def __record_asset_data(self, record_type):
         assets = self.__get_assets()
@@ -164,6 +181,10 @@ class TestAsset(ManualTestBase):
     def __record_utilization_data(self, record_type):
         utilization = self.__get_utilization()
         self.record_json_data(CATEGORY, 'utilization', record_type, utilization)
+
+    def __record_policy(self, record_type):
+        policy = self.__get_policy()
+        self.record_json_data(CATEGORY, 'policy', record_type, policy)
 
     def __get_assets(self):
         assets = self.get_all_with_skip_take(ASSETS_ROUTE, 'assets')
@@ -174,6 +195,9 @@ class TestAsset(ManualTestBase):
             QUERY_ASSET_UTILIZIATION_HISTORY_ROUTE, {}, 'assetUtilizations')
         return utilization
 
+    def __get_policy(self):
+        return self.get(GET_ASSET_POLICY_ROUTE)
+
     def __validate_assets(self):
         actual_assets = self.__get_assets()
         expected_assets = self.read_recorded_json_data(CATEGORY, 'assets', POPULATED_SERVER_RECORD_TYPE)
@@ -183,6 +207,11 @@ class TestAsset(ManualTestBase):
         actual_utilization = self.__get_utilization()
         expected_utilization = self.read_recorded_json_data(CATEGORY, 'utilization', POPULATED_SERVER_RECORD_TYPE)
         assert actual_utilization == expected_utilization
+
+    def __validate_policy(self):
+        actual_policy = self.__get_policy()
+        expected_policy = self.read_recorded_json_data(CATEGORY, 'policy', POPULATED_SERVER_RECORD_TYPE)
+        assert actual_policy == expected_policy
 
 
 if __name__ == '__main__':
