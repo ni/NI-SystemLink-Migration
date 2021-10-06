@@ -11,6 +11,8 @@ START_UTILIZATION_ROUTE = '/niapm/v1/assets/start-utilization'
 END_UTILIZATION_ROUTE = '/niapm/v1/assets/end-utilization'
 UTILIZATION_HEARTBEAT_ROUTE = '/niapm/v1/assets/utilization-heartbeat'
 QUERY_ASSET_UTILIZIATION_HISTORY_ROUTE = '/niapm/v1/query-asset-utilization-history'
+GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/history/availability?startDate={start_date}&endDate={end_date}&granularity=NONE'
+UPDATE_ASSETS_ROUTE = 'niapm/v1/update-assets'
 GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 
@@ -32,20 +34,24 @@ class TestAsset(ManualTestBase):
     def validate_data(self):
         self.__validate_assets()
         self.__validate_utilization()
+        self.__validate_availability_histories()
         self.__validate_policy()
 
     def __populate_asset_data(self, workspaces):
-        systems = self.__populate_assets(workspaces)
+        (systems, devices) = self.__populate_assets(workspaces)
         self.__populate_utilization(systems)
+        self.__populate_location_histories(devices)
         self.__modify_policy()
 
     def __populate_assets(self, workspaces):
         systems = []
+        devices = []
         for workspace_id in workspaces:
             workspace_systems = self.__ensure_system_asset_exists(workspace_id)
-            self.__ensure_device_asset_exists(workspace_id, workspace_systems)
+            workspace_devices = self.__ensure_device_asset_exists(workspace_id, workspace_systems)
             systems.extend(workspace_systems)
-        return systems
+            devices.extend(workspace_devices)
+        return (systems, devices)
 
     def __populate_utilization(self, systems):
         date = datetime.now() - timedelta(hours=len(systems))
@@ -58,6 +64,29 @@ class TestAsset(ManualTestBase):
             date += delta
             self.__end_asset_utilization(date, identifier)
             date += delta
+
+    def __populate_location_histories(self, devices):
+        shelf_location = {
+            'physicalLocation': 'shelf'
+        }
+        move_to_shelf_updates = []
+        move_back_updates = []
+        for device in devices:
+            move_to_shelf_updates.append({
+                'id': device['id'],
+                'location': shelf_location
+            })
+            move_back_updates.append({
+                'id': device['id'],
+                'location': device['location']
+            })
+
+        response = self.post(UPDATE_ASSETS_ROUTE, json={ 'assets': move_to_shelf_updates})
+        response.raise_for_status()
+
+        response = self.post(UPDATE_ASSETS_ROUTE, json={ 'assets': move_back_updates})
+        response.raise_for_status()
+
 
     def __modify_policy(self):
         policy = {
@@ -83,16 +112,20 @@ class TestAsset(ManualTestBase):
         assets = {
             'assets': [{
                 'workspace': workspace_id,
-                'description': 'Test System',
+                'description': f'Test System for Workspace',
                 'modelName': 'Test System Model',
                 'modelNumber': 123,
-                'serialNumber': '098765',
+                'serialNumber': f'{uuid4()}',
                 'vendorName': 'Test System Vendor',
                 'vendorNumber': 456,
                 'assetType': 'SYSTEM',
                 'busType': 'BUILT_IN_SYSTEM',
                 'location': {
-                    'minionId': f'MINION_{uuid4()}'
+                    'minionId': f'MINION_{uuid4()}',
+                    'state': {
+                        'assetPresence': 'PRESENT',
+                        'systemConnection': 'DISCONNECTED'
+                    }
                 }
             }]
         }
@@ -105,13 +138,17 @@ class TestAsset(ManualTestBase):
                 'description': 'Test Device',
                 'modelName': 'Test Device Model',
                 'modelNumber': 321,
-                'serialNumber': '567890',
+                'serialNumber': f'{uuid4()}',
                 'vendorName': 'Test Device Vendor',
                 'vendorNumber': 654,
                 'assetType': 'GENERIC',
                 'busType': 'PCI_PXI',
                 'location': {
-                    'minionId': systems[0]['location']['minionId']
+                    'minionId': systems[0]['location']['minionId'],
+                    'state': {
+                        'assetPresence': 'PRESENT',
+                        'systemConnection': 'DISCONNECTED'
+                    }
                 }
             }]
         }
@@ -172,6 +209,7 @@ class TestAsset(ManualTestBase):
     def __record_data(self, record_type):
         self.__record_asset_data(record_type)
         self.__record_utilization_data(record_type)
+        self.__record_availibility_histories(record_type)
         self.__record_policy(record_type)
 
     def __record_asset_data(self, record_type):
@@ -181,6 +219,10 @@ class TestAsset(ManualTestBase):
     def __record_utilization_data(self, record_type):
         utilization = self.__get_utilization()
         self.record_json_data(CATEGORY, 'utilization', record_type, utilization)
+
+    def __record_availibility_histories(self, record_type):
+        availability_history = self.__get_availability_histories_by_asset()
+        self.record_json_data(CATEGORY, 'availibility_history', record_type, availability_history)
 
     def __record_policy(self, record_type):
         policy = self.__get_policy()
@@ -195,8 +237,33 @@ class TestAsset(ManualTestBase):
             QUERY_ASSET_UTILIZIATION_HISTORY_ROUTE, {}, 'assetUtilizations')
         return utilization
 
+    def __get_availability_histories_by_asset(self):
+        histories_by_asset = []
+        for asset in  self.__get_assets():
+            history = self.__get_availability_history(asset)
+            histories_by_asset.append({
+                'id': asset['id'],
+                'history': history
+            })
+
+        return histories_by_asset
+
+    def __get_availability_history(self, asset):
+        # Query into the future to avoid potential precision issues.
+        end_date =  datetime.now() + timedelta(hours=12)
+        uri = GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT.format(
+            asset_id=asset['id'],
+            start_date='1900-01-01T00:00:00.000Z',
+            end_date=self.datetime_to_string(end_date)
+        )
+        response = self.get(uri)
+        response.raise_for_status()
+        return response.json()
+
     def __get_policy(self):
-        return self.get(GET_ASSET_POLICY_ROUTE)
+        response = self.get(GET_ASSET_POLICY_ROUTE)
+        response.raise_for_status()
+        return response.json()
 
     def __validate_assets(self):
         actual_assets = self.__get_assets()
@@ -207,6 +274,11 @@ class TestAsset(ManualTestBase):
         actual_utilization = self.__get_utilization()
         expected_utilization = self.read_recorded_json_data(CATEGORY, 'utilization', POPULATED_SERVER_RECORD_TYPE)
         assert actual_utilization == expected_utilization
+
+    def __validate_availability_histories(self):
+        actual_histories = self.__get_availability_histories_by_asset()
+        expected_histories = self.read_recorded_json_data(CATEGORY, 'availibility_history', POPULATED_SERVER_RECORD_TYPE)
+        assert actual_histories == expected_histories
 
     def __validate_policy(self):
         actual_policy = self.__get_policy()
