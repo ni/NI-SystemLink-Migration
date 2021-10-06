@@ -121,7 +121,7 @@ class TestAsset(ManualTestBase):
                 'assetType': 'SYSTEM',
                 'busType': 'BUILT_IN_SYSTEM',
                 'location': {
-                    'minionId': f'MINION_{uuid4()}',
+                    'minionId': f'MINION_{uuid4()}'
                 }
             }]
         }
@@ -140,7 +140,7 @@ class TestAsset(ManualTestBase):
                 'assetType': 'GENERIC',
                 'busType': 'PCI_PXI',
                 'location': {
-                    'minionId': systems[0]['location']['minionId'],
+                    'minionId': systems[0]['location']['minionId']
                 }
             }]
         }
