@@ -12,6 +12,7 @@ END_UTILIZATION_ROUTE = '/niapm/v1/assets/end-utilization'
 UTILIZATION_HEARTBEAT_ROUTE = '/niapm/v1/assets/utilization-heartbeat'
 QUERY_ASSET_UTILIZIATION_HISTORY_ROUTE = '/niapm/v1/query-asset-utilization-history'
 GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/history/availability?startDate={start_date}&endDate={end_date}&granularity=NONE'
+GET_ASSET_CALIBRATION_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/history/calibration'
 UPDATE_ASSETS_ROUTE = 'niapm/v1/update-assets'
 GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
@@ -35,12 +36,15 @@ class TestAsset(ManualTestBase):
         self.__validate_assets()
         self.__validate_utilization()
         self.__validate_availability_histories()
+        self.__validate_calibration_histories()
         self.__validate_policy()
 
     def __populate_asset_data(self, workspaces):
+        now = datetime.now()
         (systems, devices) = self.__populate_assets(workspaces)
-        self.__populate_utilization(systems)
-        self.__populate_location_histories(devices)
+        self.__populate_utilization(systems, now)
+        self.__populate_availability_histories(devices)
+        self.__populate_calibration_histories(devices, now)
         self.__modify_policy()
 
     def __populate_assets(self, workspaces):
@@ -53,8 +57,8 @@ class TestAsset(ManualTestBase):
             devices.extend(workspace_devices)
         return (systems, devices)
 
-    def __populate_utilization(self, systems):
-        date = datetime.now() - timedelta(hours=len(systems))
+    def __populate_utilization(self, systems, now):
+        date = now - timedelta(hours=len(systems))
         delta = timedelta(minutes=7)
         for system in systems:
             identifier = str(uuid4())
@@ -65,7 +69,56 @@ class TestAsset(ManualTestBase):
             self.__end_asset_utilization(date, identifier)
             date += delta
 
-    def __populate_location_histories(self, devices):
+    def __populate_calibration_histories(self, devices, now):
+        calibration_date = now - timedelta(weeks=8)
+        external_calibration = {
+            'temperatureSensors': [{
+                'name': 'Test Sensor',
+                'reading': 48
+            }],
+            'isLimited': False,
+            'date': self.datetime_to_string(calibration_date),
+            'recommendedInterval': 12,
+            'nextRecommendedDate': self.datetime_to_string(calibration_date + timedelta(weeks=48)),
+            'comments': 'Fake calibration for test',
+            'entryType': 'MANUAL',
+            'operator': {
+                'displayName': 'Test Operator'
+            }
+        }
+        updates = []
+        for device in devices:
+            update = {
+                'id': device['id'],
+                'externalCalibration': external_calibration
+            }
+            updates.append(update)
+        j = self.__update_assets(updates)
+
+        calibration_date = now - timedelta(days=7)
+        self_calibration = {
+            'temperatureSensors': [{
+                'name': 'Test Sensor',
+                'reading': 44
+            }],
+            'isLimited': False,
+            'date': self.datetime_to_string(calibration_date)
+        }
+        updates = []
+        for device in devices:
+            update = {
+                'id': device['id'],
+                'selfCalibration': self_calibration
+            }
+            updates.append(update)
+        self.__update_assets(updates)
+
+    def __update_assets(self, updates):
+        response = self.post(UPDATE_ASSETS_ROUTE, json={ 'assets': updates})
+        response.raise_for_status()
+        return response.json()
+
+    def __populate_availability_histories(self, devices):
         shelf_location = {
             'physicalLocation': 'shelf'
         }
@@ -81,12 +134,8 @@ class TestAsset(ManualTestBase):
                 'location': device['location']
             })
 
-        response = self.post(UPDATE_ASSETS_ROUTE, json={ 'assets': move_to_shelf_updates})
-        response.raise_for_status()
-
-        response = self.post(UPDATE_ASSETS_ROUTE, json={ 'assets': move_back_updates})
-        response.raise_for_status()
-
+        self.__update_assets(move_to_shelf_updates)
+        self.__update_assets(move_back_updates)
 
     def __modify_policy(self):
         policy = {
@@ -139,6 +188,8 @@ class TestAsset(ManualTestBase):
                 'vendorNumber': 654,
                 'assetType': 'GENERIC',
                 'busType': 'PCI_PXI',
+                'supportsSelfCalibration': True,
+                'supportsExternalCalibration': True,
                 'location': {
                     'minionId': systems[0]['location']['minionId']
                 }
@@ -202,6 +253,7 @@ class TestAsset(ManualTestBase):
         self.__record_asset_data(record_type)
         self.__record_utilization_data(record_type)
         self.__record_availibility_histories(record_type)
+        self.__record_calibration_histories(record_type)
         self.__record_policy(record_type)
 
     def __record_asset_data(self, record_type):
@@ -213,8 +265,12 @@ class TestAsset(ManualTestBase):
         self.record_json_data(CATEGORY, 'utilization', record_type, utilization)
 
     def __record_availibility_histories(self, record_type):
-        availability_history = self.__get_availability_histories_by_asset()
-        self.record_json_data(CATEGORY, 'availibility_history', record_type, availability_history)
+        availability_histories = self.__get_availability_histories_by_asset()
+        self.record_json_data(CATEGORY, 'availibility_histories', record_type, availability_histories)
+
+    def __record_calibration_histories(self, record_type):
+        calibration_histories = self.__get_calibration_histories_by_asset()
+        self.record_json_data(CATEGORY, 'calibration_histories', record_type, calibration_histories)
 
     def __record_policy(self, record_type):
         policy = self.__get_policy()
@@ -252,6 +308,24 @@ class TestAsset(ManualTestBase):
         response.raise_for_status()
         return response.json()
 
+    def __get_calibration_histories_by_asset(self):
+        histories_by_asset = []
+        for asset in  self.__get_assets():
+            history = self.__get_calibration_history(asset)
+            histories_by_asset.append({
+                'id': asset['id'],
+                'history': history
+            })
+
+        return histories_by_asset
+
+    def __get_calibration_history(self, asset):
+        uri = GET_ASSET_CALIBRATION_HISTORY_ROUTE_FORMAT.format(
+            asset_id=asset['id']
+        )
+        history = self.get_all_with_skip_take(uri, 'calibrationHistory')
+        return history
+
     def __get_policy(self):
         response = self.get(GET_ASSET_POLICY_ROUTE)
         response.raise_for_status()
@@ -269,7 +343,12 @@ class TestAsset(ManualTestBase):
 
     def __validate_availability_histories(self):
         actual_histories = self.__get_availability_histories_by_asset()
-        expected_histories = self.read_recorded_json_data(CATEGORY, 'availibility_history', POPULATED_SERVER_RECORD_TYPE)
+        expected_histories = self.read_recorded_json_data(CATEGORY, 'availibility_histories', POPULATED_SERVER_RECORD_TYPE)
+        assert actual_histories == expected_histories
+
+    def __validate_calibration_histories(self):
+        actual_histories = self.__get_calibration_histories_by_asset()
+        expected_histories = self.read_recorded_json_data(CATEGORY, 'calibration_histories', POPULATED_SERVER_RECORD_TYPE)
         assert actual_histories == expected_histories
 
     def __validate_policy(self):
