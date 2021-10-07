@@ -93,7 +93,7 @@ class TestAsset(ManualTestBase):
                 'externalCalibration': external_calibration
             }
             updates.append(update)
-        j = self.__update_assets(updates)
+        self.__update_assets(updates)
 
         calibration_date = now - timedelta(days=7)
         self_calibration = {
@@ -119,19 +119,21 @@ class TestAsset(ManualTestBase):
         return response.json()
 
     def __populate_availability_histories(self, devices):
-        shelf_location = {
-            'physicalLocation': 'shelf'
-        }
         move_to_shelf_updates = []
         move_back_updates = []
         for device in devices:
+            shelf_location = {
+                'minionId': device['location']['minionId']
+            }
             move_to_shelf_updates.append({
                 'id': device['id'],
                 'location': shelf_location
             })
             move_back_updates.append({
                 'id': device['id'],
-                'location': device['location']
+                'location': {
+                    'minionId': device['location']['minionId']
+                }
             })
 
         self.__update_assets(move_to_shelf_updates)
@@ -161,7 +163,7 @@ class TestAsset(ManualTestBase):
         assets = {
             'assets': [{
                 'workspace': workspace_id,
-                'description': f'Test System for Workspace',
+                'description': 'Test System',
                 'modelName': 'Test System Model',
                 'modelNumber': 123,
                 'serialNumber': f'{uuid4()}',
