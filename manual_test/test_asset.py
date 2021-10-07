@@ -151,25 +151,10 @@ class TestAsset(ManualTestBase):
         return response.json()
 
     def __populate_availability_histories(self, devices):
-        move_to_shelf_updates = []
-        move_back_updates = []
-        for device in devices:
-            shelf_location = {
-                'minionId': device['location']['minionId']
-            }
-            move_to_shelf_updates.append({
-                'id': device['id'],
-                'location': shelf_location
-            })
-            move_back_updates.append({
-                'id': device['id'],
-                'location': {
-                    'minionId': device['location']['minionId']
-                }
-            })
-
-        self.__update_assets(move_to_shelf_updates)
-        self.__update_assets(move_back_updates)
+        # TEST GAP: Currently, availability histories are only tracked for assets
+        # that are present in a connected system. For now, we are not actually
+        # populating this database, although we still store and validate the contents.
+        pass
 
     def __modify_policy(self):
         policy = {
