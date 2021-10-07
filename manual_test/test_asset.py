@@ -2,11 +2,13 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 from manual_test.manual_test_base import ManualTestBase, POPULATED_SERVER_RECORD_TYPE, handle_command_line
+from manual_test.utilities import file_utilities
+from manual_test.utilities.file_utilities import FileUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
 ASSETS_ROUTE = '/niapm/v1/assets'
 QUERY_ASSETS_ROUTE = '/niapm/v1/query-assets'
-
+ASSOCIATE_FILES_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/file'
 START_UTILIZATION_ROUTE = '/niapm/v1/assets/start-utilization'
 END_UTILIZATION_ROUTE = '/niapm/v1/assets/end-utilization'
 UTILIZATION_HEARTBEAT_ROUTE = '/niapm/v1/assets/utilization-heartbeat'
@@ -34,6 +36,7 @@ class TestAsset(ManualTestBase):
 
     def validate_data(self):
         self.__validate_assets()
+        self.__validate_asset_files()
         self.__validate_utilization()
         self.__validate_availability_histories()
         self.__validate_calibration_histories()
@@ -42,6 +45,7 @@ class TestAsset(ManualTestBase):
     def __populate_asset_data(self, workspaces):
         now = datetime.now()
         (systems, devices) = self.__populate_assets(workspaces)
+        self.__populate_asset_files(systems)
         self.__populate_utilization(systems, now)
         self.__populate_availability_histories(devices)
         self.__populate_calibration_histories(devices, now)
@@ -56,6 +60,34 @@ class TestAsset(ManualTestBase):
             systems.extend(workspace_systems)
             devices.extend(workspace_devices)
         return (systems, devices)
+
+    def __populate_asset_files(self, systems):
+        file_utilities = FileUtilities()
+        for system in systems:
+            if len(system['fileIds']) < 1:
+                file_id = self.__upload_file_for_system(system, file_utilities)
+                self.__associate_file(file_id, system)
+
+    def __upload_file_for_system(self, system, file_utilities: FileUtilities):
+        system_name = system['name']
+        text = f'File for {system_name}'
+        filename = f'{system_name}.txt'
+        result = file_utilities.upload_inline_text_file(self, system['workspace'], text, filename)
+
+        # Split the returned URI to get the ID
+        return result['uri'].split('/')[-1]
+
+    def __associate_file(self, file_id, system):
+        uri = ASSOCIATE_FILES_ROUTE_FORMAT.format(asset_id=system['id'])
+        request = {
+            'fileIds': [file_id]
+        }
+        response = self.post(uri, json=request)
+        response.raise_for_status()
+
+        print(response.content)
+        if len(response.json()['succeeded']) < 1:
+            raise RuntimeError('Failed to associate file')
 
     def __populate_utilization(self, systems, now):
         date = now - timedelta(hours=len(systems))
@@ -163,7 +195,7 @@ class TestAsset(ManualTestBase):
         assets = {
             'assets': [{
                 'workspace': workspace_id,
-                'description': 'Test System',
+                'name': 'Test System',
                 'modelName': 'Test System Model',
                 'modelNumber': 123,
                 'serialNumber': f'{uuid4()}',
@@ -182,7 +214,7 @@ class TestAsset(ManualTestBase):
         assets = {
             'assets': [{
                 'workspace': workspace_id,
-                'description': 'Test Device',
+                'name': 'Test Device',
                 'modelName': 'Test Device Model',
                 'modelNumber': 321,
                 'serialNumber': f'{uuid4()}',
@@ -253,6 +285,7 @@ class TestAsset(ManualTestBase):
 
     def __record_data(self, record_type):
         self.__record_asset_data(record_type)
+        self.__record_asset_files(record_type)
         self.__record_utilization_data(record_type)
         self.__record_availibility_histories(record_type)
         self.__record_calibration_histories(record_type)
@@ -261,6 +294,10 @@ class TestAsset(ManualTestBase):
     def __record_asset_data(self, record_type):
         assets = self.__get_assets()
         self.record_json_data(CATEGORY, 'assets', record_type, assets)
+
+    def __record_asset_files(self, record_type):
+        files = self.__get_asset_files()
+        self.record_json_data(CATEGORY, 'files', record_type, files)
 
     def __record_utilization_data(self, record_type):
         utilization = self.__get_utilization()
@@ -281,6 +318,15 @@ class TestAsset(ManualTestBase):
     def __get_assets(self):
         assets = self.get_all_with_skip_take(ASSETS_ROUTE, 'assets')
         return assets
+
+    def __get_asset_files(self):
+        files = []
+        file_utilities = FileUtilities()
+        for asset in self.__get_assets():
+            for file_id in asset['fileIds']:
+                files.append(file_utilities.get_file(self, file_id))
+
+        return files
 
     def __get_utilization(self):
         utilization = self.query_all_with_continuation_token(
@@ -336,6 +382,11 @@ class TestAsset(ManualTestBase):
     def __validate_assets(self):
         actual_assets = self.__get_assets()
         expected_assets = self.read_recorded_json_data(CATEGORY, 'assets', POPULATED_SERVER_RECORD_TYPE)
+        assert actual_assets == expected_assets
+
+    def __validate_asset_files(self):
+        actual_assets = self.__get_asset_files()
+        expected_assets = self.read_recorded_json_data(CATEGORY, 'files', POPULATED_SERVER_RECORD_TYPE)
         assert actual_assets == expected_assets
 
     def __validate_utilization(self):
