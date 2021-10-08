@@ -1,5 +1,3 @@
-import base64
-
 from manual_test.utilities.file_utilities import FileUtilities, IMAGE_PATH, TDMS_PATH
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
@@ -119,7 +117,7 @@ class TestFile(ManualTestBase):
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
-            [self.__file_utilities.get_files()])
+            [self.__file_utilities.get_files(self)])
 
     def __read_recorded_data(self, record_type: str):
         files = self.read_recorded_json_data(

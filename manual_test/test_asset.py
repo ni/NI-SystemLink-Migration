@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 from manual_test.manual_test_base import ManualTestBase, POPULATED_SERVER_RECORD_TYPE, handle_command_line
-from manual_test.utilities import file_utilities
+# from manual_test.utilities import file_utilities
 from manual_test.utilities.file_utilities import FileUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
@@ -13,7 +13,7 @@ START_UTILIZATION_ROUTE = '/niapm/v1/assets/start-utilization'
 END_UTILIZATION_ROUTE = '/niapm/v1/assets/end-utilization'
 UTILIZATION_HEARTBEAT_ROUTE = '/niapm/v1/assets/utilization-heartbeat'
 QUERY_ASSET_UTILIZIATION_HISTORY_ROUTE = '/niapm/v1/query-asset-utilization-history'
-GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/history/availability?startDate={start_date}&endDate={end_date}&granularity=NONE'
+GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/history/availability'
 GET_ASSET_CALIBRATION_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/history/calibration'
 UPDATE_ASSETS_ROUTE = 'niapm/v1/update-assets'
 GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
@@ -144,7 +144,7 @@ class TestAsset(ManualTestBase):
         self.__update_assets(updates)
 
     def __update_assets(self, updates):
-        response = self.post(UPDATE_ASSETS_ROUTE, json={ 'assets': updates})
+        response = self.post(UPDATE_ASSETS_ROUTE, json={'assets': updates})
         response.raise_for_status()
         return response.json()
 
@@ -318,7 +318,7 @@ class TestAsset(ManualTestBase):
 
     def __get_availability_histories_by_asset(self):
         histories_by_asset = []
-        for asset in  self.__get_assets():
+        for asset in self.__get_assets():
             history = self.__get_availability_history(asset)
             histories_by_asset.append({
                 'id': asset['id'],
@@ -329,19 +329,17 @@ class TestAsset(ManualTestBase):
 
     def __get_availability_history(self, asset):
         # Query into the future to avoid potential precision issues.
-        end_date =  datetime.now() + timedelta(hours=12)
-        uri = GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT.format(
-            asset_id=asset['id'],
-            start_date='1900-01-01T00:00:00.000Z',
-            end_date=self.datetime_to_string(end_date)
-        )
+        uri = GET_ASSET_AVAILABILITY_HISTORY_ROUTE_FORMAT.format(asset_id=asset['id'])
+        end_date = self.datetime_to_string(datetime.now() + timedelta(hours=12))
+        arguments = f'?startDate=1900-01-01T00:00:00.000Z&endDate={end_date}&granularity=NONE'
+        uri = uri + arguments
         response = self.get(uri)
         response.raise_for_status()
         return response.json()
 
     def __get_calibration_histories_by_asset(self):
         histories_by_asset = []
-        for asset in  self.__get_assets():
+        for asset in self.__get_assets():
             history = self.__get_calibration_history(asset)
             histories_by_asset.append({
                 'id': asset['id'],
@@ -392,7 +390,11 @@ class TestAsset(ManualTestBase):
 
     def __validate_availability_histories(self):
         actual_histories = self.__get_availability_histories_by_asset()
-        expected_histories = self.read_recorded_json_data(CATEGORY, 'availibility_histories', POPULATED_SERVER_RECORD_TYPE)
+        expected_histories = self.read_recorded_json_data(
+            CATEGORY,
+            'availibility_histories',
+            POPULATED_SERVER_RECORD_TYPE
+        )
 
         assert len(actual_histories) == len(expected_histories)
         for actual_history in actual_histories:
@@ -401,7 +403,11 @@ class TestAsset(ManualTestBase):
 
     def __validate_calibration_histories(self):
         actual_histories = self.__get_calibration_histories_by_asset()
-        expected_histories = self.read_recorded_json_data(CATEGORY, 'calibration_histories', POPULATED_SERVER_RECORD_TYPE)
+        expected_histories = self.read_recorded_json_data(
+            CATEGORY,
+            'calibration_histories',
+            POPULATED_SERVER_RECORD_TYPE
+        )
 
         assert len(actual_histories) == len(expected_histories)
         for actual_history in actual_histories:
