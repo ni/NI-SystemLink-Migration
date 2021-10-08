@@ -25,7 +25,7 @@ class TestFile(ManualTestBase):
 
     def validate_data(self):
         expected_files = self.__read_recorded_data(POPULATED_SERVER_RECORD_TYPE)
-        actual_files = self.__file_utilities.get_files()
+        actual_files = self.__file_utilities.get_files(self)
 
         self.__assert_files_match(actual_files, expected_files)
 
