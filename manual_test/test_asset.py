@@ -365,7 +365,11 @@ class TestAsset(ManualTestBase):
     def __validate_assets(self):
         actual_assets = self.__get_assets()
         expected_assets = self.read_recorded_json_data(CATEGORY, 'assets', POPULATED_SERVER_RECORD_TYPE)
-        assert actual_assets == expected_assets
+
+        assert len(actual_assets) == len(expected_assets)
+        for actual_asset in actual_assets:
+            expected_asset = self.find_record_by_id(actual_asset['id'], expected_assets)
+            assert actual_asset == expected_asset
 
     def __validate_asset_files(self):
         # TODO: AB#1667286 Asset files are bugged. Disabling validation until that is fixed.
@@ -375,19 +379,34 @@ class TestAsset(ManualTestBase):
         pass
 
     def __validate_utilization(self):
-        actual_utilization = self.__get_utilization()
-        expected_utilization = self.read_recorded_json_data(CATEGORY, 'utilization', POPULATED_SERVER_RECORD_TYPE)
-        assert actual_utilization == expected_utilization
+        actual_utilizations = self.__get_utilization()
+        expected_utilizations = self.read_recorded_json_data(CATEGORY, 'utilization', POPULATED_SERVER_RECORD_TYPE)
+
+        assert len(actual_utilizations) == len(expected_utilizations)
+        for actual_utilization in actual_utilizations:
+            expected_utilization = self.find_record_by_property_value(
+                actual_utilization['utilizationIdentifier'],
+                expected_utilizations,
+                'utilizationIdentifier')
+            assert actual_utilization == expected_utilization
 
     def __validate_availability_histories(self):
         actual_histories = self.__get_availability_histories_by_asset()
         expected_histories = self.read_recorded_json_data(CATEGORY, 'availibility_histories', POPULATED_SERVER_RECORD_TYPE)
-        assert actual_histories == expected_histories
+
+        assert len(actual_histories) == len(expected_histories)
+        for actual_history in actual_histories:
+            expected_history = self.find_record_by_id(actual_history['id'], expected_histories)
+            assert actual_history == expected_history
 
     def __validate_calibration_histories(self):
         actual_histories = self.__get_calibration_histories_by_asset()
         expected_histories = self.read_recorded_json_data(CATEGORY, 'calibration_histories', POPULATED_SERVER_RECORD_TYPE)
-        assert actual_histories == expected_histories
+
+        assert len(actual_histories) == len(expected_histories)
+        for actual_history in actual_histories:
+            expected_history = self.find_record_by_id(actual_history['id'], expected_histories)
+            assert actual_history == expected_history
 
     def __validate_policy(self):
         actual_policy = self.__get_policy()
