@@ -13,6 +13,7 @@ TEST_NAME = 'AssetRuleMigrationTest'
 GET_CALIBRATION_RULES_ROUTE = 'niapmrule/v1/calibration-rules'
 MODIFY_CALIBRATION_RULES_ROUTE_FORMAT = 'niapmrule/v1/calibration-rules/{rule_id}'
 
+
 class TestAssetRule(ManualTestBase):
 
     def populate_data(self) -> None:
@@ -138,8 +139,11 @@ class TestAssetRule(ManualTestBase):
         self,
         workspace_id: str,
         rules: List[Dict[str, Any]]
-    ) -> Optional[Dict[str, Any]]:
-        return next((rule for rule in rules if self.__is_calibration_rule_for_workspace(workspace_id, rule)), None)
+    ) -> Dict[str, Any]:
+        rule = next((rule for rule in rules if self.__is_calibration_rule_for_workspace(workspace_id, rule)), None)
+        if rule is None:
+            raise RuntimeError(f'Failed to find Calibration rule for workspace {workspace_id}')
+        return rule
 
     def __is_calibration_rule_for_workspace(self, workspace_id: str, rule: Dict[str, Any]) -> bool:
         return rule['displayName'] == 'Calibration' and rule['workspace'] == workspace_id
