@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from requests.models import Response
 from manual_test.manual_test_base import \
     ManualTestBase, \
     handle_command_line, \
@@ -10,9 +12,11 @@ from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
 SERVICE_NAME = 'DocumentManager'
 DOCUMENT_MANAGER_DATABASE_NAME = 'nidashboardbuilder'
+DOCUMENT_MANAGER_CONTENT_COLLECTION_NAME = 'content'
 TEST_NAME = 'DocumentManagerMigrationTest'
 GET_APPS_ROUTE = 'niapp/v1/webapps'
 CREATE_APP_ROUTE = 'niapp/v1/webapps'
+GET_APP_CONTENT_ROUTE_FORMAT = 'niapp/v1/webapps/{app_id}/content'
 ADD_APP_CONTENT_ROUTE_FORMAT = 'niapp/v1/webapps/{app_id}/content'
 
 # File content used to populate data
@@ -29,24 +33,50 @@ class TestDocumentManager(ManualTestBase):
         for workspace_id in workspace_utilities.get_workspaces(self):
             self.__populate_test_dashboard(workspace_id)
 
-        self.record_json_data(
-            SERVICE_NAME,
-            DOCUMENT_MANAGER_DATABASE_NAME,
-            POPULATED_SERVER_RECORD_TYPE,
-            self.__get_all_web_apps())
+        self.__record_all_web_apps(POPULATED_SERVER_RECORD_TYPE)
 
     def record_initial_data(self) -> None:
-        self.record_json_data(
-            SERVICE_NAME,
-            DOCUMENT_MANAGER_DATABASE_NAME,
-            CLEAN_SERVER_RECORD_TYPE,
-            self.__get_all_web_apps())
+        self.__record_all_web_apps(CLEAN_SERVER_RECORD_TYPE)
 
     def validate_data(self) -> None:
         pass
 
+    def __record_all_web_apps(self, record_type: str):
+        all_apps = self.__get_all_web_apps()
+        self.record_json_data(
+            SERVICE_NAME,
+            DOCUMENT_MANAGER_DATABASE_NAME,
+            CLEAN_SERVER_RECORD_TYPE,
+            all_apps)
+        self.record_json_data(
+            SERVICE_NAME,
+            DOCUMENT_MANAGER_CONTENT_COLLECTION_NAME,
+            CLEAN_SERVER_RECORD_TYPE,
+            self.__get_all_content_by_app(all_apps))
+
     def __get_all_web_apps(self) -> List[Dict[str, Any]]:
         return self.get_all_with_continuation_token(GET_APPS_ROUTE, 'webapps')
+
+    def __get_app_content(self, app: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        uri = GET_APP_CONTENT_ROUTE_FORMAT.format(app_id=app['id'])
+        response = self.get(uri)
+        if response.status_code != 200:
+            # Apps can have no content. Don't fail on error.
+            return None
+
+        return response.json()
+
+    def __get_all_content_by_app(self, apps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        all_content = []
+        for app in apps:
+            content = self.__get_app_content(app)
+            if content is not None:
+                all_content.append({
+                    'appId': app['id'],
+                    'content': content
+                })
+
+        return all_content
 
     def __populate_test_dashboard(self, workspace_id: str):
         dashboard = self.__create_test_dashboard(workspace_id)
