@@ -19,7 +19,7 @@ UPDATE_ASSETS_ROUTE = 'niapm/v1/update-assets'
 GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 
-CATEGORY = 'assets'
+CATEGORY = 'AssetPerformanceManagement'
 
 
 class TestAsset(ManualTestBase):
