@@ -31,6 +31,9 @@ class DocumentManagerMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
+        # NOTE: Do not migrate the /Config/EmbeddedDashboards/ folder. Those files belong to other services
+        # and we want to use the copy installed at the destination.
+
     def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
