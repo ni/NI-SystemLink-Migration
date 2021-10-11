@@ -97,12 +97,10 @@ class TestDocumentManager(ManualTestBase):
         return response.json()
 
     def __add_content_to_dashboard(self, dashboard: Dict[str, Any]):
-        # uri = ADD_APP_CONTENT_ROUTE_FORMAT.format(app_id=dashboard['id'])
-        # with open(DASHBOARD_CONTENT_FILE_PATH, 'rb') as file:
-        #     response = self.put(uri, files={'filename': file})
-        #     print(response.content)
-        #     response.raise_for_status()
-        pass
+        uri = ADD_APP_CONTENT_ROUTE_FORMAT.format(app_id=dashboard['id'])
+        with open(DASHBOARD_CONTENT_FILE_PATH, 'rb') as file:
+            response = self.put(uri, data=file)
+            response.raise_for_status()
 
 
 if __name__ == '__main__':
