@@ -148,7 +148,7 @@ class TestDocumentManager(ManualTestBase):
         current_workspace_ids: List[str],
         current_users: List[Dict[str, Any]]
     ):
-        # Workspace may empty if the dashboard is not workspace-restricted
+        # Workspace may be empty if the dashboard is not workspace-restricted
         workspace_id = app['workspace']
         if workspace_id != '':
             assert workspace_id in current_workspace_ids
