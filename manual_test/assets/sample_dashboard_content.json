@@ -1,0 +1,10 @@
+{"name": "Test%20Dashboard", "type": "gridPanel", "x": "0", "y": "0", "width": "1440", "height": "1200", "numberOfColumns": "12", "attributes": [{"backgroundColor": "%23FFFFFF"}, {"panelAlignment": "align%20left"}, {"version": "v3.38.3"}],
+"bindings": [],
+"locales": {"en":{"tile1.title":"TITLE","tile1.units":"UNITS"}},
+"models": [
+{"name": "tile1", "type": "count", "x": "2", "y": "0", "width": "357", "height": "200.8125", "attributes": [{"prefix": "tile"}, {"title": {"localizationKey":"tile1.title"}}, {"units": {"localizationKey":"tile1.units"}}, {"unitsEnabled": "true"}, {"datasource": "%7B%22type%22%3A%22tag%22%2C%22binding%22%3A%22%22%7D"}, {"navigationURLEnabled": "false"}, {"value": "0"}, {"useFilter": "false"}, {"zIndex": "1"}, {"columnRow": "%5B0%2C0%5D"}, {"gridSpan": "%5B3%2C2%5D"}],
+"bindings": []},
+{"name": "aps1", "type": "adaptivePanelState", "x": "NaN", "y": "NaN", "width": "NaN", "height": "NaN", "attributes": [{"prefix": "aps"}, {"size": "12"}, {"panelHeight": "1200"}],
+"models": [
+{"name": "psi1", "type": "", "x": "2", "y": "0", "width": "357", "height": "200.8125", "attributes": [{"prefix": "psi"}, {"matchingName": "tile1"}, {"columnRow": "%5B0%2C0%5D"}, {"gridSpan": "%5B3%2C2%5D"}],
+"bindings": []}]}]}
