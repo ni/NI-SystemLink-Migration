@@ -368,9 +368,9 @@ class TestAsset(ManualTestBase):
             assert actual_asset == expected_asset
 
     def __validate_asset_files(self):
-        actual_assets = self.__get_asset_files()
-        expected_assets = self.read_recorded_json_data(CATEGORY, 'files', POPULATED_SERVER_RECORD_TYPE)
-        assert actual_assets == expected_assets
+        actual_files = self.__get_asset_files()
+        expected_files = self.read_recorded_json_data(CATEGORY, 'files', POPULATED_SERVER_RECORD_TYPE)
+        assert actual_files == expected_files
 
     def __validate_utilization(self):
         actual_utilizations = self.__get_utilization()
