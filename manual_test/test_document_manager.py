@@ -1,4 +1,4 @@
-import json
+import base64
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -24,6 +24,8 @@ ADD_APP_CONTENT_ROUTE_FORMAT = 'niapp/v1/webapps/{app_id}/content'
 ASSETS_PATH = Path(__file__).parent / 'assets'
 DASHBOARD_CONTENT_FILE_NAME = 'sample_dashboard_content.json'
 DASHBOARD_CONTENT_FILE_PATH = ASSETS_PATH / DASHBOARD_CONTENT_FILE_NAME
+WEBVI_CONTENT_FILE_NAME = 'helloweb_1.0.0.0_windows_x64.nipkg'
+WEBVI_CONTENT_FILE_PATH = ASSETS_PATH / WEBVI_CONTENT_FILE_NAME
 
 
 class TestDocumentManager(ManualTestBase):
@@ -33,6 +35,7 @@ class TestDocumentManager(ManualTestBase):
         workspace_utilities.create_workspace_for_test(self)
         for workspace_id in workspace_utilities.get_workspaces(self):
             self.__populate_test_dashboard(workspace_id)
+            self.__populate_test_webvi(workspace_id)
 
         self.__record_all_web_apps(POPULATED_SERVER_RECORD_TYPE)
 
@@ -97,14 +100,14 @@ class TestDocumentManager(ManualTestBase):
     def __get_all_web_apps(self) -> List[Dict[str, Any]]:
         return self.get_all_with_continuation_token(GET_APPS_ROUTE, 'webapps')
 
-    def __get_app_content(self, app: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def __get_app_content(self, app: Dict[str, Any]) -> Optional[str]:
         uri = GET_APP_CONTENT_ROUTE_FORMAT.format(app_id=app['id'])
         response = self.get(uri)
         if response.status_code != 200:
             # Apps can have no content. Don't fail on error.
             return None
 
-        return response.json()
+        return str(base64.b64encode(response.content))
 
     def __get_all_content_by_app(self, apps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         all_content = []
@@ -119,16 +122,20 @@ class TestDocumentManager(ManualTestBase):
         return all_content
 
     def __populate_test_dashboard(self, workspace_id: str):
-        dashboard = self.__create_test_dashboard(workspace_id)
-        self.__add_content_to_dashboard(dashboard)
+        dashboard = self.__create_test_app('Test Dashboard', 'TileDashboard', workspace_id)
+        self.__add_content_to_app(dashboard, DASHBOARD_CONTENT_FILE_PATH)
 
-    def __create_test_dashboard(self, workspace_id: str) -> Dict[str, Any]:
+    def __populate_test_webvi(self, workspace_id):
+        webvi = self.__create_test_app('Test WebVI', 'WebVI', workspace_id)
+        self.__add_content_to_app(webvi, WEBVI_CONTENT_FILE_PATH)
+
+    def __create_test_app(self, name: str, type: str,  workspace_id: str) -> Dict[str, Any]:
         new_dashboard = {
-            'name': 'Test Dashboard',
+            'name': name,
             'policyIds': [],
             'properties':  {'forTest': 'True'},
             'shared': 'private',
-            'type': 'TileDashboard',
+            'type': type,
             'workspace': workspace_id
         }
         response = self.post(CREATE_APP_ROUTE, json=new_dashboard)
@@ -136,9 +143,9 @@ class TestDocumentManager(ManualTestBase):
 
         return response.json()
 
-    def __add_content_to_dashboard(self, dashboard: Dict[str, Any]):
+    def __add_content_to_app(self, dashboard: Dict[str, Any], content_path: str):
         uri = ADD_APP_CONTENT_ROUTE_FORMAT.format(app_id=dashboard['id'])
-        with open(DASHBOARD_CONTENT_FILE_PATH, 'rb') as file:
+        with open(content_path, 'rb') as file:
             response = self.put(uri, data=file)
             response.raise_for_status()
 
@@ -162,8 +169,14 @@ class TestDocumentManager(ManualTestBase):
         source_content_snapshot: Dict[str, Any],
         current_content_snapshot: Dict[str, Any]
     ):
-        expected_content = self.find_record_by_property_value(app['id'], source_content_snapshot, 'appId')
-        actual_content = self.find_record_by_property_value(app['id'], current_content_snapshot, 'appId')
+        expected_content = self.find_record_by_property_value(
+            app['id'],
+            source_content_snapshot,
+            'appId')
+        actual_content = self.find_record_by_property_value(
+            app['id'],
+            current_content_snapshot,
+            'appId')
         assert expected_content == actual_content
 
     def __is_test_app(self, app: Dict[str, Any]) -> bool:
