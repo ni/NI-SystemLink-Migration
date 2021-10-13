@@ -2,7 +2,6 @@ import base64
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from requests.models import Response
 from manual_test.manual_test_base import \
     ManualTestBase, \
     handle_command_line, \
@@ -143,7 +142,7 @@ class TestDocumentManager(ManualTestBase):
 
         return response.json()
 
-    def __add_content_to_app(self, dashboard: Dict[str, Any], content_path: str):
+    def __add_content_to_app(self, dashboard: Dict[str, Any], content_path: Path):
         uri = ADD_APP_CONTENT_ROUTE_FORMAT.format(app_id=dashboard['id'])
         with open(content_path, 'rb') as file:
             response = self.put(uri, data=file)
@@ -166,8 +165,8 @@ class TestDocumentManager(ManualTestBase):
     def __assert_has_expected_content(
         self,
         app: Dict[str, Any],
-        source_content_snapshot: Dict[str, Any],
-        current_content_snapshot: Dict[str, Any]
+        source_content_snapshot: List[Dict[str, Any]],
+        current_content_snapshot: List[Dict[str, Any]]
     ):
         expected_content = self.find_record_by_property_value(
             app['id'],
