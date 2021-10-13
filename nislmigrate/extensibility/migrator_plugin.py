@@ -62,6 +62,14 @@ class MigratorPlugin(abc.ABC):
         return 'The full name of the plugin'
 
     @property
+    def configuration_category(self) -> str:
+        """
+        Gets the top-level category in the service configuration file where the service stores
+        its configuration. This is normally the same as configuration file name.
+        """
+        return self.name
+
+    @property
     @abc.abstractmethod
     def help(self) -> str:
         """
@@ -79,7 +87,7 @@ class MigratorPlugin(abc.ABC):
         if self.__cached_config is None:
             config_file = self.__build_config_file_path()
             filesystem_facade = facade_factory.get_file_system_facade()
-            self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
+            self.__cached_config = filesystem_facade.read_json_file(config_file)[self.configuration_category]
         return self.__cached_config
 
     @abc.abstractmethod

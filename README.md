@@ -60,6 +60,7 @@ The following services can be migrated with this utility:
 - Asset Management: `--assets`
     - Cannot be migrated between 2020R1 and 2020R2 servers
 - Asset Alarm Rules: `--assetrule`
+- Dashboards and Web Applications: `--dashboards`
 - File Ingestion: `--files`
     - Must migrate file to the same storage location on the new System Link server.
     - To capture/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
