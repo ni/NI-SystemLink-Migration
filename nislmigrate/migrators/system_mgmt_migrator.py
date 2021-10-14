@@ -6,13 +6,26 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 import os
 from typing import Any, Dict
 
-PKI_PATH = os.path.join(
-    str(os.environ.get('ProgramData')),
+PKI_RELATIVE_PATH = os.path.join(
     'National Instruments',
     'salt',
     'conf',
     'pki',
     'master')
+
+PKI_INSTALLED_PATH = os.path.join(
+    str(os.environ.get('ProgramData')),
+    PKI_RELATIVE_PATH)
+
+PILLAR_RELATIVE_PATH = os.path.join(
+    'National Instruments',
+    'salt',
+    'srv',
+    'pillar')
+
+PILLAR_INSTALLED_PATH = os.path.join(
+    str(os.environ.get('ProgramData')),
+    PILLAR_RELATIVE_PATH)
 
 class SystemsManagementMigrator(MigratorPlugin):
 
@@ -32,30 +45,40 @@ class SystemsManagementMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        file_migration_directory = os.path.join(migration_directory, 'files')
+        pki_files_migration_directory = os.path.join(migration_directory, PKI_RELATIVE_PATH)
+        pillar_files_migration_directory = os.path.join(migration_directory, PILLAR_RELATIVE_PATH)
 
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
             migration_directory,
             self.name)
         file_facade.copy_directory(
-            PKI_PATH,
-            file_migration_directory,
+            PKI_INSTALLED_PATH,
+            pki_files_migration_directory,
+            True)
+        file_facade.copy_directory_if_exists(
+            PILLAR_INSTALLED_PATH,
+            pillar_files_migration_directory,
             True)
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        file_migration_directory = os.path.join(migration_directory, 'files')
+        pki_files_migration_directory = os.path.join(migration_directory, PKI_RELATIVE_PATH)
+        pillar_files_migration_directory = os.path.join(migration_directory, PILLAR_RELATIVE_PATH)
 
         mongo_facade.restore_database_from_directory(
             mongo_configuration,
             migration_directory,
             self.name)
         file_facade.copy_directory(
-            PKI_PATH,
-            file_migration_directory,
+            pki_files_migration_directory,
+            PKI_INSTALLED_PATH,
+            True)
+        file_facade.copy_directory_if_exists(
+            pillar_files_migration_directory,
+            PILLAR_INSTALLED_PATH,
             True)
 
     def pre_restore_check(
