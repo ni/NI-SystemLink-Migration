@@ -27,6 +27,7 @@ PILLAR_INSTALLED_PATH = os.path.join(
     str(os.environ.get('ProgramData')),
     PILLAR_RELATIVE_PATH)
 
+
 class SystemsManagementMigrator(MigratorPlugin):
 
     @property
@@ -45,8 +46,8 @@ class SystemsManagementMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        pki_files_migration_directory = os.path.join(migration_directory, PKI_RELATIVE_PATH)
-        pillar_files_migration_directory = os.path.join(migration_directory, PILLAR_RELATIVE_PATH)
+        pki_files_migration_directory = self.__get_pki_files_migration_directory(migration_directory)
+        pillar_files_migration_directory = self.__get_pillar_files_migration_directory(migration_directory)
 
         mongo_facade.capture_database_to_directory(
             mongo_configuration,
@@ -65,8 +66,8 @@ class SystemsManagementMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_configuration: MongoConfiguration = MongoConfiguration(self.config(facade_factory))
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        pki_files_migration_directory = os.path.join(migration_directory, PKI_RELATIVE_PATH)
-        pillar_files_migration_directory = os.path.join(migration_directory, PILLAR_RELATIVE_PATH)
+        pki_files_migration_directory = self.__get_pki_files_migration_directory(migration_directory)
+        pillar_files_migration_directory = self.__get_pillar_files_migration_directory(migration_directory)
 
         mongo_facade.restore_database_from_directory(
             mongo_configuration,
@@ -90,3 +91,16 @@ class SystemsManagementMigrator(MigratorPlugin):
         mongo_facade.validate_can_restore_database_from_directory(
             migration_directory,
             self.name)
+
+        file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
+        pki_files_migration_directory = self.__get_pki_files_migration_directory(migration_directory)
+        if not file_facade.does_directory_exist(pki_files_migration_directory):
+            raise FileNotFoundError(f"Could not find the captured service at '{pki_files_migration_directory}'")
+
+    @staticmethod
+    def __get_pki_files_migration_directory(migration_directory: str) -> str:
+        return os.path.join(migration_directory, PKI_RELATIVE_PATH)
+
+    @staticmethod
+    def __get_pillar_files_migration_directory(migration_directory: str) -> str:
+        return os.path.join(migration_directory, PILLAR_RELATIVE_PATH)
