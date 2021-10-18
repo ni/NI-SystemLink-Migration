@@ -255,6 +255,9 @@ class FakeMigrator(MigratorPlugin):
         if self.fail_pre_check:
             raise RuntimeError('pre restore failure')
 
+    def is_service_installed(self, facade_factory: FacadeFactory) -> bool:
+        return True
+
 
 def configure_fake_facade_factory() -> FakeFacadeFactory:
     fake_facade_factory = FakeFacadeFactory()

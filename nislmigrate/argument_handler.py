@@ -3,7 +3,7 @@ import os
 from typing import List, Dict, Any
 
 from argparse import ArgumentParser, Action, SUPPRESS
-from argparse import Namespace
+from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate import migrators
 from nislmigrate.logs.migration_error import MigrationError
@@ -26,6 +26,13 @@ Must specify at least one service to migrate, or migrate all services with the `
 Run `nislmigrate capture/restore --help` to list all supported services."""
 
 CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = 'The "capture" or "restore" argument must be provided'
+SERVICE_NOT_INSTALLED_ERROR_TEXT_FORMAT = """
+
+Service '{service_name}' cannot be migrated because the specified service is not installed locally.
+
+Remove unavailable services from the request and try again, or use --all to request all supported services
+that are currently installed."""
+
 CAPTURE_COMMAND_HELP = 'use capture to pull data and settings off of a SystemLink server'
 RESTORE_COMMAND_HELP = 'use restore to push captured data and settings to a clean SystemLink server'
 DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (defaults to documents)'
@@ -48,18 +55,19 @@ class ArgumentHandler:
     Processes arguments either from the command line or just a list of arguments and breaks them
     into the properties required by the migration tool.
     """
-    parsed_arguments: Namespace = Namespace()
-    plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)
-
     def __init__(
             self,
             arguments: List[str] = None,
+            facade_factory: FacadeFactory = FacadeFactory(),
             plugin_loader: MigratorPluginLoader = MigratorPluginLoader(migrators, MigratorPlugin)):
         """
         Creates a new instance of ArgumentHandler
         :param arguments: The list of arguments to process, or None to directly grab CLI arguments.
+        :param facade_factory: Factory for migration facades.
+        :param plugin_loader: Object that can load migration plugins.
         """
         self.plugin_loader = plugin_loader
+        self.facade_factory = facade_factory
         argument_parser = self.__create_migration_tool_argument_parser()
         if arguments is None:
             self.parsed_arguments = argument_parser.parse_args()
@@ -73,10 +81,14 @@ class ArgumentHandler:
 
         :return: A list of selected migration actions.
         """
-        enabled_plugins = (self.plugin_loader.get_plugins() if self.__is_all_service_migration_flag_present()
+        migrate_all = self.__is_all_service_migration_flag_present()
+        enabled_plugins = (self.__get_all_plugins_for_installed_services()
+                           if migrate_all
                            else self.__get_enabled_plugins())
         if len(enabled_plugins) == 0:
             raise MigrationError(NO_SERVICES_SPECIFIED_ERROR_TEXT)
+        if not migrate_all:
+            self.__verify_service_is_installed_for_plugins(enabled_plugins)
         return [plugin for plugin in enabled_plugins]
 
     def get_migrator_additional_arguments(self, migrator: MigratorPlugin) -> Dict[str, Any]:
@@ -89,6 +101,10 @@ class ArgumentHandler:
         """
         key = _get_migrator_arguments_key(migrator)
         return getattr(self.parsed_arguments, key, {})
+
+    def __get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
+        return [plugin for plugin in self.plugin_loader.get_plugins()
+                if plugin.is_service_installed(self.facade_factory)]
 
     def __get_enabled_plugins(self) -> List[MigratorPlugin]:
         arguments: List[str] = self.__get_enabled_plugin_arguments()
@@ -103,6 +119,12 @@ class ArgumentHandler:
         plugins = self.plugin_loader.get_plugins()
         plugin = [plugin for plugin in plugins if plugin.argument == argument][0]
         return plugin
+
+    def __verify_service_is_installed_for_plugins(self, plugins: List[MigratorPlugin]):
+        for plugin in plugins:
+            if not plugin.is_service_installed(self.facade_factory):
+                message = SERVICE_NOT_INSTALLED_ERROR_TEXT_FORMAT.format(service_name=plugin.name)
+                raise MigrationError(message)
 
     def __is_plugin_enabled(self, plugin_argument: str) -> bool:
         return getattr(self.parsed_arguments, plugin_argument)

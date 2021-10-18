@@ -11,12 +11,14 @@ class WorkspaceUtilities:
     def get_workspaces(test: ManualTestBase):
         response = test.get(AUTH_ROUTE)
         response.raise_for_status()
-
         auth = response.json()
-        workspaces = [workspace['id'] for workspace in auth['workspaces'] if workspace['enabled']]
+        return [workspace['id'] for workspace in auth['workspaces'] if workspace['enabled']]
+
+    @staticmethod
+    def get_two_or_more_workspaces(test: ManualTestBase):
+        workspaces = WorkspaceUtilities.get_workspaces(test)
         if len(workspaces) < 2:
             raise RuntimeError('User needs access to at least 2 workspaces')
-
         return workspaces
 
     @staticmethod

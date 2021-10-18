@@ -7,14 +7,12 @@ from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.argument_handler import CAPTURE_ARGUMENT
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import DEFAULT_MIGRATION_DIRECTORY
-
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
-
+from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migrators.asset_migrator import AssetMigrator
 from nislmigrate.migrators.tag_migrator import TagMigrator
-
-from test.test_utilities import FakeMigratorPluginLoader
+from test.test_utilities import FakeFacadeFactory, FakeMigratorPluginLoader
 
 
 @pytest.mark.unit
@@ -34,7 +32,7 @@ def test_invalid_arguments_exits_with_exception(arguments: List[str]):
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_capture_action():
     arguments = [CAPTURE_ARGUMENT, '--tags']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     migration_action = argument_handler.get_migration_action()
 
@@ -44,7 +42,7 @@ def test_capture_tag_service_arguments_recognizes_capture_action():
 @pytest.mark.unit
 def test_capture_tag_service_arguments_recognizes_tag_service():
     arguments = [CAPTURE_ARGUMENT, '--tags']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
@@ -55,7 +53,7 @@ def test_capture_tag_service_arguments_recognizes_tag_service():
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_restore_action():
     arguments = [RESTORE_ARGUMENT, '--tags']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     migration_action = argument_handler.get_migration_action()
 
@@ -65,7 +63,7 @@ def test_restore_tag_service_arguments_recognizes_restore_action():
 @pytest.mark.unit
 def test_restore_tag_service_arguments_recognizes_tag_service():
     arguments = [RESTORE_ARGUMENT, '--tags']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
@@ -76,7 +74,7 @@ def test_restore_tag_service_arguments_recognizes_tag_service():
 @pytest.mark.unit
 def test_restore_two_services_arguments_recognizes_both_services():
     arguments = [RESTORE_ARGUMENT, '--tags', '--assets']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     services_to_migrate = argument_handler.get_list_of_services_to_capture_or_restore()
 
@@ -90,7 +88,7 @@ def test_restore_two_services_arguments_recognizes_both_services():
 @pytest.mark.unit
 def test_get_migration_directory_returns_default():
     arguments = [CAPTURE_ARGUMENT, '--tags']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert argument_handler.get_migration_directory() == DEFAULT_MIGRATION_DIRECTORY
 
@@ -98,7 +96,7 @@ def test_get_migration_directory_returns_default():
 @pytest.mark.unit
 def test_get_migration_directory_returns_migration_directory():
     arguments = [CAPTURE_ARGUMENT, '--tags', '--dir=test']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert argument_handler.get_migration_directory() == 'test'
 
@@ -106,7 +104,7 @@ def test_get_migration_directory_returns_migration_directory():
 @pytest.mark.unit
 def test_get_logging_verbosity_with_no_arguments():
     arguments = []
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert argument_handler.get_logging_verbosity() == logging.WARNING
 
@@ -114,7 +112,7 @@ def test_get_logging_verbosity_with_no_arguments():
 @pytest.mark.unit
 def test_is_force_migration_flag_present_short_flag_present():
     arguments = [RESTORE_ARGUMENT, '-f']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert argument_handler.is_force_migration_flag_present()
 
@@ -122,7 +120,7 @@ def test_is_force_migration_flag_present_short_flag_present():
 @pytest.mark.unit
 def test_is_force_migration_flag_present_flag_not_present():
     arguments = [RESTORE_ARGUMENT]
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert not argument_handler.is_force_migration_flag_present()
 
@@ -130,7 +128,7 @@ def test_is_force_migration_flag_present_flag_not_present():
 @pytest.mark.unit
 def test_is_force_migration_flag_present_flag_present():
     arguments = [RESTORE_ARGUMENT, '--force']
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert argument_handler.is_force_migration_flag_present()
 
@@ -138,7 +136,7 @@ def test_is_force_migration_flag_present_flag_present():
 @pytest.mark.unit
 def test_is_force_migration_flag_present_during_capture_returns_false():
     arguments = [CAPTURE_ARGUMENT]
-    argument_handler = ArgumentHandler(arguments)
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
     assert not argument_handler.is_force_migration_flag_present()
 
@@ -148,7 +146,11 @@ def test_migrator_with_no_additional_arguments_has_empty_additional_parameters()
     migrator = FakeMigrator(add_argument=False)
     loader = FakeMigratorPluginLoader([migrator])
     arguments = ['capture', '--fake']
-    argument_handler = ArgumentHandler(arguments, loader)
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=FakeFacadeFactory(),
+        plugin_loader=loader
+    )
 
     result = argument_handler.get_list_of_services_to_capture_or_restore()
 
@@ -160,7 +162,11 @@ def test_migrator_with_additional_arguments_has_empty_additional_parameters_when
     migrator = FakeMigrator(add_argument=True)
     loader = FakeMigratorPluginLoader([migrator])
     arguments = ['capture', '--fake']
-    argument_handler = ArgumentHandler(arguments, loader)
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=FakeFacadeFactory(),
+        plugin_loader=loader
+    )
 
     additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
 
@@ -172,7 +178,11 @@ def test_migrator_with_additional_arguments_has_additional_parameters_when_passe
     migrator = FakeMigrator(add_argument=True)
     loader = FakeMigratorPluginLoader([migrator])
     arguments = ['capture', '--fake', '--fake-extra']
-    argument_handler = ArgumentHandler(arguments, loader)
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=FakeFacadeFactory(),
+        plugin_loader=loader
+    )
 
     additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
 
@@ -185,13 +195,87 @@ def test_migrator_with_additional_arguments_only_receives_own_arguments():
     migrator2 = FakeMigrator('two', 'yours', True)
     loader = FakeMigratorPluginLoader([migrator1, migrator2])
     arguments = ['capture', '--one', '--one-mine', '--two', '--two-yours']
-    argument_handler = ArgumentHandler(arguments, loader)
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=FakeFacadeFactory(),
+        plugin_loader=loader
+    )
 
     additional_arguments1 = argument_handler.get_migrator_additional_arguments(migrator1)
     additional_arguments2 = argument_handler.get_migrator_additional_arguments(migrator2)
 
     assert additional_arguments1 == {'mine': True}
     assert additional_arguments2 == {'yours': True}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    'capture',
+    'restore'
+])
+def test_service_not_installed_throws_migration_error(operation: str):
+    migrator1 = FakeMigrator('one', 'mine', True)
+    migrator2 = FakeMigrator('two', 'yours', True)
+    loader = FakeMigratorPluginLoader([migrator1, migrator2])
+    facade_factory = FakeFacadeFactory()
+    configure_not_installed_service(facade_factory, migrator2)
+    arguments = [operation, '--one', '--two']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=facade_factory,
+        plugin_loader=loader
+    )
+
+    with pytest.raises(MigrationError):
+        argument_handler.get_list_of_services_to_capture_or_restore()
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    'capture',
+    'restore'
+])
+def test_all_argument_selects_all_supported_migrators(operation: str):
+    migrator1 = FakeMigrator('one', 'mine', True)
+    migrator2 = FakeMigrator('two', 'yours', True)
+    loader = FakeMigratorPluginLoader([migrator1, migrator2])
+    facade_factory = FakeFacadeFactory()
+    arguments = [operation, '--all']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=facade_factory,
+        plugin_loader=loader
+    )
+
+    migrators = argument_handler.get_list_of_services_to_capture_or_restore()
+
+    assert len(migrators) == 2
+    assert migrator1 in migrators
+    assert migrator2 in migrators
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    'capture',
+    'restore'
+])
+def test_all_argument_excludes_not_installed_migrators(operation: str):
+    migrator1 = FakeMigrator('one', 'mine', True)
+    migrator2 = FakeMigrator('two', 'yours', True)
+    loader = FakeMigratorPluginLoader([migrator1, migrator2])
+    facade_factory = FakeFacadeFactory()
+    configure_not_installed_service(facade_factory, migrator2)
+    arguments = [operation, '--all']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=facade_factory,
+        plugin_loader=loader
+    )
+
+    migrators = argument_handler.get_list_of_services_to_capture_or_restore()
+
+    assert len(migrators) == 1
+    assert migrator1 in migrators
 
 
 class FakeMigrator(MigratorPlugin):
@@ -224,3 +308,7 @@ class FakeMigrator(MigratorPlugin):
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         if self._add_argument:
             argument_manager.add_switch(self._extra_argument_name, f'{self._extra_argument_name} help')
+
+
+def configure_not_installed_service(facade_factory: FakeFacadeFactory, migrator: FakeMigrator):
+    facade_factory.file_system_facade.missing_files.append(f'{migrator.name}.json')

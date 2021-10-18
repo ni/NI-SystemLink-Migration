@@ -36,7 +36,7 @@ MAX_WAIT_ITERATIONS = 100
 class TestRepository(ManualTestBase):
     def populate_data(self):
         workspace_utilities = WorkspaceUtilities()
-        workspace_utilities.create_workspace(TEST_WORKSPACE_NAME, self)
+        workspace_utilities.create_workspace_for_test(self)
         feed_ids = []
         for workspace in workspace_utilities.get_workspaces(self):
             feed_ids.append(self.__create_feed(workspace))
