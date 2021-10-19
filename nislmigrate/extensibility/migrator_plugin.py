@@ -33,6 +33,21 @@ class ArgumentManager(abc.ABC):
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def add_argument(self, name: str, help: str, metavar: str) -> None:
+        """
+        Adds a switch command line argument that will be associated with a migrator_plugin.
+        The argument will be namespaced by the migrator name in order to ensure that it does
+        not conflict with any other arguments, resulting in a command line argument in the form:
+
+          --<migrator-name>-<argument-name> <parameter>
+
+        If the switch is specified on the command line, the arguments dictionary passed to the
+        migrator's create/restore/pre_restore_check methods contain the <argument-name>
+        with the value following the switch. Otherwise <argument-name> will not be in the dictionary.
+        """
+        raise NotImplementedError
+
 
 class MigratorPlugin(abc.ABC):
     """

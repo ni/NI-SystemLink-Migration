@@ -48,9 +48,10 @@ Migrating systems requires a password to encrypt secrets.
 The same password needs to be provided during both capture and restore by
 including the following command line argument:
 
---systems-password <PASSWORD> 
+--systems-password <PASSWORD>
 
 """
+
 
 class SystemsManagementMigrator(MigratorPlugin):
 
@@ -160,7 +161,7 @@ class SystemsManagementMigrator(MigratorPlugin):
 
     @staticmethod
     def __get_encrypter(arguments):
-        password: str = arguments.get(PASSWORD_ARGUMENT, "")
+        password: str = arguments.get(PASSWORD_ARGUMENT, '')
         password = bytes(password, 'utf-8')
         if not password:
             raise MigrationError(NO_PASSWORD_ERROR)

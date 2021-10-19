@@ -285,12 +285,14 @@ class _MigratorArgumentManager(ArgumentManager):
         key = _get_migrator_arguments_key(self.__plugin)
         return f'{key}.{name}'
 
+
 class _StoreMigratorSwitchAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
         dest, key = self.dest.split('.', 1)
         args = getattr(namespace, dest, {})
         args[key] = True
         setattr(namespace, dest, args)
+
 
 class _StoreMigratorSingleArgumentAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
