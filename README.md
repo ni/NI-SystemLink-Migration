@@ -67,6 +67,8 @@ The following services can be migrated with this utility:
     - If files are stored in Amazon Simple Storage Service (S3), use `--files --files-metadata-only`.
 - Notifications: `--notification`
 - Security `--security`
+- Systems: `--systems`
+    - WARNING: Archiving Systems will capture key data from the server. Care must be taken to protect archived secrets.
 - System States: `--systemstates`
     - Feeds may require additional updates if servers used for migration have different domain names
     - Cannot be migrated between 2020R1 and 2020R2 servers
