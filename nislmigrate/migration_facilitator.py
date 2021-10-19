@@ -9,7 +9,6 @@ from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 from nislmigrate.utility import permission_checker
 
-
 class MigrationFacilitator:
     """
     Facilitates an entire capture or restore operation from start to finish.
@@ -30,6 +29,7 @@ class MigrationFacilitator:
 
         self.__pre_migration_error_check()
         self.__stop_services_and_perform_migration()
+
 
     def __stop_services_and_perform_migration(self) -> None:
         self.service_manager.stop_all_system_link_services()

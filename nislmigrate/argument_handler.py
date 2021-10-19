@@ -255,21 +255,46 @@ class _MigratorArgumentManager(ArgumentManager):
         self.__plugin = plugin
 
     def add_switch(self, name: str, help: str) -> None:
-        migrator_argument = self.__plugin.argument
-        argument = f'--{migrator_argument}-{name}'
-        dest = f'{_get_migrator_arguments_key(self.__plugin)}.{name}'
+        argument = self.__generate_argument_name(name)
+        destination = self.__generate_argument_destination(name)
         self.__parser.add_argument(
                 argument,
                 nargs=0,
                 help=help,
                 action=_StoreMigratorSwitchAction,
-                dest=dest,
+                dest=destination,
                 default=SUPPRESS)
 
+    def add_argument(self, name: str, help: str, metavar: str) -> None:
+        argument = self.__generate_argument_name(name)
+        destination = self.__generate_argument_destination(name)
+        self.__parser.add_argument(
+                argument,
+                nargs=1,
+                help=help,
+                action=_StoreMigratorSingleArgumentAction,
+                dest=destination,
+                default=SUPPRESS,
+                metavar=metavar)
+
+    def __generate_argument_name(self, name):
+        migrator_argument = self.__plugin.argument
+        return f'--{migrator_argument}-{name}'
+
+    def __generate_argument_destination(self, name):
+        key = _get_migrator_arguments_key(self.__plugin)
+        return f'{key}.{name}'
 
 class _StoreMigratorSwitchAction(Action):
     def __call__(self, parser, namespace, values, option_string=None):
         dest, key = self.dest.split('.', 1)
         args = getattr(namespace, dest, {})
         args[key] = True
+        setattr(namespace, dest, args)
+
+class _StoreMigratorSingleArgumentAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        dest, key = self.dest.split('.', 1)
+        args = getattr(namespace, dest, {})
+        args[key] = values[0]
         setattr(namespace, dest, args)
