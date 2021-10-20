@@ -182,7 +182,7 @@ class FileSystemFacade:
         if os.path.isfile(from_directory + extension):
             raise MigrationError(f'Data not cleaned up from previous migration: {from_directory + extension}')
 
-        # shutil.make_archive automatically adds the compression formats file extension.
+        # shutil.make_archive automatically appends the compression formats file extension to the output path.
         shutil.make_archive(from_directory, COMPRESSION_FORMAT, from_directory)
         self.__encrypt_tar(secret, from_directory + extension, encrypted_file_path)
         os.remove(from_directory + extension)
