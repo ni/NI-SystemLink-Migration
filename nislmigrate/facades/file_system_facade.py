@@ -164,7 +164,7 @@ class FileSystemFacade:
         self.remove_directory(to_directory)
         shutil.copytree(from_directory, to_directory)
 
-    def copy_directory_to_encrypted(self, from_directory: str, encrypted_file_path: str, secret: str):
+    def copy_directory_to_encrypted_file(self, from_directory: str, encrypted_file_path: str, secret: str):
         """
         Copy an entire directory from one location to another and encrypts it.
 
@@ -178,12 +178,16 @@ class FileSystemFacade:
             raise MigrationError(error)
         if not os.path.exists(from_directory):
             raise MigrationError("No data found at: '%s'" % from_directory)
+        extension = f'{COMPRESSION_FORMAT}'
+        if os.path.isfile(from_directory + extension):
+            raise MigrationError(f'Data not cleaned up from previous migration: {from_directory + extension}')
 
+        # shutil.make_archive automatically adds the compression formats file extension.
         shutil.make_archive(from_directory, COMPRESSION_FORMAT, from_directory)
-        self.__encrypt_tar(secret, from_directory + f'.{COMPRESSION_FORMAT}', encrypted_file_path)
-        os.remove(from_directory + f'.{COMPRESSION_FORMAT}')
+        self.__encrypt_tar(secret, from_directory + extension, encrypted_file_path)
+        os.remove(from_directory + extension)
 
-    def copy_directory_from_encrypted(self, encrypted_file_path: str, to_directory: str, secret: str):
+    def copy_directory_from_encrypted_file(self, encrypted_file_path: str, to_directory: str, secret: str):
         """
         Copy an entire directory from one location to another and encrypts it.
 
@@ -194,10 +198,13 @@ class FileSystemFacade:
 
         if not os.path.exists(encrypted_file_path):
             raise MigrationError("No data found at: '%s'" % encrypted_file_path)
+        extension = f'{COMPRESSION_FORMAT}'
+        if os.path.isfile(encrypted_file_path + extension):
+            raise MigrationError(f'Data not cleaned up from previous migration: {encrypted_file_path + extension}')
 
-        self.__decrypt_tar(secret, encrypted_file_path, encrypted_file_path + f'.{COMPRESSION_FORMAT}')
-        shutil.unpack_archive(encrypted_file_path + f'.{COMPRESSION_FORMAT}', to_directory, COMPRESSION_FORMAT)
-        os.remove(encrypted_file_path + f'.{COMPRESSION_FORMAT}')
+        self.__decrypt_tar(secret, encrypted_file_path, encrypted_file_path + extension)
+        shutil.unpack_archive(encrypted_file_path + extension, to_directory, COMPRESSION_FORMAT)
+        os.remove(encrypted_file_path + extension)
 
     def __encrypt_tar(self, secret: str, tar_path: str, encrypted_path: str):
         with open(tar_path, 'rb') as file:
