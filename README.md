@@ -67,6 +67,7 @@ The following services can be migrated with this utility:
 - Notifications: `--notification`
 - Security `--security`
 - Systems: `--systems`
+    - _WARNING:_ Captured systems data contains encrypted secret information and should not be copied to a publicly accessible location.
     - To capture/restore systems, a secret must be provided using the `--secret <SECRET>` command line flag. Captured systems data will require the same secret to be provided as was provided during capture in order to be able to decrypt sensitive data.
 - System States: `--systemstates`
     - Feeds may require additional updates if servers used for migration have different domain names
