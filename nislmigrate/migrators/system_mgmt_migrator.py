@@ -5,12 +5,15 @@ from nislmigrate.facades.mongo_facade import MongoFacade
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.utility.paths import get_ni_application_data_directory_path
 from nislmigrate.logs.migration_error import MigrationError
+from nislmigrate.argument_handler import SECRET_ARGUMENT
 import os
 from typing import Any, Dict
 
+PKI_DIRECTORY_NAME = 'pki'
+PILLAR_DIRECTORY_NAME = 'pillar'
 SALT_PATH = os.path.join(get_ni_application_data_directory_path(), 'National Instruments', 'salt')
-PKI_INSTALLED_PATH = os.path.join(SALT_PATH, 'conf', 'pki', 'master')
-PILLAR_INSTALLED_PATH = os.path.join(SALT_PATH, 'srv', 'pillar')
+PKI_INSTALLED_PATH = os.path.join(SALT_PATH, 'conf', PKI_DIRECTORY_NAME, 'master')
+PILLAR_INSTALLED_PATH = os.path.join(SALT_PATH, 'srv', PILLAR_DIRECTORY_NAME)
 NO_PASSWORD_ERROR = """
 
 Migrating systems requires a password to encrypt secrets.
@@ -59,17 +62,18 @@ class SystemsManagementMigrator(MigratorPlugin):
         self.__file_facade = facade_factory.get_file_system_facade()
         self.__verify_password_provided(arguments)
 
-    def __verify_password_provided(self, arguments):
-        secret = arguments.get('secret')
+    @staticmethod
+    def __verify_password_provided(arguments):
+        secret = arguments.get(SECRET_ARGUMENT)
         if not secret:
             raise MigrationError(NO_PASSWORD_ERROR)
 
     @staticmethod
     def __capture_file_data(arguments, facade_factory, migration_directory):
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        encrypted_pki_files = os.path.join(migration_directory, 'pki')
-        encrypted_pillar_files = os.path.join(migration_directory, 'pillar')
-        secret = arguments.get('secret')
+        encrypted_pki_files = os.path.join(migration_directory, PKI_DIRECTORY_NAME)
+        encrypted_pillar_files = os.path.join(migration_directory, PILLAR_DIRECTORY_NAME)
+        secret = arguments.get(SECRET_ARGUMENT)
         file_facade.copy_directory_to_encrypted_file(PKI_INSTALLED_PATH, encrypted_pki_files, secret)
         if file_facade.does_directory_exist(PILLAR_INSTALLED_PATH):
             file_facade.copy_directory_to_encrypted_file(PILLAR_INSTALLED_PATH, encrypted_pillar_files, secret)
@@ -82,9 +86,9 @@ class SystemsManagementMigrator(MigratorPlugin):
     @staticmethod
     def __restore_file_data(arguments, facade_factory, migration_directory):
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        encrypted_pki_files = os.path.join(migration_directory, 'pki')
-        encrypted_pillar_files = os.path.join(migration_directory, 'pillar')
-        secret = arguments.get('secret')
+        encrypted_pki_files = os.path.join(migration_directory, PKI_DIRECTORY_NAME)
+        encrypted_pillar_files = os.path.join(migration_directory, PILLAR_DIRECTORY_NAME)
+        secret = arguments.get(SECRET_ARGUMENT)
         file_facade.copy_directory_from_encrypted_file(encrypted_pki_files, PKI_INSTALLED_PATH, secret)
         if file_facade.does_file_exist(encrypted_pillar_files):
             file_facade.copy_directory_from_encrypted_file(encrypted_pillar_files, PILLAR_INSTALLED_PATH, secret)
@@ -97,6 +101,6 @@ class SystemsManagementMigrator(MigratorPlugin):
     @staticmethod
     def __verify_captured_salt_files_exist(facade_factory, migration_directory):
         file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
-        encrypted_salt_file_path = os.path.join(migration_directory, 'pki')
+        encrypted_salt_file_path = os.path.join(migration_directory, PKI_DIRECTORY_NAME)
         if not file_facade.does_file_exist(encrypted_salt_file_path):
             raise FileNotFoundError(f"Could not find the captured service at '{encrypted_salt_file_path}'")
