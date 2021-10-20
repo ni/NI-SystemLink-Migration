@@ -48,7 +48,7 @@ def test_migrator_receives_extra_arguments(tmp_path) -> None:
     migrator = configure_test_migrator(tmp_path, facade_factory)
     plugin_loader = FakeMigratorPluginLoader([migrator])
     migration_directory = str(tmp_path / 'data')
-    expected_arguments = {'extra': True}
+    expected_arguments = {'extra': True, 'secret': ''}
 
     capture_arguments = ['capture', '--test-migrator', '--test-migrator-extra', '--dir', migration_directory]
     capture_argument_handler = ArgumentHandler(

@@ -18,6 +18,10 @@ ALL_SERVICES_ARGUMENT = 'all'
 VERBOSITY_ARGUMENT = 'verbosity'
 MIGRATION_DIRECTORY_ARGUMENT = 'dir'
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
+SECRET_ARGUMENT = 'secret'
+
+SECRET_ARGUMENT_HELP = 'When used with --systems or --all, encrypts system secrets using the secret specified \
+after the flag, otherwise ignored. You will need to provide the same password when restoring system data.'
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 
@@ -100,7 +104,10 @@ class ArgumentHandler:
                  and the values are the argument values.
         """
         key = _get_migrator_arguments_key(migrator)
-        return getattr(self.parsed_arguments, key, {})
+        arguments = getattr(self.parsed_arguments, key, {})
+        secret = getattr(self.parsed_arguments, SECRET_ARGUMENT, [''])[0]
+        arguments['secret'] = secret
+        return arguments
 
     def __get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
         return [plugin for plugin in self.plugin_loader.get_plugins()
@@ -247,6 +254,13 @@ class ArgumentHandler:
                 action='store_true',
                 dest=plugin.argument)
             plugin.add_additional_arguments(manager)
+        parser.add_argument(
+                f'--{SECRET_ARGUMENT}',
+                nargs=1,
+                help=SECRET_ARGUMENT_HELP,
+                dest=SECRET_ARGUMENT,
+                default=SUPPRESS,
+                metavar=f'<{SECRET_ARGUMENT}>')
 
 
 class _MigratorArgumentManager(ArgumentManager):

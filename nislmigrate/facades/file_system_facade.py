@@ -4,9 +4,15 @@ import json
 import os
 import shutil
 import stat
+import base64
 
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+COMPRESSION_FORMAT = 'tar'
 
 
 class FileSystemFacade:
@@ -124,7 +130,6 @@ class FileSystemFacade:
         :param path: The path to the json file to read.
         :return: The parsed json from the file.
         """
-
         with open(path, encoding='utf-8-sig') as json_file:
             return json.load(json_file)
 
@@ -158,6 +163,66 @@ class FileSystemFacade:
 
         self.remove_directory(to_directory)
         shutil.copytree(from_directory, to_directory)
+
+    def copy_directory_to_encrypted(self, from_directory: str, encrypted_file_path: str, secret: str):
+        """
+        Copy an entire directory from one location to another and encrypts it.
+
+        :param from_directory: The directory whose contents to copy.
+        :param encrypted_file_path: The directory to put the copied contents.
+        :param secret: A password to use when encrypting the directory.
+        """
+
+        if os.path.exists(encrypted_file_path):
+            error = "Captured data already exists: '%s'" % encrypted_file_path
+            raise MigrationError(error)
+        if not os.path.exists(from_directory):
+            raise MigrationError("No data found at: '%s'" % from_directory)
+
+        shutil.make_archive(from_directory, COMPRESSION_FORMAT, from_directory)
+        self.__encrypt_tar(secret, from_directory + f'.{COMPRESSION_FORMAT}', encrypted_file_path)
+        os.remove(from_directory + f'.{COMPRESSION_FORMAT}')
+
+    def copy_directory_from_encrypted(self, encrypted_file_path: str, to_directory: str, secret: str):
+        """
+        Copy an entire directory from one location to another and encrypts it.
+
+        :param encrypted_file_path: The directory whose contents to copy.
+        :param to_directory: The directory to put the copied contents.
+        :param secret: A password to use when encrypting the directory.
+        """
+
+        if not os.path.exists(encrypted_file_path):
+            raise MigrationError("No data found at: '%s'" % encrypted_file_path)
+
+        self.__decrypt_tar(secret, encrypted_file_path, encrypted_file_path + f'.{COMPRESSION_FORMAT}')
+        shutil.unpack_archive(encrypted_file_path + f'.{COMPRESSION_FORMAT}', to_directory, COMPRESSION_FORMAT)
+        os.remove(encrypted_file_path + f'.{COMPRESSION_FORMAT}')
+
+    def __encrypt_tar(self, secret: str, tar_path: str, encrypted_path: str):
+        with open(tar_path, 'rb') as file:
+            text = file.read()
+        encrypter = self.__get_encrypter(secret)
+        encrypted_text = encrypter.encrypt(text)
+        with open(encrypted_path, 'wb') as file:
+            file.write(encrypted_text)
+
+    def __decrypt_tar(self, secret: str, encrypted_path: str, tar_path: str):
+        with open(encrypted_path, 'rb') as file:
+            encrypted_text = file.read()
+        encrypter = self.__get_encrypter(secret)
+        text = encrypter.decrypt(encrypted_text)
+        with open(tar_path, 'wb') as file:
+            file.write(text)
+
+    @staticmethod
+    def __get_encrypter(secret: str):
+        password = bytes(secret, 'utf-8')
+        if not password:
+            raise MigrationError('Secret not provided via the --secret flag for encryption.')
+        key_derivation_function = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, iterations=320000, salt=b'0'*16)
+        key = base64.urlsafe_b64encode(key_derivation_function.derive(password))
+        return Fernet(key)
 
     def copy_directory_if_exists(self, from_directory: str, to_directory: str, force: bool) -> bool:
         """
