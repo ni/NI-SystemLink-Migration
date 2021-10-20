@@ -20,8 +20,8 @@ MIGRATION_DIRECTORY_ARGUMENT = 'dir'
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
 SECRET_ARGUMENT = 'secret'
 
-SECRET_ARGUMENT_HELP = 'When used with --systems or --all, encrypts system secrets using the secret specified \
-after the flag, otherwise ignored. You will need to provide the same password when restoring system data.'
+SECRET_ARGUMENT_HELP = 'Some migrators require this --secret to encrypt sensitive data during migration \
+otherwise it is ignored. You will need to provide the same password when restoring and capturing data.'
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 
