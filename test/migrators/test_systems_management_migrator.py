@@ -2,7 +2,7 @@ from nislmigrate.logs.migration_error import MigrationError
 import pytest
 
 from nislmigrate.migrators.systems_management_migrator import SystemsManagementMigrator, \
-    NO_PASSWORD_ERROR, \
+    NO_SECRET_ERROR, \
     PKI_INSTALLED_PATH, \
     PILLAR_INSTALLED_PATH
 from test.test_utilities import FakeFacadeFactory, FakeFileSystemFacade
@@ -35,7 +35,7 @@ def test_systems_management_migrator_pre_capture_check_raises_when_secret_not_pr
 
     with pytest.raises(MigrationError) as e:
         migrator.pre_capture_check('data_dir', facade_factory, {})
-        assert e.value == NO_PASSWORD_ERROR
+        assert e.value == NO_SECRET_ERROR
 
 
 @pytest.mark.unit
@@ -46,7 +46,7 @@ def test_systems_management_migrator_pre_restore_check_raises_when_secret_not_pr
 
     with pytest.raises(MigrationError) as e:
         migrator.pre_restore_check('data_dir', facade_factory, {})
-        assert e.value == NO_PASSWORD_ERROR
+        assert e.value == NO_SECRET_ERROR
 
 
 @pytest.mark.unit
