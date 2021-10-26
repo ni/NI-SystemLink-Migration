@@ -1,7 +1,7 @@
 from nislmigrate.logs.migration_error import MigrationError
 import pytest
 
-from nislmigrate.migrators.system_mgmt_migrator import SystemsManagementMigrator, \
+from nislmigrate.migrators.systems_management_migrator import SystemsManagementMigrator, \
     NO_PASSWORD_ERROR, \
     PKI_INSTALLED_PATH, \
     PILLAR_INSTALLED_PATH

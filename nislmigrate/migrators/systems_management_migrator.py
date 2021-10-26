@@ -14,7 +14,7 @@ PILLAR_DIRECTORY_NAME = 'pillar'
 SALT_PATH = os.path.join(get_ni_application_data_directory_path(), 'National Instruments', 'salt')
 PKI_INSTALLED_PATH = os.path.join(SALT_PATH, 'conf', PKI_DIRECTORY_NAME, 'master')
 PILLAR_INSTALLED_PATH = os.path.join(SALT_PATH, 'srv', PILLAR_DIRECTORY_NAME)
-NO_PASSWORD_ERROR = """
+NO_SECRET_ERROR = """
 
 Migrating systems requires a password to encrypt secrets.
 The same password needs to be provided during both capture and restore by
@@ -56,17 +56,17 @@ class SystemsManagementMigrator(MigratorPlugin):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()
         mongo_facade.validate_can_restore_database_from_directory(migration_directory, self.name)
         self.__verify_captured_salt_files_exist(facade_factory, migration_directory)
-        self.__verify_password_provided(arguments)
+        self.__verify_secret_provided(arguments)
 
     def pre_capture_check(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         self.__file_facade = facade_factory.get_file_system_facade()
-        self.__verify_password_provided(arguments)
+        self.__verify_secret_provided(arguments)
 
     @staticmethod
-    def __verify_password_provided(arguments):
+    def __verify_secret_provided(arguments):
         secret = arguments.get(SECRET_ARGUMENT)
         if not secret:
-            raise MigrationError(NO_PASSWORD_ERROR)
+            raise MigrationError(NO_SECRET_ERROR)
 
     def __capture_file_data(self, arguments, migration_directory):
         encrypted_pki_files = os.path.join(migration_directory, PKI_DIRECTORY_NAME)
