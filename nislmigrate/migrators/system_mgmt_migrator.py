@@ -44,7 +44,7 @@ class SystemsManagementMigrator(MigratorPlugin):
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         self.__file_facade = facade_factory.get_file_system_facade()
         self.__capture_mongo_data(facade_factory, migration_directory)
-        self.__capture_file_data(arguments, facade_factory, migration_directory)
+        self.__capture_file_data(arguments, migration_directory)
 
     def restore(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         self.__file_facade = facade_factory.get_file_system_facade()
@@ -68,15 +68,13 @@ class SystemsManagementMigrator(MigratorPlugin):
         if not secret:
             raise MigrationError(NO_PASSWORD_ERROR)
 
-    @staticmethod
-    def __capture_file_data(arguments, facade_factory, migration_directory):
-        file_facade: FileSystemFacade = facade_factory.get_file_system_facade()
+    def __capture_file_data(self, arguments, migration_directory):
         encrypted_pki_files = os.path.join(migration_directory, PKI_DIRECTORY_NAME)
         encrypted_pillar_files = os.path.join(migration_directory, PILLAR_DIRECTORY_NAME)
         secret = arguments.get(SECRET_ARGUMENT)
-        file_facade.copy_directory_to_encrypted_file(PKI_INSTALLED_PATH, encrypted_pki_files, secret)
-        if file_facade.does_directory_exist(PILLAR_INSTALLED_PATH):
-            file_facade.copy_directory_to_encrypted_file(PILLAR_INSTALLED_PATH, encrypted_pillar_files, secret)
+        self.__file_facade.copy_directory_to_encrypted_file(PKI_INSTALLED_PATH, encrypted_pki_files, secret)
+        if self.__file_facade.does_directory_exist(PILLAR_INSTALLED_PATH):
+            self.__file_facade.copy_directory_to_encrypted_file(PILLAR_INSTALLED_PATH, encrypted_pillar_files, secret)
 
     def __capture_mongo_data(self, facade_factory, migration_directory):
         mongo_facade: MongoFacade = facade_factory.get_mongo_facade()

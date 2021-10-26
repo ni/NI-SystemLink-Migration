@@ -173,14 +173,13 @@ class FileSystemFacade:
         :param secret: A password to use when encrypting the directory.
         """
 
-        if os.path.exists(encrypted_file_path):
-            error = "Captured data already exists: '%s'" % encrypted_file_path
-            raise MigrationError(error)
-        if not os.path.exists(from_directory):
-            raise MigrationError("No data found at: '%s'" % from_directory)
-        extension = f'{COMPRESSION_FORMAT}'
-        if os.path.isfile(from_directory + extension):
-            raise MigrationError(f'Data not cleaned up from previous migration: {from_directory + extension}')
+        if self.does_file_exist(encrypted_file_path):
+            raise FileExistsError("Captured data already exists: '%s'" % encrypted_file_path)
+        if not self.does_directory_exist(from_directory):
+            raise FileExistsError("No data found at: '%s'" % from_directory)
+        extension = f'.{COMPRESSION_FORMAT}'
+        if self.does_file_exist(from_directory + extension):
+            raise FileExistsError(f'Data not cleaned up from previous migration: {from_directory + extension}')
 
         # shutil.make_archive automatically appends the compression formats file extension to the output path.
         shutil.make_archive(from_directory, COMPRESSION_FORMAT, from_directory)
@@ -196,10 +195,10 @@ class FileSystemFacade:
         :param secret: A password to use when encrypting the directory.
         """
 
-        if not os.path.exists(encrypted_file_path):
+        if not self.does_file_exist(encrypted_file_path):
             raise MigrationError("No data found at: '%s'" % encrypted_file_path)
-        extension = f'{COMPRESSION_FORMAT}'
-        if os.path.isfile(encrypted_file_path + extension):
+        extension = f'.{COMPRESSION_FORMAT}'
+        if self.does_file_exist(encrypted_file_path + extension):
             raise MigrationError(f'Data not cleaned up from previous migration: {encrypted_file_path + extension}')
 
         self.__decrypt_tar(secret, encrypted_file_path, encrypted_file_path + extension)

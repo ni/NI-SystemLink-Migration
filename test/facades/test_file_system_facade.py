@@ -155,6 +155,62 @@ def test_does_file_exist_in_directory_returns_file_status(directory, should_exis
     assert should_exist == exists
 
 
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_to_encrypted_file_creates_file_at_destination(directory):
+    source_path = make_directory(directory, 'source')
+    destination_path = make_directory(directory, 'destination')
+    make_file(source_path, 'demofile3.txt')
+    encrypted_file_path = os.path.join(destination_path, 'encrypted_file')
+    file_system_facade = FileSystemFacade()
+
+    file_system_facade.copy_directory_to_encrypted_file(source_path, encrypted_file_path, 'password')
+
+    assert os.path.exists(encrypted_file_path)
+
+
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_to_encrypted_file_creates_when_file_already_exists_raises_error(directory):
+    source_path = make_directory(directory, 'source')
+    destination_path = make_directory(directory, 'destination')
+    make_file(source_path, 'demofile3.txt')
+    encrypted_file_path = make_file(destination_path, 'encrypted_file')
+    file_system_facade = FileSystemFacade()
+
+    with pytest.raises(FileExistsError):
+        file_system_facade.copy_directory_to_encrypted_file(source_path, encrypted_file_path, 'password')
+
+
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_to_encrypted_file_creates_when_tar_file_already_exists_raises_error(directory):
+    source_path = make_directory(directory, 'source')
+    destination_path = make_directory(directory, 'destination')
+    make_file(source_path, 'demofile3.txt')
+    make_file(directory.path, 'source.tar')
+    encrypted_file_path = os.path.join(destination_path, 'encrypted_file')
+    file_system_facade = FileSystemFacade()
+
+    with pytest.raises(FileExistsError):
+        file_system_facade.copy_directory_to_encrypted_file(source_path, encrypted_file_path, 'password')
+
+
+@pytest.mark.unit
+@tempdir()
+def test_copy_directory_from_encrypted_file_decrypts_file(directory):
+    source_path = make_directory(directory, 'source')
+    destination_path = make_directory(directory, 'destination')
+    make_file(source_path, 'demofile3.txt')
+    encrypted_file_path = os.path.join(destination_path, 'encrypted_file')
+    file_system_facade = FileSystemFacade()
+    file_system_facade.copy_directory_to_encrypted_file(source_path, encrypted_file_path, 'password')
+
+    file_system_facade.copy_directory_from_encrypted_file(encrypted_file_path, destination_path, 'password')
+
+    assert os.path.isfile(os.path.join(destination_path, 'demofile3.txt'))
+
+
 def make_directory(temp_directory: TempDirectory, name: str) -> str:
     path = os.path.join(temp_directory.path, name)
     os.mkdir(path)
