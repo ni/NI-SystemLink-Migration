@@ -33,7 +33,7 @@ Files data was not found. If you intend to restore metadata only, pass
 
 _CANNOT_MIGRATE_S3_FILES_ERROR = """
 
-S3 file storeage is enabled on the backend. nislmigrate cannot capture/restore the files
+S3 file storage is enabled on the backend. nislmigrate cannot capture/restore the files
 stored in S3. If you intend to migrate metadata only, pass --files-metadata-only.
 
 """
