@@ -66,7 +66,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
         self.missing_files: List[str] = []
-        self.missing_directories: List[str] = []
+        self.missing_directories: Optional[List[str]] = []
         self.config = {}
         self.directories_encrypted = []
         self.directories_decrypted = []
@@ -84,6 +84,8 @@ class FakeFileSystemFacade(FileSystemFacade):
         return file_name not in self.missing_files
 
     def does_directory_exist(self, dir_):
+        if not self.missing_directories:
+            self.missing_directories = []
         return dir_ not in self.missing_directories
 
     def copy_directory_to_encrypted_file(self, from_directory: str, encrypted_file_path: str, secret: str):
