@@ -58,3 +58,35 @@ Test file with 3 storage locations (configurable in NI SystemLink Server Configu
 Fully testing asset migration requires having a connected system in order to populate the connection history database. It is still possible to validate all other parts of asset migration if you do not have a real connected system by adding the `--relax-validation` flag.
 
 If you want to run the asset migration test without the `--relax-validation` flag, you will need to install SystemLink Client on a VM and connect it to the server under test before starting the manual test procedure.
+
+### Systems
+Testing the systems management migration requires installing a second SystemLink server instance to migrate to so that the salt keys are different and represent a real scenario. This can be most easily achieved by:
+
+1. Getting a fresh windows VM. 
+1. Taking snapshot #1
+1. Installing SystemLink once
+1. Install python 3.8
+1. Run `pip install nislmigrate`
+1. Taking snapshot #2
+1. Reverting to snapshot #1
+1. Installing SystemLink again
+1. Install python 3.8
+1. Run `pip install nislmigrate`
+1. Taking snapshot #3
+
+You can also install SystemLink on two separate VMs, but you will need to configure the hostname to be identical between the two servers.
+
+You will also need to install SystemLink Client on a VM that has access to the two server virtual machines.
+
+Running the test:
+
+1. Start on snapshot #2
+1. Connect the SystemLink Client to the server by manually approving it.
+1. Run the `populate` script
+1. Run `nislmigrate capture --all`
+1. Copy the migration directory to a shared file location
+1. Revert to snapshot #3
+1. (If you're not using the same machine for the two servers, turn off server #1 at this point)
+1. Run `nislmigrate restore --all -f`
+1. Run the `validate` script
+1. Manually verify that the Client reports connected.
