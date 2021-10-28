@@ -53,3 +53,8 @@ Test file with 3 storage locations (configurable in NI SystemLink Server Configu
 3. Amazon Simple Storage Service (S3)
 
  Note that the storage location configuration on the server being restored must be identical to the storage location configuration on the server when data was captured.
+ 
+### Assets
+Fully testing asset migration requires having a connected system in order to populate the connection history database. It is still possible to validate all other parts of asset migration if you do not have a real connected system by adding the `--relax-validation` flag.
+
+If you want to run the asset migration test without the `--relax-validation` flag, you will need to install SystemLink Client on a VM and connect it to the server under test before starting the manual test procedure.

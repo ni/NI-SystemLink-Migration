@@ -18,6 +18,7 @@ GET_ASSET_CALIBRATION_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/histor
 UPDATE_ASSETS_ROUTE = 'niapm/v1/update-assets'
 GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
+SYSTEMS_ROUTE = '/nisysmgmt/v1/systems'
 
 CATEGORY = 'AssetPerformanceManagement'
 
@@ -147,10 +148,18 @@ class TestAsset(ManualTestBase):
         return response.json()
 
     def __populate_availability_histories(self, devices):
-        # TEST GAP: Currently, availability histories are only tracked for assets
-        # that are present in a connected system. For now, we are not actually
-        # populating this database, although we still store and validate the contents.
-        pass
+        # Currently, availability histories are only tracked for assets
+        # that are present in a connected system. This test can be run
+        # with the --relax-validation if you haven't connected a live system,
+        # and do not care about validating the connection histories collection.
+        if not self._relax_validation:
+            self.__ensure_there_is_a_connected_system()
+
+    def __ensure_there_is_a_connected_system(self):
+        response = self.get(SYSTEMS_ROUTE)
+        response.raise_for_status()
+        systems = response.json()
+        assert len(systems) > 0
 
     def __modify_policy(self):
         policy = {
