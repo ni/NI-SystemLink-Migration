@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_RECORD_TYPE, POPULATED_SERVER_RECORD_TYPE
+from manual_test_base import ManualTestBase, handle_command_line, POPULATED_SERVER_RECORD_TYPE
 
 SERVICE_NAME = 'UserData'
 SERVICE_DATABASE_NAME = 'SystemsManagement'
@@ -9,8 +9,6 @@ SYSTEMS_ROUTE = 'nisysmgmt/v1/systems'
 
 class TestSystemsManagement(ManualTestBase):
     def populate_data(self) -> None:
-        self.__create_test_data()
-
         self.record_json_data(
             SERVICE_NAME,
             SERVICE_DATABASE_NAME,
@@ -43,9 +41,6 @@ class TestSystemsManagement(ManualTestBase):
                 system[field_to_capture] = raw_system[field_to_capture]
             systems.append(system)
         return systems
-
-    def __create_test_data(self):
-        pass
 
 
 if __name__ == '__main__':
