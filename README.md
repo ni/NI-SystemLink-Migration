@@ -18,43 +18,57 @@ pip install nislmigrate
 ```
 # Usage
 ### Backup
-To backup the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `capture` option and the corresponding flag for each of the services you want to back up (e.g. `--tags`):
+
+To backup the data for a service listed in the **Supported Services** section run the tool with elevated permissions and use the `capture` option with the corresponding flag for each of the services you want to back up (e.g. `--security`):
 ```bash
-nislmigrate capture --tags
+nislmigrate capture --security
 ```
 This will backup the data corresponding with each service into the default migration directory (`C:\Users\[user]\Documents\migration\`). You can specify a different migration directory using the `--dir [path]` option:
 ```bash
-nislmigrate capture --tags --dir C:\custom-backup-location
+nislmigrate capture --security --dir C:\custom-backup-location
+```
+To backup the data for all supported services at once, the `--all` flag can be used instead of listing out each individual service:
+```bash
+nislmigrate capture --all
 ```
 
 ### Restore
 
 > :warning: Restoring requires the `--force` flag to explicitly allow overwriting the existing data on the server. Without it, the command will fail.
 
-To restore the data for a service listed in the **Supported Services** section run the tool with elevated permissions and the `restore` option and the corresponding flag for each of the services you want to restore (e.g. `--tags`):
+To restore the data for a service listed in the **Supported Services** section run the tool with elevated permissions and  use the `restore` option with the corresponding flag for each of the services you want to restore (e.g. `--security`):
 ```bash
-nislmigrate restore --tags
+nislmigrate restore --security
 ```
 This will restore the data corresponding with each service from the default migration directory (`C:\Users\[user]\Documents\migration\`). If your captured data is in a different directory that can be specified with the `--dir [path]` option:
 ```bash
-nislmigrate restore --tags --dir C:\custom-backup-location
+nislmigrate restore --security --dir C:\custom-backup-location
+```
+To restore the data for all supported services at once, the `--all` flag can be used instead of listing out each individual service:
+```bash
+nislmigrate restore --all
 ```
 
-Include `--force` on with all restore commands to indicate that data on the server may be overwritten.
-
 ### Migration
-To migrate from one SystemLink server instance (server A) to a different instance (server B):
-1. Install the migration tool on server A and server B.
-1. Follow the backup instructions to backup the data from server A.
-1. Copy the data produced by the backup of server A on server B.
-1. Ensure server B is a clean SystemLink install with no existing data.
-1. Follow the restore instructions to restore the backed up data onto server B.
+>:warning: Server A must be a clean SystemLink installation, any existing data will be deleted.
+
+To migrate from one SystemLink server instance (`server A`) to a different instance (`server B`):
+1. Install the migration tool on `server A` and `server B`.
+1. Follow the backup instructions to backup the data from `server A`.
+1. Copy the data produced by the backup of `server A` on `server B`.
+1. **_Warning:_** Ensure `server B` is a clean SystemLink installation, any existing data will be deleted.
+1. Follow the restore instructions to restore the backed up data onto `server B`.
 
 # Development
 See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and releasing the tool.
 
 # Supported Services
-The following services can be migrated with this utility:
+The services that can be migrated with this utility along with short descriptions can be listed by running:
+```bash
+nislmigrate capture -h
+```
+
+The supported services are also listed below with any additional important information:
 
 - Alarm Instances: `--alarms`
 - Asset Management: `--assets`
@@ -80,9 +94,7 @@ The following services can be migrated with this utility:
 - User Data: `--userdata`
 - Dashboards and Web Applications: `--dashboards`
 
-There are plans to support the following services in the near future:
+There are plans to support the following services in the future:
 - OPC UA Client: `--opc`
 - TDM `--tdm`
-
-The following list of services is explicitly not supported because of issues that arose when developing and testing migrating the service that will require changes to the service rather than the migration utility to enable support:
-- Cloud Connector
+- Cloud Connector `--cloud`

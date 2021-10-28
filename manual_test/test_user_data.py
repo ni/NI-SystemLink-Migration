@@ -4,7 +4,6 @@ from manual_test_base import ManualTestBase, handle_command_line, CLEAN_SERVER_R
 SERVICE_NAME = 'UserData'
 SERVICE_DATABASE_NAME = 'niuserdata'
 TEST_NAME = 'UserDataMigrationTest'
-TEST_WORKSPACE_NAME = f'CustomWorkspaceFor{TEST_NAME}'
 USER_DATA_ITEMS_ROUTE = 'niuserdata/v1/items'
 
 
