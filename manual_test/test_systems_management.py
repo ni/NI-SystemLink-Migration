@@ -9,6 +9,9 @@ SYSTEMS_ROUTE = 'nisysmgmt/v1/systems'
 
 class TestSystemsManagement(ManualTestBase):
     def populate_data(self) -> None:
+        # This test requires manually connecting a real client system
+        # instead of being able to automatically populate data.
+        # See the README for specific instructions on running this test.
         self.record_json_data(
             SERVICE_NAME,
             SERVICE_DATABASE_NAME,
@@ -26,21 +29,22 @@ class TestSystemsManagement(ManualTestBase):
             SERVICE_DATABASE_NAME,
             POPULATED_SERVER_RECORD_TYPE,
             required=True)
-
-        assert current_data_snapshot == source_user_data_snapshot
+        current_systems = self.__get_data_to_compare_from_systems(current_data_snapshot)
+        source_systems = self.__get_data_to_compare_from_systems(source_user_data_snapshot)
+        assert current_systems == source_systems
 
     def __get_all_systems(self) -> List[Dict[str, Any]]:
-        fields_to_capture = ['id', 'connected' 'alias', 'packages', 'feeds', 'workspace']
         response = self.get(SYSTEMS_ROUTE)
         response.raise_for_status()
-        raw_systems = response.json()
-        systems = []
-        for raw_system in raw_systems:
-            system = {}
-            for field_to_capture in fields_to_capture:
-                system[field_to_capture] = raw_system[field_to_capture]
-            systems.append(system)
-        return systems
+        return response.json()
+
+    @staticmethod
+    def __get_data_to_compare_from_systems(raw_systems) -> List[Dict[str, Any]]:
+        fields_to_capture = ['id', 'connected' 'alias', 'packages', 'feeds', 'workspace']
+        return [
+            {field_to_capture: raw_system[field_to_capture] for field_to_capture in fields_to_capture}
+            for raw_system in raw_systems
+        ]
 
 
 if __name__ == '__main__':

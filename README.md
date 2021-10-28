@@ -27,9 +27,9 @@ This will backup the data corresponding with each service into the default migra
 ```bash
 nislmigrate capture --security --dir C:\custom-backup-location
 ```
-To backup the data for all supported services at once, the `--all` flag can be used instead of listing out each individual service:
+To backup the data for all supported services at once, the `--all` flag can be used instead of listing out each individual service. Using `--all` will require that you include the `--secret` flag for services that require encrypting backed up data for security:
 ```bash
-nislmigrate capture --all
+nislmigrate capture --all --secret <password>
 ```
 
 ### Restore
@@ -44,9 +44,9 @@ This will restore the data corresponding with each service from the default migr
 ```bash
 nislmigrate restore --security --dir C:\custom-backup-location
 ```
-To restore the data for all supported services at once, the `--all` flag can be used instead of listing out each individual service:
+To restore the data for all supported services at once, the `--all` flag can be used instead of listing out each individual service. Using `--all` will require that you include the `--secret` flag for services that require encrypting backed up data for security:
 ```bash
-nislmigrate restore --all
+nislmigrate restore --all --secret <password>
 ```
 
 ### Migration
