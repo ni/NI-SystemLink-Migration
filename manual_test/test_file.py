@@ -1,13 +1,9 @@
-import base64
-
 from manual_test.utilities.file_utilities import FileUtilities, IMAGE_PATH, TDMS_PATH
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from manual_test.manual_test_base import POPULATED_SERVER_RECORD_TYPE, ManualTestBase, handle_command_line
 from pathlib import Path
 from typing import Any, Dict, List
 
-
-GET_ROUTE = '/nifile/v1/service-groups/Default/files'
 
 SERVICE_NAME = 'Files'
 COLLECTION_NAME = 'FileIngestion'
@@ -29,7 +25,7 @@ class TestFile(ManualTestBase):
 
     def validate_data(self):
         expected_files = self.__read_recorded_data(POPULATED_SERVER_RECORD_TYPE)
-        actual_files = self.__get_files()
+        actual_files = self.__file_utilities.get_files(self)
 
         self.__assert_files_match(actual_files, expected_files)
 
@@ -56,39 +52,6 @@ class TestFile(ManualTestBase):
                     path,
                     filename,
                     properties)
-
-    def __get_files(self) -> Dict[str, Dict[str, Any]]:
-        take = 100
-        skip = 0
-        count = take
-        all_files = {}
-        while count == take:
-            response = self.get(GET_ROUTE, params={'take': take, 'skip': skip})
-            response.raise_for_status()
-
-            received_files = response.json()['availableFiles']
-            count = len(received_files)
-            details = self.__extract_file_details(received_files)
-            all_files.update(details)
-
-            skip += take
-
-        return all_files
-
-    def __extract_file_details(self, files) -> Dict[str, Dict[str, Any]]:
-        return {file['id']: file for file in [self.__extract_single_file_details(file) for file in files]}
-
-    def __extract_single_file_details(self, file) -> Dict[str, Any]:
-        data_url = file['_links']['data']['href']
-        contents = self.__download_file_contents(data_url)
-        file['contents'] = contents
-        return file
-
-    def __download_file_contents(self, url):
-        response = self.get(url)
-        response.raise_for_status()
-
-        return base64.b64encode(response.content).decode('utf-8')
 
     def __assert_files_match(self, actual_files, expected_files):
         if self._relax_validation:
@@ -154,7 +117,7 @@ class TestFile(ManualTestBase):
             SERVICE_NAME,
             COLLECTION_NAME,
             record_type,
-            [self.__get_files()])
+            [self.__file_utilities.get_files(self)])
 
     def __read_recorded_data(self, record_type: str):
         files = self.read_recorded_json_data(

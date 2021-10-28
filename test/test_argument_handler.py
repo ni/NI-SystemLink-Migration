@@ -170,7 +170,23 @@ def test_migrator_with_additional_arguments_has_empty_additional_parameters_when
 
     additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
 
-    assert additional_arguments == {}
+    assert additional_arguments == {'secret': ''}
+
+
+@pytest.mark.unit
+def test_migrator_with_secret_argument_stores_secret_in_additional_arguments():
+    migrator = FakeMigrator(add_argument=True)
+    loader = FakeMigratorPluginLoader([migrator])
+    arguments = ['capture', '--secret', 'password']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=FakeFacadeFactory(),
+        plugin_loader=loader
+    )
+
+    additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
+
+    assert additional_arguments == {'secret': 'password'}
 
 
 @pytest.mark.unit
@@ -186,7 +202,7 @@ def test_migrator_with_additional_arguments_has_additional_parameters_when_passe
 
     additional_arguments = argument_handler.get_migrator_additional_arguments(migrator)
 
-    assert additional_arguments == {'extra': True}
+    assert additional_arguments == {'extra': True, 'secret': ''}
 
 
 @pytest.mark.unit
@@ -204,8 +220,8 @@ def test_migrator_with_additional_arguments_only_receives_own_arguments():
     additional_arguments1 = argument_handler.get_migrator_additional_arguments(migrator1)
     additional_arguments2 = argument_handler.get_migrator_additional_arguments(migrator2)
 
-    assert additional_arguments1 == {'mine': True}
-    assert additional_arguments2 == {'yours': True}
+    assert additional_arguments1 == {'mine': True, 'secret': ''}
+    assert additional_arguments2 == {'yours': True, 'secret': ''}
 
 
 @pytest.mark.unit

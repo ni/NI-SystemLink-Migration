@@ -3,6 +3,7 @@ from manual_test.manual_test_base import \
     handle_command_line, \
     CLEAN_SERVER_RECORD_TYPE, \
     POPULATED_SERVER_RECORD_TYPE
+from manual_test.utilities.user_utilities import UserUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 from typing import Any, Dict, List
 
@@ -181,10 +182,7 @@ class TestSecurity(ManualTestBase):
         return workspace_utilities.get_workspaces(self)
 
     def __get_all_user_data(self) -> List[Dict[str, Any]]:
-        query: Dict[str, str] = {}
-        response = self.post(QUERY_USER_ROUTE, json=query)
-        response.raise_for_status()
-        return response.json()['users']
+        return UserUtilities().get_all_users(self)
 
     def __get_all_auth_mappings(self):
         query: Dict[str, str] = {}

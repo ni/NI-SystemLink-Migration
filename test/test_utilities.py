@@ -66,8 +66,10 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.last_from_directory: Optional[str] = None
         self.last_to_directory: Optional[str] = None
         self.missing_files: List[str] = []
+        self.missing_directories: Optional[List[str]] = []
         self.config = {}
-        self.directory_exists_value = True
+        self.directories_encrypted = []
+        self.directories_decrypted = []
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
         self.last_from_directory = from_directory
@@ -81,8 +83,16 @@ class FakeFileSystemFacade(FileSystemFacade):
         (_, file_name) = os.path.split(file_path)
         return file_name not in self.missing_files
 
-    def directory_exists(self, dir_):
-        return self.directory_exists_value
+    def does_directory_exist(self, dir_):
+        if not self.missing_directories:
+            self.missing_directories = []
+        return dir_ not in self.missing_directories
+
+    def copy_directory_to_encrypted_file(self, from_directory: str, encrypted_file_path: str, secret: str):
+        self.directories_encrypted.append((from_directory, encrypted_file_path, secret))
+
+    def copy_directory_from_encrypted_file(self, encrypted_file_path: str, to_directory: str, secret: str):
+        self.directories_decrypted.append((encrypted_file_path, to_directory, secret))
 
 
 class FakeMigratorPluginLoader(MigratorPluginLoader):

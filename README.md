@@ -57,26 +57,32 @@ See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and rele
 The following services can be migrated with this utility:
 
 - Alarm Instances: `--alarms`
+- Asset Management: `--assets`
+    - Cannot be migrated between 2020R1 and 2020R2 servers
+- Asset Alarm Rules: `--assetrule`
 - File Ingestion: `--files`
     - Must migrate file to the same storage location on the new System Link server.
     - To capture/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
     - If files are stored in Amazon Simple Storage Service (S3), use `--files --files-metadata-only`.
 - Notifications: `--notification`
 - Security `--security`
+- Systems: `--systems`
+    - _WARNING:_ Captured systems data contains encrypted secret information and should not be copied to a publicly accessible location.
+    - To capture/restore systems, a secret must be provided using the `--secret <SECRET>` command line flag. Captured systems data will require the same secret to be provided as was provided during capture in order to be able to decrypt sensitive data.
 - System States: `--systemstates`
     - Feeds may require additional updates if servers used for migration have different domain names
     - Cannot be migrated between 2020R1 and 2020R2 servers
 - Tag Alarm Rules: `--tagrule`
 - Tag Ingestion and Tag History: `--tags`
-
-There are plans to support the following services in the near future:
-- OPC UA Client: `--opc`
 - Test Monitor: `--tests`
-- Asset Management: `--assets`
-    - Cannot be migrated between 2020R1 and 2020R2 servers
 - Repository: `--repo`
     - Feeds may require additional updates if servers used for migration have different domain names
 - User Data: `--userdata`
+- Dashboards and Web Applications: `--dashboards`
+
+There are plans to support the following services in the near future:
+- OPC UA Client: `--opc`
+- TDM `--tdm`
 
 The following list of services is explicitly not supported because of issues that arose when developing and testing migrating the service that will require changes to the service rather than the migration utility to enable support:
 - Cloud Connector

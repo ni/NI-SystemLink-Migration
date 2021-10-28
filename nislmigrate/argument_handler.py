@@ -18,6 +18,10 @@ ALL_SERVICES_ARGUMENT = 'all'
 VERBOSITY_ARGUMENT = 'verbosity'
 MIGRATION_DIRECTORY_ARGUMENT = 'dir'
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
+SECRET_ARGUMENT = 'secret'
+
+SECRET_ARGUMENT_HELP = 'Some migrators require this --secret to encrypt sensitive data during migration \
+otherwise it is ignored. You will need to provide the same password when restoring and capturing data.'
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 
@@ -100,7 +104,10 @@ class ArgumentHandler:
                  and the values are the argument values.
         """
         key = _get_migrator_arguments_key(migrator)
-        return getattr(self.parsed_arguments, key, {})
+        arguments = getattr(self.parsed_arguments, key, {})
+        secret = getattr(self.parsed_arguments, SECRET_ARGUMENT, [''])[0]
+        arguments['secret'] = secret
+        return arguments
 
     def __get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
         return [plugin for plugin in self.plugin_loader.get_plugins()
@@ -247,6 +254,13 @@ class ArgumentHandler:
                 action='store_true',
                 dest=plugin.argument)
             plugin.add_additional_arguments(manager)
+        parser.add_argument(
+                f'--{SECRET_ARGUMENT}',
+                nargs=1,
+                help=SECRET_ARGUMENT_HELP,
+                dest=SECRET_ARGUMENT,
+                default=SUPPRESS,
+                metavar=f'<{SECRET_ARGUMENT}>')
 
 
 class _MigratorArgumentManager(ArgumentManager):
@@ -255,16 +269,35 @@ class _MigratorArgumentManager(ArgumentManager):
         self.__plugin = plugin
 
     def add_switch(self, name: str, help: str) -> None:
-        migrator_argument = self.__plugin.argument
-        argument = f'--{migrator_argument}-{name}'
-        dest = f'{_get_migrator_arguments_key(self.__plugin)}.{name}'
+        argument = self.__generate_argument_name(name)
+        destination = self.__generate_argument_destination(name)
         self.__parser.add_argument(
                 argument,
                 nargs=0,
                 help=help,
                 action=_StoreMigratorSwitchAction,
-                dest=dest,
+                dest=destination,
                 default=SUPPRESS)
+
+    def add_argument(self, name: str, help: str, metavar: str) -> None:
+        argument = self.__generate_argument_name(name)
+        destination = self.__generate_argument_destination(name)
+        self.__parser.add_argument(
+                argument,
+                nargs=1,
+                help=help,
+                action=_StoreMigratorSingleArgumentAction,
+                dest=destination,
+                default=SUPPRESS,
+                metavar=metavar)
+
+    def __generate_argument_name(self, name):
+        migrator_argument = self.__plugin.argument
+        return f'--{migrator_argument}-{name}'
+
+    def __generate_argument_destination(self, name):
+        key = _get_migrator_arguments_key(self.__plugin)
+        return f'{key}.{name}'
 
 
 class _StoreMigratorSwitchAction(Action):
@@ -272,4 +305,12 @@ class _StoreMigratorSwitchAction(Action):
         dest, key = self.dest.split('.', 1)
         args = getattr(namespace, dest, {})
         args[key] = True
+        setattr(namespace, dest, args)
+
+
+class _StoreMigratorSingleArgumentAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        dest, key = self.dest.split('.', 1)
+        args = getattr(namespace, dest, {})
+        args[key] = values[0]
         setattr(namespace, dest, args)

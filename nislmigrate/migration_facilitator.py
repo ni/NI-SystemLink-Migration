@@ -72,11 +72,28 @@ class MigrationFacilitator:
 
         migrator: MigratorPlugin
         for migrator in self._migrators:
-            migrator_directory = os.path.join(self._migration_directory, migrator.name)
-            arguments = self._argument_handler.get_migrator_additional_arguments(migrator)
-            if self._action == MigrationAction.CAPTURE:
-                migrator.pre_capture_check(migrator_directory, self.facade_factory, arguments)
-            elif self._action == MigrationAction.RESTORE:
-                migrator.pre_restore_check(migrator_directory, self.facade_factory, arguments)
-            else:
-                raise ValueError('Migration action is not the correct type.')
+            self.__pre_migration_error_check_for_single_migrator(migrator)
+
+    def __pre_migration_error_check_for_single_migrator(self, migrator) -> None:
+        self.__report_pre_migration_check_starting(migrator.name)
+        migrator_directory = os.path.join(self._migration_directory, migrator.name)
+        arguments = self._argument_handler.get_migrator_additional_arguments(migrator)
+        if self._action == MigrationAction.CAPTURE:
+            migrator.pre_capture_check(migrator_directory, self.facade_factory, arguments)
+        elif self._action == MigrationAction.RESTORE:
+            migrator.pre_restore_check(migrator_directory, self.facade_factory, arguments)
+        else:
+            raise ValueError('Migration action is not the correct type.')
+        self.__report_pre_migration_check_finished(migrator.name)
+
+    @staticmethod
+    def __report_pre_migration_check_starting(migrator_name: str) -> None:
+        info = f'Performing pre-migration check for {migrator_name}'
+        log = logging.getLogger(MigrationFacilitator.__name__)
+        log.log(logging.INFO, info)
+
+    @staticmethod
+    def __report_pre_migration_check_finished(migrator_name: str) -> None:
+        info = f'Pre-migration check passed for {migrator_name}.'
+        log = logging.getLogger(MigrationFacilitator.__name__)
+        log.log(logging.INFO, info)

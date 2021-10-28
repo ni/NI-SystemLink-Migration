@@ -33,6 +33,21 @@ class ArgumentManager(abc.ABC):
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def add_argument(self, name: str, help: str, metavar: str) -> None:
+        """
+        Adds a switch command line argument that will be associated with a migrator_plugin.
+        The argument will be namespaced by the migrator name in order to ensure that it does
+        not conflict with any other arguments, resulting in a command line argument in the form:
+
+          --<migrator-name>-<argument-name> <parameter>
+
+        If the switch is specified on the command line, the arguments dictionary passed to the
+        migrator's create/restore/pre_restore_check methods contain the <argument-name>
+        with the value following the switch. Otherwise <argument-name> will not be in the dictionary.
+        """
+        raise NotImplementedError
+
 
 class MigratorPlugin(abc.ABC):
     """
@@ -62,6 +77,14 @@ class MigratorPlugin(abc.ABC):
         return 'The full name of the plugin'
 
     @property
+    def configuration_category(self) -> str:
+        """
+        Gets the top-level category in the service configuration file where the service stores
+        its configuration. This is normally the same as configuration file name.
+        """
+        return self.name
+
+    @property
     @abc.abstractmethod
     def help(self) -> str:
         """
@@ -79,7 +102,7 @@ class MigratorPlugin(abc.ABC):
         if self.__cached_config is None:
             config_file = self.__build_config_file_path()
             filesystem_facade = facade_factory.get_file_system_facade()
-            self.__cached_config = filesystem_facade.read_json_file(config_file)[self.name]
+            self.__cached_config = filesystem_facade.read_json_file(config_file)[self.configuration_category]
         return self.__cached_config
 
     @abc.abstractmethod
