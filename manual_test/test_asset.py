@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 from manual_test.manual_test_base import ManualTestBase, POPULATED_SERVER_RECORD_TYPE, handle_command_line
-# from manual_test.utilities import file_utilities
 from manual_test.utilities.file_utilities import FileUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
@@ -21,6 +20,12 @@ PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 SYSTEMS_ROUTE = '/nisysmgmt/v1/systems'
 
 CATEGORY = 'AssetPerformanceManagement'
+
+NO_SYSTEM_CONNECTED_ERROR = """
+Fully testing asset migration requires connecting a real client 
+system to the SystemLink server, otherwise most data can still 
+be validated by passing the --relax-validation flag.
+"""
 
 
 class TestAsset(ManualTestBase):
@@ -159,7 +164,8 @@ class TestAsset(ManualTestBase):
         response = self.get(SYSTEMS_ROUTE)
         response.raise_for_status()
         systems = response.json()
-        assert len(systems) > 0
+        if len(systems) == 0:
+            raise AssertionError(NO_SYSTEM_CONNECTED_ERROR)
 
     def __modify_policy(self):
         policy = {
