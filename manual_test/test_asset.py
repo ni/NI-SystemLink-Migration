@@ -17,13 +17,12 @@ GET_ASSET_CALIBRATION_HISTORY_ROUTE_FORMAT = '/niapm/v1/assets/{asset_id}/histor
 UPDATE_ASSETS_ROUTE = 'niapm/v1/update-assets'
 GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
-SYSTEMS_ROUTE = '/nisysmgmt/v1/systems'
 
 CATEGORY = 'AssetPerformanceManagement'
 
 NO_SYSTEM_CONNECTED_ERROR = """
-Fully testing asset migration requires connecting a real client 
-system to the SystemLink server, otherwise most data can still 
+Fully testing asset migration requires connecting a real client
+system to the SystemLink server, otherwise most data can still
 be validated by passing the --relax-validation flag.
 """
 
@@ -161,10 +160,14 @@ class TestAsset(ManualTestBase):
             self.__ensure_there_is_a_connected_system()
 
     def __ensure_there_is_a_connected_system(self):
-        response = self.get(SYSTEMS_ROUTE)
-        response.raise_for_status()
-        systems = response.json()
-        if len(systems) == 0:
+        assets = self.__query_assets('AssetType = "SYSTEM"')
+        connected_system = False
+        for asset in assets:
+            system_connection_state = asset['location']['state']['systemConnection']
+            system_asset_presence = asset['location']['state']['assetPresence']
+            if system_connection_state == 'CONNECTED_UPDATE_SUCCESSFUL' and system_asset_presence == 'PRESENT':
+                connected_system = True
+        if not connected_system:
             raise AssertionError(NO_SYSTEM_CONNECTED_ERROR)
 
     def __modify_policy(self):
