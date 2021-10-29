@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 from manual_test.manual_test_base import ManualTestBase, POPULATED_SERVER_RECORD_TYPE, handle_command_line
-# from manual_test.utilities import file_utilities
 from manual_test.utilities.file_utilities import FileUtilities
 from manual_test.utilities.workspace_utilities import WorkspaceUtilities
 
@@ -20,6 +19,12 @@ GET_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 PATCH_ASSET_POLICY_ROUTE = '/niapm/v1/policy'
 
 CATEGORY = 'AssetPerformanceManagement'
+
+NO_SYSTEM_CONNECTED_ERROR = """
+Fully testing asset migration requires connecting a real client
+system to the SystemLink server, otherwise most data can still
+be validated by passing the --relax-validation flag.
+"""
 
 
 class TestAsset(ManualTestBase):
@@ -147,10 +152,23 @@ class TestAsset(ManualTestBase):
         return response.json()
 
     def __populate_availability_histories(self, devices):
-        # TEST GAP: Currently, availability histories are only tracked for assets
-        # that are present in a connected system. For now, we are not actually
-        # populating this database, although we still store and validate the contents.
-        pass
+        # Currently, availability histories are only tracked for assets
+        # that are present in a connected system. This test can be run
+        # with the --relax-validation if you haven't connected a live system,
+        # and do not care about validating the connection histories collection.
+        if not self._relax_validation:
+            self.__ensure_there_is_a_connected_system()
+
+    def __ensure_there_is_a_connected_system(self):
+        assets = self.__query_assets('AssetType = "SYSTEM"')
+        connected_system = False
+        for asset in assets:
+            system_connection_state = asset['location']['state']['systemConnection']
+            system_asset_presence = asset['location']['state']['assetPresence']
+            if system_connection_state == 'CONNECTED_UPDATE_SUCCESSFUL' and system_asset_presence == 'PRESENT':
+                connected_system = True
+        if not connected_system:
+            raise AssertionError(NO_SYSTEM_CONNECTED_ERROR)
 
     def __modify_policy(self):
         policy = {
