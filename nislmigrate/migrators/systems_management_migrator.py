@@ -39,7 +39,8 @@ class SystemsManagementMigrator(MigratorPlugin):
 
     @property
     def help(self):
-        return 'Migrate registered systems'
+        return 'Migrate registered systems. Must include the --secret <SECRET> command line argument when using this ' \
+               'migrator. '
 
     def capture(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
         self.__file_facade = facade_factory.get_file_system_facade()
