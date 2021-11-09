@@ -19,6 +19,8 @@ VERBOSITY_ARGUMENT = 'verbosity'
 MIGRATION_DIRECTORY_ARGUMENT = 'dir'
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
 SECRET_ARGUMENT = 'secret'
+FORCE_ARGUMENT = 'force'
+LIST_INSTALLED_SERVICES_ARGUMENT = 'list-installed-services'
 
 SECRET_ARGUMENT_HELP = 'Some migrators require this --secret to encrypt sensitive data during migration \
 otherwise it is ignored. You will need to provide the same password when restoring and capturing data.'
@@ -43,8 +45,9 @@ DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (default
 ALL_SERVICES_ARGUMENT_HELP = 'use all provided migrator plugins during a capture or restore operation'
 FORCE_ARGUMENT_HELP = 'allows capture to delete existing data on the SystemLink server prior to restore'
 DEBUG_VERBOSITY_ARGUMENT_HELP = 'print all logged information and stack trace information in case an error occurs'
-VERBOSE_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
-
+SILENT_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
+LIST_INSTALLED_SERVICES_ARGUMENT_HELP = 'list the SystemLink services this tool recognises as installed on the ' \
+                                        'current machine'
 
 def _get_migrator_arguments_key(migrator: MigratorPlugin):
     return f'{migrator.argument}_args'
@@ -86,7 +89,7 @@ class ArgumentHandler:
         :return: A list of selected migration actions.
         """
         migrate_all = self.__is_all_service_migration_flag_present()
-        enabled_plugins = (self.__get_all_plugins_for_installed_services()
+        enabled_plugins = (self.get_all_plugins_for_installed_services()
                            if migrate_all
                            else self.__get_enabled_plugins())
         if len(enabled_plugins) == 0:
@@ -109,7 +112,7 @@ class ArgumentHandler:
         arguments['secret'] = secret
         return arguments
 
-    def __get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
+    def get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
         return [plugin for plugin in self.plugin_loader.get_plugins()
                 if plugin.is_service_installed(self.facade_factory)]
 
@@ -142,6 +145,9 @@ class ArgumentHandler:
     def is_force_migration_flag_present(self) -> bool:
         return getattr(self.parsed_arguments, 'force', False)
 
+    def is_list_installed_services_migration_flag_present(self) -> bool:
+        return getattr(self.parsed_arguments, 'list-installed-services', False)
+
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:
         return [
@@ -151,7 +157,8 @@ class ArgumentHandler:
             and not argument == MIGRATION_DIRECTORY_ARGUMENT
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
-            and not argument == 'force'
+            and not argument == FORCE_ARGUMENT
+            and not argument == LIST_INSTALLED_SERVICES_ARGUMENT
             and not _is_migrator_arguments_key(argument)
         ]
 
@@ -182,6 +189,8 @@ class ArgumentHandler:
 
         :return: The configured verbosity as an integer.
         """
+        if self.parsed_arguments.verbosity == logging.WARNING:
+            self.parsed_arguments.verbosity = logging.INFO
         return self.parsed_arguments.verbosity
 
     def __create_migration_tool_argument_parser(self) -> ArgumentParser:
@@ -207,7 +216,7 @@ class ArgumentHandler:
         restore_parser = sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
         restore_parser.add_argument(
             '-f',
-            '--force',
+            '--' + FORCE_ARGUMENT,
             help=FORCE_ARGUMENT_HELP,
             action='store_true')
 
@@ -234,12 +243,17 @@ class ArgumentHandler:
             const=logging.DEBUG,
             default=logging.WARNING)
         parser.add_argument(
-            '-v',
-            '--verbose',
-            help=VERBOSE_VERBOSITY_ARGUMENT_HELP,
+            '-s',
+            '--silent',
+            help=SILENT_VERBOSITY_ARGUMENT_HELP,
             action='store_const',
             dest=VERBOSITY_ARGUMENT,
-            const=logging.INFO)
+            const=logging.CRITICAL)
+        parser.add_argument(
+            '--' + LIST_INSTALLED_SERVICES_ARGUMENT,
+            help=LIST_INSTALLED_SERVICES_ARGUMENT_HELP,
+            dest=LIST_INSTALLED_SERVICES_ARGUMENT,
+            action='store_true')
 
     def __add_plugin_arguments(self, parser: ArgumentParser) -> None:
         """Adds expected arguments to the parser for all migrators.

@@ -4,7 +4,7 @@ Ideal setup would include:
 1. A SystemLink server to use as the original machine, with nislmigrate installed as described in the top-level [README.md](../README.md)
 1. A SystemLink server to use as the destination machine, also with nislmigrate installed. If you don't have 2 machines, you can use a vm, and restore to a 'clean' snapshot before restoring.
 
-# Basic Steps for all of the manual tests
+# Basic Steps for all the manual tests
 1. On dev machine, populate a server with sample data for one or more services:
 
    ```
