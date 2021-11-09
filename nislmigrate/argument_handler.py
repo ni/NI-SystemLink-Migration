@@ -49,6 +49,7 @@ SILENT_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging 
 LIST_INSTALLED_SERVICES_ARGUMENT_HELP = 'list the SystemLink services this tool recognises as installed on the ' \
                                         'current machine'
 
+
 def _get_migrator_arguments_key(migrator: MigratorPlugin):
     return f'{migrator.argument}_args'
 

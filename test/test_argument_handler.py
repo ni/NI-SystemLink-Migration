@@ -106,7 +106,55 @@ def test_get_logging_verbosity_with_no_arguments():
     arguments = []
     argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
-    assert argument_handler.get_logging_verbosity() == logging.WARNING
+    assert argument_handler.get_logging_verbosity() == logging.INFO
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_short_silent_argument():
+    arguments = ['-s']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.CRITICAL
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_silent_argument():
+    arguments = ['--silent']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.CRITICAL
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_short_debug_argument():
+    arguments = ['-d']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.DEBUG
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_debug_argument():
+    arguments = ['--debug']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.DEBUG
+
+
+@pytest.mark.unit
+def test_is_list_installed_services_present():
+    arguments = ['--list-installed-services']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.is_list_installed_services_migration_flag_present()
+
+
+@pytest.mark.unit
+def test_is_list_installed_services_not_present():
+    arguments = []
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert not argument_handler.is_list_installed_services_migration_flag_present()
 
 
 @pytest.mark.unit

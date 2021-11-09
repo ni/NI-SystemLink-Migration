@@ -1,5 +1,3 @@
-import logging
-
 from nislmigrate.logs import logging_setup, migration_error
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.facade_factory import FacadeFactory
