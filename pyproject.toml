@@ -17,6 +17,7 @@ classifiers=[
 [tool.poetry.dependencies]
 python = "^3.6.8"
 argparse = "^1.4.0"
+cryptography = "^35.0.0"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.24.2"
@@ -28,7 +29,6 @@ taskipy = "^1.8.1"
 types-requests = "^2.25.6"
 requests = "^2.26.0"
 flake8-quotes = "^3.3.0"
-cryptography = "^35.0.0"
 
 [tool.poetry.scripts]
 nislmigrate = 'nislmigrate.migration_tool:main'
