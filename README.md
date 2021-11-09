@@ -83,33 +83,9 @@ Most services require migrating the `--security` service at the same time for th
 | Tag Alarm Rules                 | `--tagrule`       | `--security`<br>`--notification` |                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Alarm Instances                 | `--alarms`        | `--security`<br>`--notification` | - Cannot be migrated between 2020R1 and 2020R2 servers                                                                                                                                                                                                                                                                                                                                           |
 | Asset Alarm Rules               | `--assetrule`     | `--security`<br>`--notification` |                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Asset Management                | `--assets`        | `--security`<br>`--files`        |                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Asset Management                | `--assets`        | `--security`<br>`--files`<br>`--tags`        |                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Test Monitor                    | `--tests`         | `--security`<br>`--file`         |                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Systems                         | `--systems`       | `--security`<br>`--tags`<br>`--file`  | - _WARNING:_ Captured systems data contains encrypted secret information and should not be copied to a publicly accessible location.<br>- To capture/restore systems, a secret must be provided using the `--secret <SECRET>` command line flag. Captured systems data will require the same secret to be provided as was provided during capture in order to be able to decrypt sensitive data. |
-
-- Alarm Instances: `--alarms`
-- Asset Management: `--assets`
-    - Cannot be migrated between 2020R1 and 2020R2 servers
-- Asset Alarm Rules: `--assetrule`
-- File Ingestion: `--files`
-    - Must migrate file to the same storage location on the new System Link server.
-    - To capture/restore only the database but not the files themselves, use `--files --files-metadata-only`. This could be useful if, for example, files are stored on a file server with separate backup.
-    - If files are stored in Amazon Simple Storage Service (S3), use `--files --files-metadata-only`.
-- Notifications: `--notification`
-- Security `--security`
-- Systems: `--systems`
-    - _WARNING:_ Captured systems data contains encrypted secret information and should not be copied to a publicly accessible location.
-    - To capture/restore systems, a secret must be provided using the `--secret <SECRET>` command line flag. Captured systems data will require the same secret to be provided as was provided during capture in order to be able to decrypt sensitive data.
-- System States: `--systemstates`
-    - Feeds may require additional updates if servers used for migration have different domain names
-    - Cannot be migrated between 2020R1 and 2020R2 servers
-- Tag Alarm Rules: `--tagrule`
-- Tag Ingestion and Tag History: `--tags`
-- Test Monitor: `--tests`
-- Repository: `--repo`
-    - Feeds may require additional updates if servers used for migration have different domain names
-- User Data: `--userdata`
-- Dashboards and Web Applications: `--dashboards`
 
 There are plans to support the following services in the future:
 - OPC UA Client: `--opc`
