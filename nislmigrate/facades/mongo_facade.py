@@ -4,6 +4,8 @@ import os
 import logging
 from typing import List, Optional
 
+import pymongo
+
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
 from nislmigrate.logs.migration_error import MigrationError
@@ -156,3 +158,15 @@ class MongoFacade:
             else:
                 log = logging.getLogger('MongoProcess')
                 log.info(f'{line}')
+
+    def update_collection(self):
+        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+        mydb = myclient["mydatabase"]
+        mycol = mydb["customers"]
+
+        myquery = {"address": {"$regex": "^S"}}
+        newvalues = {"$set": {"name": "Minnie"}}
+
+        x = mycol.update_many(myquery, newvalues)
+
+        print(x.modified_count, "documents updated.")

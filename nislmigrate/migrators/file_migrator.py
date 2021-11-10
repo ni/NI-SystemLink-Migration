@@ -24,6 +24,9 @@ _METADATA_ONLY_ARGUMENT = 'metadata-only'
 _METADATA_ONLY_HELP = 'When used with --files or --all, migrate only the file metadata, \
 but not the files themselves. Otherwise ignored.'
 
+_CHANGE_FILE_STORE_ARGUMENT = 'change-file-store'
+_CHANGE_FILE_STORE_HELP = 'Change the file storage location path'
+
 _NO_FILES_ERROR = """
 
 Files data was not found. If you intend to restore metadata only, pass
@@ -58,6 +61,8 @@ class _FileMigratorConfiguration:
         self.is_s3_backend: bool = config.get(S3_CONFIGURATION_KEY, '').lower() == 'true'
         self.has_metadata_only_argument: bool = arguments.get(_METADATA_ONLY_ARGUMENT, False)
         self.should_migrate_files: bool = not self.has_metadata_only_argument
+        self.update_store_path: str = arguments.get(_CHANGE_FILE_STORE_ARGUMENT, '')
+        self.should_update_store: bool = not self.update_store_path == ''
 
 
 class FileMigrator(MigratorPlugin):
@@ -106,6 +111,9 @@ class FileMigrator(MigratorPlugin):
             migration_directory,
             self.name)
 
+        if configuration.should_update_store:
+
+
         if configuration.should_migrate_files:
             configuration.file_facade.copy_directory(
                 configuration.file_migration_directory,
@@ -152,3 +160,4 @@ class FileMigrator(MigratorPlugin):
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
+        argument_manager.add_argument(_CHANGE_FILE_STORE_ARGUMENT, help=_CHANGE_FILE_STORE_HELP)
