@@ -26,7 +26,8 @@ class SystemLinkServiceManagerFacade:
         log.log(logging.INFO, 'Starting all SystemLink services...')
         self.__run_command(START_SERVICE_MANAGER_COMMAND)
 
-    def __run_command(self, command: str):
+    @staticmethod
+    def __run_command(command: str):
         try:
             subprocess.run(command, check=True, capture_output=True)
         except subprocess.CalledProcessError as e:

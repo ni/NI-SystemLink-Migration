@@ -4,6 +4,7 @@ from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import MIGRATION_DIRECTORY_ARGUMENT
 from nislmigrate.facades.mongo_facade import MongoFacade
+from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_facilitator import MigrationFacilitator
 from test import test_constants
 from test.test_utilities import FakeFacadeFactory

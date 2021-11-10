@@ -256,7 +256,7 @@ class ArgumentHandler:
             dest=VERBOSITY_ARGUMENT,
             const=logging.CRITICAL)
         parser.add_argument(
-            '--' + LIST_INSTALLED_SERVICES_ARGUMENT,
+            f'--{LIST_INSTALLED_SERVICES_ARGUMENT}',
             help=LIST_INSTALLED_SERVICES_ARGUMENT_HELP,
             dest=LIST_INSTALLED_SERVICES_ARGUMENT,
             action='store_true')
