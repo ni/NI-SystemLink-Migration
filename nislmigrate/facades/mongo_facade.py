@@ -160,6 +160,16 @@ class MongoFacade:
                 log.info(f'{line}')
 
     def update_collection(self):
+        config = self.get_service_config(constants.no_sql)
+        client = MongoClient(
+            host=[config[constants.no_sql.name]["Mongo.Host"]],
+            port=config[constants.no_sql.name]["Mongo.Port"],
+            username=config[constants.no_sql.name]["Mongo.User"],
+            password=config[constants.no_sql.name]["Mongo.Password"],
+        )
+        source_db = client.get_database(name=service.SOURCE_DB, codec_options=codec)
+        destination_db = client.get_database(name=service.destination_db, codec_options=codec)
+
         myclient = pymongo.MongoClient("mongodb://localhost:27017/")
         mydb = myclient["mydatabase"]
         mycol = mydb["customers"]
@@ -170,3 +180,4 @@ class MongoFacade:
         x = mycol.update_many(myquery, newvalues)
 
         print(x.modified_count, "documents updated.")
+

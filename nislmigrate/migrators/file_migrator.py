@@ -160,4 +160,4 @@ class FileMigrator(MigratorPlugin):
 
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
-        argument_manager.add_argument(_CHANGE_FILE_STORE_ARGUMENT, help=_CHANGE_FILE_STORE_HELP)
+        argument_manager.add_argument(_CHANGE_FILE_STORE_ARGUMENT, help=_CHANGE_FILE_STORE_HELP, metavar='update')
