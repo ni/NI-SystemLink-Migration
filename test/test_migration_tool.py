@@ -84,7 +84,7 @@ class FakeProcessFacadeWithPathVerification(FakeProcessFacade):
 
 class TestMigrator(MigratorPlugin):
     def __init__(self):
-        self.catpure_extra_arguments = None
+        self.capture_extra_arguments = None
         self.restore_extra_arguments = None
         self.pre_restore_extra_arguments = None
 

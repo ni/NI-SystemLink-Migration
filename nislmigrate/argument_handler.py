@@ -16,11 +16,16 @@ CAPTURE_ARGUMENT = 'capture'
 RESTORE_ARGUMENT = 'restore'
 ALL_SERVICES_ARGUMENT = 'all'
 VERBOSITY_ARGUMENT = 'verbosity'
+DEBUG_VERBOSITY_ARGUMENT = 'debug'
+DEBUG_VERBOSITY_ARGUMENT_FLAG = 'd'
+SILENT_VERBOSITY_ARGUMENT = 'silent'
+SILENT_VERBOSITY_ARGUMENT_FLAG = 's'
 MIGRATION_DIRECTORY_ARGUMENT = 'dir'
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
 SECRET_ARGUMENT = 'secret'
 FORCE_ARGUMENT = 'force'
-LIST_INSTALLED_SERVICES_ARGUMENT = 'list-installed-services'
+FORCE_ARGUMENT_FLAG = 'f'
+LIST_INSTALLED_SERVICES_ARGUMENT = 'list'
 
 SECRET_ARGUMENT_HELP = 'Some migrators require this --secret to encrypt sensitive data during migration \
 otherwise it is ignored. You will need to provide the same password when restoring and capturing data.'
@@ -110,7 +115,7 @@ class ArgumentHandler:
         key = _get_migrator_arguments_key(migrator)
         arguments = getattr(self.parsed_arguments, key, {})
         secret = getattr(self.parsed_arguments, SECRET_ARGUMENT, [''])[0]
-        arguments['secret'] = secret
+        arguments[SECRET_ARGUMENT] = secret
         return arguments
 
     def get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
@@ -144,10 +149,7 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
     def is_force_migration_flag_present(self) -> bool:
-        return getattr(self.parsed_arguments, 'force', False)
-
-    def is_list_installed_services_migration_flag_present(self) -> bool:
-        return getattr(self.parsed_arguments, 'list-installed-services', False)
+        return getattr(self.parsed_arguments, FORCE_ARGUMENT, False)
 
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:
@@ -159,7 +161,6 @@ class ArgumentHandler:
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
             and not argument == FORCE_ARGUMENT
-            and not argument == LIST_INSTALLED_SERVICES_ARGUMENT
             and not _is_migrator_arguments_key(argument)
         ]
 
@@ -172,6 +173,8 @@ class ArgumentHandler:
             return MigrationAction.RESTORE
         elif self.parsed_arguments.action == CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
+        elif self.parsed_arguments.action == LIST_INSTALLED_SERVICES_ARGUMENT:
+            return MigrationAction.LIST
         else:
             raise MigrationError(CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT)
 
@@ -216,15 +219,16 @@ class ArgumentHandler:
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
         restore_parser = sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
         restore_parser.add_argument(
-            '-f',
-            '--' + FORCE_ARGUMENT,
+            f'-{FORCE_ARGUMENT_FLAG}',
+            f'--{FORCE_ARGUMENT}',
             help=FORCE_ARGUMENT_HELP,
             action='store_true')
+        sub_parser.add_parser(LIST_INSTALLED_SERVICES_ARGUMENT, help=LIST_INSTALLED_SERVICES_ARGUMENT_HELP)
 
     @staticmethod
     def __add_additional_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
-            '--' + MIGRATION_DIRECTORY_ARGUMENT,
+            f'--{MIGRATION_DIRECTORY_ARGUMENT}',
             help=DIRECTORY_ARGUMENT_HELP,
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
@@ -236,25 +240,20 @@ class ArgumentHandler:
     @staticmethod
     def __add_logging_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
-            '-d',
-            '--debug',
+            f'-{DEBUG_VERBOSITY_ARGUMENT_FLAG}',
+            f'--{DEBUG_VERBOSITY_ARGUMENT}',
             help=DEBUG_VERBOSITY_ARGUMENT_HELP,
             action='store_const',
             dest=VERBOSITY_ARGUMENT,
             const=logging.DEBUG,
             default=logging.WARNING)
         parser.add_argument(
-            '-s',
-            '--silent',
+            f'-{SILENT_VERBOSITY_ARGUMENT_FLAG}',
+            f'--{SILENT_VERBOSITY_ARGUMENT}',
             help=SILENT_VERBOSITY_ARGUMENT_HELP,
             action='store_const',
             dest=VERBOSITY_ARGUMENT,
             const=logging.CRITICAL)
-        parser.add_argument(
-            '--' + LIST_INSTALLED_SERVICES_ARGUMENT,
-            help=LIST_INSTALLED_SERVICES_ARGUMENT_HELP,
-            dest=LIST_INSTALLED_SERVICES_ARGUMENT,
-            action='store_true')
 
     def __add_plugin_arguments(self, parser: ArgumentParser) -> None:
         """Adds expected arguments to the parser for all migrators.
