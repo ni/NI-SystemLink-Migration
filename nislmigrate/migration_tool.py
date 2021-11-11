@@ -4,7 +4,7 @@ from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migration_facilitator import MigrationFacilitator
 from nislmigrate.utility import permission_checker
-from nislmigrate.utility.installed_services_information import list_installed_services
+from nislmigrate.utility.information_logger import InformationLogger
 
 
 def run_migration_tool(facade_factory: FacadeFactory, argument_handler: ArgumentHandler) -> None:
@@ -32,7 +32,7 @@ def main():
         permission_checker.verify_elevated_permissions()
 
         if argument_handler.get_migration_action() == MigrationAction.LIST:
-            list_installed_services(argument_handler)
+            InformationLogger.list_installed_services(argument_handler)
         else:
             run_migration_tool(facade_factory, argument_handler)
     except Exception as e:
