@@ -1,7 +1,7 @@
 import logging
 import os
 
-from nislmigrate.argument_handler import ArgumentHandler
+from nislmigrate.argument_handler import ArgumentHandler, CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.logs.migration_error import MigrationError
@@ -9,12 +9,6 @@ from nislmigrate.migration_action import MigrationAction
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 from nislmigrate.utility import permission_checker
-from nislmigrate.utility.installed_services_information import should_list_installed_services, \
-    list_installed_services, \
-    is_migration_action_present
-
-CAN_NOT_MIGRATE_AND_LIST_INSTALLED_SERVICES_ERROR = 'Remove the `--list-installed-services` flag to actually run the ' \
-                                                    'migration. '
 
 
 class MigrationFacilitator:
@@ -27,6 +21,8 @@ class MigrationFacilitator:
         self.service_manager: SystemLinkServiceManagerFacade = facade_factory.get_system_link_service_manager_facade()
 
         self._action = argument_handler.get_migration_action()
+        if not self._action == MigrationAction.RESTORE and not self._action == MigrationAction.CAPTURE:
+            raise MigrationError(CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT)
         self._migrators = argument_handler.get_list_of_services_to_capture_or_restore()
         self._migration_directory = argument_handler.get_migration_directory()
         self._argument_handler = argument_handler
@@ -35,7 +31,6 @@ class MigrationFacilitator:
         """Facilitates an entire capture or restore operation from start to finish.
         """
 
-        self.__list_installed_services()
         self.__pre_migration_error_check()
         self.__stop_services_and_perform_migration()
 
@@ -105,10 +100,3 @@ class MigrationFacilitator:
         info = f'Pre-migration check passed for {migrator_name}.'
         log = logging.getLogger(MigrationFacilitator.__name__)
         log.log(logging.INFO, info)
-
-    def __list_installed_services(self):
-        if should_list_installed_services(self._argument_handler):
-            list_installed_services(self._argument_handler)
-            if is_migration_action_present(self._argument_handler):
-                raise MigrationError(CAN_NOT_MIGRATE_AND_LIST_INSTALLED_SERVICES_ERROR)
-            exit()

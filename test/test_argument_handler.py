@@ -3,7 +3,7 @@ from typing import List
 
 import pytest
 
-from nislmigrate.argument_handler import ArgumentHandler
+from nislmigrate.argument_handler import ArgumentHandler, LIST_INSTALLED_SERVICES_ARGUMENT
 from nislmigrate.argument_handler import CAPTURE_ARGUMENT
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import DEFAULT_MIGRATION_DIRECTORY
@@ -19,6 +19,7 @@ from test.test_utilities import FakeFacadeFactory, FakeMigratorPluginLoader
 @pytest.mark.parametrize('arguments', [
     [],
     [CAPTURE_ARGUMENT, RESTORE_ARGUMENT],
+    [LIST_INSTALLED_SERVICES_ARGUMENT, RESTORE_ARGUMENT],
     ['--tag'],
     [CAPTURE_ARGUMENT, '--invalid'],
     ['not_capture_or_restore'],
@@ -142,19 +143,11 @@ def test_get_logging_verbosity_with_debug_argument():
 
 
 @pytest.mark.unit
-def test_is_list_installed_services_present():
-    arguments = ['--list-installed-services']
+def test_list_command():
+    arguments = [LIST_INSTALLED_SERVICES_ARGUMENT]
     argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
-    assert argument_handler.is_list_installed_services_migration_flag_present()
-
-
-@pytest.mark.unit
-def test_is_list_installed_services_not_present():
-    arguments = []
-    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
-
-    assert not argument_handler.is_list_installed_services_migration_flag_present()
+    assert argument_handler.get_migration_action() == MigrationAction.LIST
 
 
 @pytest.mark.unit

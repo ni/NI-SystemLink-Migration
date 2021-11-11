@@ -3,7 +3,8 @@ from enum import Enum
 
 class MigrationAction(Enum):
     """
-    The directionality of a migration operation.
+    The command of a migration operation.
     """
     CAPTURE = 0
     RESTORE = 1
+    LIST = 2
