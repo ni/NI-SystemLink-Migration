@@ -1,11 +1,11 @@
 # NI-SystemLink-Migration tool `nislmigrate`
 `nislmigrate` is a command line utility for migration, backup, and restore of supported SystemLink services.
-# Installation
+
 ### Prerequisites
 #### 1. SystemLink
-- This tool currently supports migration from a SystemLink 2020R1 server, migration between other versions has not been tested.
+- This tool offically supports migration between SystemLink versions 21.0, 21.1, 21.3, & 21.5. Other versions have not been tested.
 - **We assume the server you are migrating to is clean with no data. Migrating to a server with existing data will result in data loss.**
-- Not all services are supported yet, see **Supported Services** for details.
+- Most services are supported with a few caveats and exceptions, see **Supported Services** for details.
 - This tool assumes a single-box SystemLink installation.
 - This tool must be run on the same machines as the SystemLink installations.
 #### 2. Python
