@@ -5,7 +5,7 @@
 #### 1. SystemLink
 - This tool offically supports migration between SystemLink versions 21.0, 21.1, 21.3, & 21.5. Other versions have not been tested.
 - **We assume the server you are migrating to is clean with no data. Migrating to a server with existing data will result in data loss.**
-- Most services are supported with a few caveats and exceptions, see **Supported Services** for details.
+- Services that are supported with any caveats and exceptions are detailed in the **Supported Services** section below.
 - This tool assumes a single-box SystemLink installation.
 - This tool must be run on the same machines as the SystemLink installations.
 #### 2. Python
