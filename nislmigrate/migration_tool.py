@@ -3,8 +3,8 @@ from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.facades.facade_factory import FacadeFactory
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.migration_facilitator import MigrationFacilitator
-from nislmigrate.utility import permission_checker
 from nislmigrate.utility.information_logger import InformationLogger
+from nislmigrate.utility.permission_checker import PermissionChecker
 
 
 def run_migration_tool(facade_factory: FacadeFactory, argument_handler: ArgumentHandler) -> None:
@@ -29,7 +29,7 @@ def main():
 
         logging_verbosity = argument_handler.get_logging_verbosity()
         logging_setup.configure_logging_to_standard_output(logging_verbosity)
-        permission_checker.verify_elevated_permissions()
+        PermissionChecker.verify_elevated_permissions()
 
         if argument_handler.get_migration_action() == MigrationAction.LIST:
             InformationLogger.list_installed_services(argument_handler)
