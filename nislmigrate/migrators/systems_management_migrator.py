@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 PKI_DIRECTORY_NAME = 'pki'
 PILLAR_DIRECTORY_NAME = 'pillar'
-SALT_PATH = os.path.join(get_ni_application_data_directory_path(), 'National Instruments', 'salt')
+SALT_PATH = os.path.join(get_ni_application_data_directory_path(), 'salt')
 PKI_INSTALLED_PATH = os.path.join(SALT_PATH, 'conf', PKI_DIRECTORY_NAME, 'master')
 PILLAR_INSTALLED_PATH = os.path.join(SALT_PATH, 'srv', PILLAR_DIRECTORY_NAME)
 NO_SECRET_ERROR = """

@@ -16,9 +16,16 @@ CAPTURE_ARGUMENT = 'capture'
 RESTORE_ARGUMENT = 'restore'
 ALL_SERVICES_ARGUMENT = 'all'
 VERBOSITY_ARGUMENT = 'verbosity'
+DEBUG_VERBOSITY_ARGUMENT = 'debug'
+DEBUG_VERBOSITY_ARGUMENT_FLAG = 'd'
+SILENT_VERBOSITY_ARGUMENT = 'silent'
+SILENT_VERBOSITY_ARGUMENT_FLAG = 's'
 MIGRATION_DIRECTORY_ARGUMENT = 'dir'
 DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
 SECRET_ARGUMENT = 'secret'
+FORCE_ARGUMENT = 'force'
+FORCE_ARGUMENT_FLAG = 'f'
+LIST_INSTALLED_SERVICES_ARGUMENT = 'list'
 
 SECRET_ARGUMENT_HELP = 'Some migrators require this --secret to encrypt sensitive data during migration \
 otherwise it is ignored. You will need to provide the same password when restoring and capturing data.'
@@ -43,7 +50,9 @@ DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (default
 ALL_SERVICES_ARGUMENT_HELP = 'use all provided migrator plugins during a capture or restore operation'
 FORCE_ARGUMENT_HELP = 'allows capture to delete existing data on the SystemLink server prior to restore'
 DEBUG_VERBOSITY_ARGUMENT_HELP = 'print all logged information and stack trace information in case an error occurs'
-VERBOSE_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
+SILENT_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
+LIST_INSTALLED_SERVICES_ARGUMENT_HELP = 'list the SystemLink services this tool recognises as installed on the ' \
+                                        'current machine'
 
 
 def _get_migrator_arguments_key(migrator: MigratorPlugin):
@@ -86,7 +95,7 @@ class ArgumentHandler:
         :return: A list of selected migration actions.
         """
         migrate_all = self.__is_all_service_migration_flag_present()
-        enabled_plugins = (self.__get_all_plugins_for_installed_services()
+        enabled_plugins = (self.get_all_plugins_for_installed_services()
                            if migrate_all
                            else self.__get_enabled_plugins())
         if len(enabled_plugins) == 0:
@@ -106,10 +115,10 @@ class ArgumentHandler:
         key = _get_migrator_arguments_key(migrator)
         arguments = getattr(self.parsed_arguments, key, {})
         secret = getattr(self.parsed_arguments, SECRET_ARGUMENT, [''])[0]
-        arguments['secret'] = secret
+        arguments[SECRET_ARGUMENT] = secret
         return arguments
 
-    def __get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
+    def get_all_plugins_for_installed_services(self) -> List[MigratorPlugin]:
         return [plugin for plugin in self.plugin_loader.get_plugins()
                 if plugin.is_service_installed(self.facade_factory)]
 
@@ -140,7 +149,7 @@ class ArgumentHandler:
         return getattr(self.parsed_arguments, ALL_SERVICES_ARGUMENT)
 
     def is_force_migration_flag_present(self) -> bool:
-        return getattr(self.parsed_arguments, 'force', False)
+        return getattr(self.parsed_arguments, FORCE_ARGUMENT, False)
 
     @staticmethod
     def __remove_non_plugin_arguments(arguments: Dict[str, Any]) -> List[str]:
@@ -151,7 +160,7 @@ class ArgumentHandler:
             and not argument == MIGRATION_DIRECTORY_ARGUMENT
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
-            and not argument == 'force'
+            and not argument == FORCE_ARGUMENT
             and not _is_migrator_arguments_key(argument)
         ]
 
@@ -164,6 +173,8 @@ class ArgumentHandler:
             return MigrationAction.RESTORE
         elif self.parsed_arguments.action == CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
+        elif self.parsed_arguments.action == LIST_INSTALLED_SERVICES_ARGUMENT:
+            return MigrationAction.LIST
         else:
             raise MigrationError(CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT)
 
@@ -182,6 +193,8 @@ class ArgumentHandler:
 
         :return: The configured verbosity as an integer.
         """
+        if self.parsed_arguments.verbosity == logging.WARNING:
+            self.parsed_arguments.verbosity = logging.INFO
         return self.parsed_arguments.verbosity
 
     def __create_migration_tool_argument_parser(self) -> ArgumentParser:
@@ -206,15 +219,16 @@ class ArgumentHandler:
         sub_parser.add_parser(CAPTURE_ARGUMENT, help=CAPTURE_COMMAND_HELP, parents=[parent_parser])
         restore_parser = sub_parser.add_parser(RESTORE_ARGUMENT, help=RESTORE_COMMAND_HELP, parents=[parent_parser])
         restore_parser.add_argument(
-            '-f',
-            '--force',
+            f'-{FORCE_ARGUMENT_FLAG}',
+            f'--{FORCE_ARGUMENT}',
             help=FORCE_ARGUMENT_HELP,
             action='store_true')
+        sub_parser.add_parser(LIST_INSTALLED_SERVICES_ARGUMENT, help=LIST_INSTALLED_SERVICES_ARGUMENT_HELP)
 
     @staticmethod
     def __add_additional_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
-            '--' + MIGRATION_DIRECTORY_ARGUMENT,
+            f'--{MIGRATION_DIRECTORY_ARGUMENT}',
             help=DIRECTORY_ARGUMENT_HELP,
             default=DEFAULT_MIGRATION_DIRECTORY,
         )
@@ -226,20 +240,20 @@ class ArgumentHandler:
     @staticmethod
     def __add_logging_flag_options(parser: ArgumentParser) -> None:
         parser.add_argument(
-            '-d',
-            '--debug',
+            f'-{DEBUG_VERBOSITY_ARGUMENT_FLAG}',
+            f'--{DEBUG_VERBOSITY_ARGUMENT}',
             help=DEBUG_VERBOSITY_ARGUMENT_HELP,
             action='store_const',
             dest=VERBOSITY_ARGUMENT,
             const=logging.DEBUG,
             default=logging.WARNING)
         parser.add_argument(
-            '-v',
-            '--verbose',
-            help=VERBOSE_VERBOSITY_ARGUMENT_HELP,
+            f'-{SILENT_VERBOSITY_ARGUMENT_FLAG}',
+            f'--{SILENT_VERBOSITY_ARGUMENT}',
+            help=SILENT_VERBOSITY_ARGUMENT_HELP,
             action='store_const',
             dest=VERBOSITY_ARGUMENT,
-            const=logging.INFO)
+            const=logging.CRITICAL)
 
     def __add_plugin_arguments(self, parser: ArgumentParser) -> None:
         """Adds expected arguments to the parser for all migrators.

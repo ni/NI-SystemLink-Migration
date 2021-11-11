@@ -1,4 +1,5 @@
 from nislmigrate.facades.facade_factory import FacadeFactory
+from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, DEFAULT_SERVICE_CONFIGURATION_DIRECTORY
 from nislmigrate.migration_facilitator import MigrationFacilitator
@@ -78,9 +79,8 @@ def test_migrate_services_with_unknown_action_throws_exception():
     service = FakeMigrator()
 
     argument_handler = FakeArgumentHandler([service], 'unknown')
-    service_migrator = MigrationFacilitator(facade_factory, argument_handler)
-    with pytest.raises(ValueError):
-        service_migrator.migrate()
+    with pytest.raises(MigrationError):
+        MigrationFacilitator(facade_factory, argument_handler)
 
 
 @pytest.mark.unit

@@ -3,7 +3,7 @@ from typing import List
 
 import pytest
 
-from nislmigrate.argument_handler import ArgumentHandler
+from nislmigrate.argument_handler import ArgumentHandler, LIST_INSTALLED_SERVICES_ARGUMENT
 from nislmigrate.argument_handler import CAPTURE_ARGUMENT
 from nislmigrate.argument_handler import RESTORE_ARGUMENT
 from nislmigrate.argument_handler import DEFAULT_MIGRATION_DIRECTORY
@@ -19,6 +19,7 @@ from test.test_utilities import FakeFacadeFactory, FakeMigratorPluginLoader
 @pytest.mark.parametrize('arguments', [
     [],
     [CAPTURE_ARGUMENT, RESTORE_ARGUMENT],
+    [LIST_INSTALLED_SERVICES_ARGUMENT, RESTORE_ARGUMENT],
     ['--tag'],
     [CAPTURE_ARGUMENT, '--invalid'],
     ['not_capture_or_restore'],
@@ -106,7 +107,47 @@ def test_get_logging_verbosity_with_no_arguments():
     arguments = []
     argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
 
-    assert argument_handler.get_logging_verbosity() == logging.WARNING
+    assert argument_handler.get_logging_verbosity() == logging.INFO
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_short_silent_argument():
+    arguments = ['-s']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.CRITICAL
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_silent_argument():
+    arguments = ['--silent']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.CRITICAL
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_short_debug_argument():
+    arguments = ['-d']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.DEBUG
+
+
+@pytest.mark.unit
+def test_get_logging_verbosity_with_debug_argument():
+    arguments = ['--debug']
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_logging_verbosity() == logging.DEBUG
+
+
+@pytest.mark.unit
+def test_list_command():
+    arguments = [LIST_INSTALLED_SERVICES_ARGUMENT]
+    argument_handler = ArgumentHandler(arguments, facade_factory=FakeFacadeFactory())
+
+    assert argument_handler.get_migration_action() == MigrationAction.LIST
 
 
 @pytest.mark.unit
