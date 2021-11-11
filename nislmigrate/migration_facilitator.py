@@ -8,7 +8,7 @@ from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migration_action import MigrationAction
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
-from nislmigrate.utility import permission_checker
+from nislmigrate.utility.permission_checker import PermissionChecker
 
 
 class MigrationFacilitator:
@@ -71,7 +71,7 @@ class MigrationFacilitator:
 
     def __pre_migration_error_check(self) -> None:
         is_force_migration_flag_present = self._argument_handler.is_force_migration_flag_present()
-        permission_checker.verify_force_if_restoring(is_force_migration_flag_present, self._action)
+        PermissionChecker.verify_force_if_restoring(is_force_migration_flag_present, self._action)
 
         migrator: MigratorPlugin
         for migrator in self._migrators:

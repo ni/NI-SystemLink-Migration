@@ -12,30 +12,32 @@ captured data run the command again with the '-f/--force' flag
 """
 
 
-def is_running_with_elevated_permissions():
-    """
-    Checks whether the current process is running with elevated (admin) permissions or not.
-    :return: True if the current process is running with elevated permissions.
-    """
-    try:
-        return os.getuid() == 0
-    except AttributeError:
-        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+class PermissionChecker:
 
+    @staticmethod
+    def is_running_with_elevated_permissions():
+        """
+        Checks whether the current process is running with elevated (admin) permissions or not.
+        :return: True if the current process is running with elevated permissions.
+        """
+        try:
+            return os.getuid() == 0
+        except AttributeError:
+            return ctypes.windll.shell32.IsUserAnAdmin() != 0
 
-def verify_elevated_permissions():
-    """
-    Checks whether the current process is running with elevated (admin)
-    permissions or not and raises an error if it is not.
-    """
-    if not is_running_with_elevated_permissions():
-        raise PermissionError('Please run the migration tool with administrator permissions.')
+    @staticmethod
+    def verify_elevated_permissions():
+        """
+        Checks whether the current process is running with elevated (admin)
+        permissions or not and raises an error if it is not.
+        """
+        if not PermissionChecker.is_running_with_elevated_permissions():
+            raise PermissionError('Please run the migration tool with administrator permissions.')
 
-
-def verify_force_if_restoring(is_force_set: bool, migration_action: MigrationAction):
-    """
-    Checks whether the current process is running with elevated (admin)
-    permissions or not and raises an error if it is not.
-    """
-    if not is_force_set and migration_action == MigrationAction.RESTORE:
-        raise MigrationError(RESTORE_WITHOUT_FORCE_FLAG_WARNING)
+    @staticmethod
+    def verify_force_if_restoring(is_force_set: bool, migration_action: MigrationAction):
+        """
+        Raises an error if is_force_set is false and the migration action is set to restore.
+        """
+        if not is_force_set and migration_action == MigrationAction.RESTORE:
+            raise MigrationError(RESTORE_WITHOUT_FORCE_FLAG_WARNING)
