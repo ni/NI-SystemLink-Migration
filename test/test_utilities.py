@@ -43,6 +43,7 @@ class FakeArgumentHandler(ArgumentHandler):
     def __init__(self, services: List[MigratorPlugin], action: MigrationAction):
         self._services: List[MigratorPlugin] = services
         self._action = action
+        self.parsed_arguments = {}
 
     def get_list_of_services_to_capture_or_restore(self) -> List[MigratorPlugin]:
         return self._services
