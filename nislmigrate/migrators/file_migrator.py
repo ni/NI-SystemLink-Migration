@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Callable
 
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 from nislmigrate.facades.facade_factory import FacadeFactory
@@ -112,7 +112,7 @@ class FileMigrator(MigratorPlugin):
             self.name)
 
         if configuration.should_update_store:
-
+            self.update_root_file_path_in_metadata(configuration)
 
         if configuration.should_migrate_files:
             configuration.file_facade.copy_directory(
@@ -161,3 +161,41 @@ class FileMigrator(MigratorPlugin):
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
         argument_manager.add_argument(_CHANGE_FILE_STORE_ARGUMENT, help=_CHANGE_FILE_STORE_HELP, metavar='update')
+
+    def update_root_file_path_in_metadata(self, configuration: _FileMigratorConfiguration):
+        mongo_configuration = configuration.mongo_configuration
+        old_path = configuration.data_directory
+        new_path = configuration.update_store_path
+        path_field_name = 'path'
+        collection_name = self.name.lower()
+        does_path_field_start_with_old_path = self.does_field_start_with_prefix_predicate(path_field_name, old_path)
+        replace_old_path_with_new_path = self.replace_prefix_in_document_function(path_field_name, old_path, new_path)
+
+        configuration.mongo_facade.update_documents_in_collection(
+            mongo_configuration,
+            collection_name,
+            does_path_field_start_with_old_path,
+            replace_old_path_with_new_path)
+
+    @staticmethod
+    def does_field_start_with_prefix_predicate(field: str, prefix: str) -> Callable[[Dict[str, Any]], bool]:
+        return lambda document: document[field].startswith(prefix)
+
+    def replace_prefix_in_document_function(
+            self,
+            field: str,
+            old_prefix: str,
+            new_prefix: str
+    ) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+        return lambda document: self.replace_prefix_of_field_in_document(field, old_prefix, new_prefix, document)
+
+    @staticmethod
+    def replace_prefix_of_field_in_document(
+            field: str,
+            old_prefix: str,
+            new_prefix: str,
+            document: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        postfix = document[field][len(old_prefix):]
+        document[field] = new_prefix + postfix
+        return document

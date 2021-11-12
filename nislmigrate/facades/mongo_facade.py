@@ -2,9 +2,10 @@
 
 import os
 import logging
-from typing import List, Optional
+from typing import List, Optional, Callable, Any
 
-import pymongo
+import bson
+from pymongo import MongoClient
 
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
@@ -159,25 +160,18 @@ class MongoFacade:
                 log = logging.getLogger('MongoProcess')
                 log.info(f'{line}')
 
-    def update_collection(self):
-        config = self.get_service_config(constants.no_sql)
-        client = MongoClient(
-            host=[config[constants.no_sql.name]["Mongo.Host"]],
-            port=config[constants.no_sql.name]["Mongo.Port"],
-            username=config[constants.no_sql.name]["Mongo.User"],
-            password=config[constants.no_sql.name]["Mongo.Password"],
-        )
-        source_db = client.get_database(name=service.SOURCE_DB, codec_options=codec)
-        destination_db = client.get_database(name=service.destination_db, codec_options=codec)
-
-        myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-        mydb = myclient["mydatabase"]
-        mycol = mydb["customers"]
-
-        myquery = {"address": {"$regex": "^S"}}
-        newvalues = {"$set": {"name": "Minnie"}}
-
-        x = mycol.update_many(myquery, newvalues)
-
-        print(x.modified_count, "documents updated.")
-
+    @staticmethod
+    def update_documents_in_collection(
+            configuration: MongoConfiguration,
+            collection_name: str,
+            predicate: Callable[[Any], bool],
+            update_function: Callable[[Any], Any]):
+        client = MongoClient(configuration.connection_string)
+        codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
+        database = client.get_database(name=configuration.database_name, codec_options=codec)
+        collection = database[collection_name]
+        for document in collection.find():
+            if predicate(document):
+                document = update_function(document)
+                collection.replace_one({'_id': document['_id']}, document)
+            print(document)
