@@ -41,13 +41,6 @@ stored in S3. If you intend to migrate metadata only, pass --files-metadata-only
 
 """
 
-_CLEAR_MIGRATION_DIRECTORY_BEFORE_CAPTURING_ERROR = """
-
-There is existing data in the migration directory that capturing would overwrite.
-Clear the migration directory and try the capture again.
-
-"""
-
 _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME = 'file-store-root'
 
 
@@ -143,9 +136,6 @@ class FileMigrator(MigratorPlugin):
             arguments,
             self.config(facade_factory)
         )
-        captured_file_store_root_path = os.path.join(migration_directory, _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
-        if configuration.file_facade.does_file_exist(captured_file_store_root_path):
-            raise MigrationError(_CLEAR_MIGRATION_DIRECTORY_BEFORE_CAPTURING_ERROR)
         if not configuration.has_metadata_only_argument and configuration.is_s3_backend:
             raise MigrationError(_CANNOT_MIGRATE_S3_FILES_ERROR)
 

@@ -11,7 +11,7 @@ from nislmigrate.migrators.file_migrator import (
     S3_CONFIGURATION_KEY,
     _CANNOT_MIGRATE_S3_FILES_ERROR,
     _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME,
-    _CHANGE_FILE_STORE_ARGUMENT, _CLEAR_MIGRATION_DIRECTORY_BEFORE_CAPTURING_ERROR,
+    _CHANGE_FILE_STORE_ARGUMENT,
 )
 import pytest
 from test.test_utilities import FakeFacadeFactory, FakeFileSystemFacade
@@ -95,17 +95,6 @@ def test_file_migrator_captures_the_old_file_store_root():
 
     expected_stored_root_path = os.path.join('data_dir', _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
     assert file_system_facade.written_files[expected_stored_root_path] == DEFAULT_DATA_DIRECTORY
-
-
-@pytest.mark.unit
-def test_file_migrator_pre_capture_check_fails_when_old_file_store_root_file_exists():
-    facade_factory, file_system_facade = configure_facade_factory()
-    migrator = FileMigrator()
-    file_system_facade.write_file('data_dir', 'old/path')
-
-    with pytest.raises(MigrationError) as error:
-        migrator.pre_capture_check('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
-        assert error == _CLEAR_MIGRATION_DIRECTORY_BEFORE_CAPTURING_ERROR
 
 
 @pytest.mark.unit

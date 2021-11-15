@@ -207,22 +207,19 @@ class FileSystemFacade:
 
     def write_file(self, path: str, content: str) -> None:
         """
-        Copy an entire directory from one location to another and encrypts it.
+        Writes a file to the indicated path with the given content.
 
         :param path: The path to the file to write.
         :param content: The contents to write in the file.
         """
-
-        if self.does_file_exist(path):
-            raise MigrationError(f'Data not cleaned up from previous migration: {path}')
         with open(path, 'w') as file:
             file.write(content)
 
     def read_file(self, path: str) -> str:
         """
-        Copy an entire directory from one location to another and encrypts it.
+        Reads the contents from a file at the indicated path.
 
-        :param path: The path to the file to write.
+        :param path: The path to the file to read.
         """
         if not self.does_file_exist(path):
             raise MigrationError(f'Unable to read file at {path} because it does not exist.')
