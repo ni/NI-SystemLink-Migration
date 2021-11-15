@@ -160,8 +160,8 @@ class MongoFacade:
                 log = logging.getLogger('MongoProcess')
                 log.info(f'{line}')
 
-    @staticmethod
     def update_documents_in_collection(
+            self,
             configuration: MongoConfiguration,
             collection_name: str,
             predicate: Callable[[Any], bool],
@@ -174,4 +174,3 @@ class MongoFacade:
             if predicate(document):
                 document = update_function(document)
                 collection.replace_one({'_id': document['_id']}, document)
-            print(document)

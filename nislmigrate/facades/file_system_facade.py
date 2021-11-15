@@ -205,6 +205,30 @@ class FileSystemFacade:
         shutil.unpack_archive(encrypted_file_path + extension, to_directory, COMPRESSION_FORMAT)
         os.remove(encrypted_file_path + extension)
 
+    def write_file(self, path: str, content: str) -> None:
+        """
+        Copy an entire directory from one location to another and encrypts it.
+
+        :param path: The path to the file to write.
+        :param content: The contents to write in the file.
+        """
+
+        if self.does_file_exist(path):
+            raise MigrationError(f'Data not cleaned up from previous migration: {path}')
+        with open(path, 'w') as file:
+            file.write(content)
+
+    def read_file(self, path: str) -> str:
+        """
+        Copy an entire directory from one location to another and encrypts it.
+
+        :param path: The path to the file to write.
+        """
+        if not self.does_file_exist(path):
+            raise MigrationError(f'Unable to read file at {path} because it does not exist.')
+        with open(path, 'r') as file:
+            return file.read()
+
     def __encrypt_tar(self, secret: str, tar_path: str, encrypted_path: str):
         with open(tar_path, 'rb') as file:
             text = file.read()

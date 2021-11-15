@@ -1,6 +1,7 @@
 import argparse
 
 from nislmigrate.facades.file_system_facade import FileSystemFacade
+from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.ni_web_server_manager_facade import NiWebServerManagerFacade
 from nislmigrate.argument_handler import ArgumentHandler
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin
@@ -11,7 +12,7 @@ from nislmigrate.facades.process_facade import ProcessError, ProcessFacade, Back
 from nislmigrate.facades.system_link_service_manager_facade import SystemLinkServiceManagerFacade
 import os
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Callable
 
 from nislmigrate.migration_action import MigrationAction
 
@@ -73,6 +74,7 @@ class FakeFileSystemFacade(FileSystemFacade):
         self.config = {}
         self.directories_encrypted = []
         self.directories_decrypted = []
+        self.written_files = {}
 
     def copy_directory(self, from_directory: str, to_directory: str, force: bool):
         self.last_from_directory = from_directory
@@ -97,6 +99,12 @@ class FakeFileSystemFacade(FileSystemFacade):
     def copy_directory_from_encrypted_file(self, encrypted_file_path: str, to_directory: str, secret: str):
         self.directories_decrypted.append((encrypted_file_path, to_directory, secret))
 
+    def write_file(self, path: str, content: str) -> None:
+        self.written_files[path] = content
+
+    def read_file(self, path: str) -> str:
+        return self.written_files[path]
+
 
 class FakeMigratorPluginLoader(MigratorPluginLoader):
     def __init__(self, migrators: List[MigratorPlugin]):
@@ -111,6 +119,7 @@ class FakeMongoFacade(MongoFacade):
 
     def __init__(self, process_facade: Optional[ProcessFacade] = None):
         super().__init__(process_facade or FakeProcessFacade())
+        self.updated_documents_in_collections: Dict[str, Any] = {}
 
     def start_mongo(self):
         self.is_mongo_running = True
@@ -124,6 +133,23 @@ class FakeMongoFacade(MongoFacade):
             dump_name: str,
     ) -> None:
         pass
+
+    def update_documents_in_collection(
+            self,
+            configuration: MongoConfiguration,
+            collection_name: str,
+            predicate: Callable[[Any], bool],
+            update_function: Callable[[Any], Any]):
+        self.updated_documents_in_collections[collection_name] = configuration
+
+    def did_update_documents_in_collection(
+            self,
+            configuration: MongoConfiguration,
+            collection_name: str):
+        try:
+            return self.updated_documents_in_collections[collection_name] == configuration
+        except KeyError:
+            return False
 
 
 class FakeNiWebServerManagerFacade(NiWebServerManagerFacade):

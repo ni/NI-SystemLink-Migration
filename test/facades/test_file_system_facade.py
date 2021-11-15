@@ -211,6 +211,38 @@ def test_copy_directory_from_encrypted_file_decrypts_file(directory):
     assert os.path.isfile(os.path.join(destination_path, 'demofile3.txt'))
 
 
+@pytest.mark.unit
+@tempdir()
+def test_write_file_writes_file(directory):
+    file_path = os.path.join(directory.path, 'demofile2.txt')
+    file_system_facade = FileSystemFacade()
+
+    file_system_facade.write_file(file_path, 'content')
+
+    assert os.path.isfile(file_path)
+
+
+@pytest.mark.unit
+@tempdir()
+def test_write_file_adds_correct_content(directory):
+    file_path = os.path.join(directory.path, 'demofile2.txt')
+    file_system_facade = FileSystemFacade()
+
+    file_system_facade.write_file(file_path, 'content')
+
+    with open(file_path, 'r') as file:
+        assert file.read() == 'content'
+
+
+@pytest.mark.unit
+@tempdir()
+def test_read_reads_correct_content(directory):
+    file_path = make_file(directory.path, 'demofile.txt', 'content')
+    file_system_facade = FileSystemFacade()
+
+    assert file_system_facade.read_file(file_path) == 'content'
+
+
 def make_directory(temp_directory: TempDirectory, name: str) -> str:
     path = os.path.join(temp_directory.path, name)
     os.mkdir(path)
@@ -224,10 +256,10 @@ def conditionally_make_directory(temp_directory: TempDirectory, name: str, shoul
         return os.path.join(temp_directory.path, name)
 
 
-def make_file(path: str, name: str) -> str:
+def make_file(path: str, name: str, content: str = '') -> str:
     file_path = os.path.join(path, name)
-    file = open(file_path, 'w')
-    file.close()
+    with open(file_path, 'w') as file:
+        file.write(content)
     return file_path
 
 

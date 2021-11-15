@@ -24,7 +24,7 @@ _METADATA_ONLY_ARGUMENT = 'metadata-only'
 _METADATA_ONLY_HELP = 'When used with --files or --all, migrate only the file metadata, \
 but not the files themselves. Otherwise ignored.'
 
-_CHANGE_FILE_STORE_ARGUMENT = 'change-file-store'
+_CHANGE_FILE_STORE_ARGUMENT = 'change-file-store-root'
 _CHANGE_FILE_STORE_HELP = 'Change the file storage location path'
 
 _NO_FILES_ERROR = """
@@ -40,6 +40,15 @@ S3 file storage is enabled on the backend. nislmigrate cannot capture/restore th
 stored in S3. If you intend to migrate metadata only, pass --files-metadata-only.
 
 """
+
+_CLEAR_MIGRATION_DIRECTORY_BEFORE_CAPTURING_ERROR = """
+
+There is existing data in the migration directory that capturing would overwrite.
+Clear the migration directory and try the capture again.
+
+"""
+
+_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME = 'file-store-root'
 
 
 class _FileMigratorConfiguration:
@@ -86,11 +95,13 @@ class FileMigrator(MigratorPlugin):
             arguments,
             self.config(facade_factory)
         )
-
         configuration.mongo_facade.capture_database_to_directory(
             configuration.mongo_configuration,
             migration_directory,
             self.name)
+
+        captured_file_store_root_path = os.path.join(migration_directory, _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
+        configuration.file_facade.write_file(captured_file_store_root_path, configuration.data_directory)
 
         if configuration.should_migrate_files:
             configuration.file_facade.copy_directory(
@@ -132,7 +143,9 @@ class FileMigrator(MigratorPlugin):
             arguments,
             self.config(facade_factory)
         )
-
+        captured_file_store_root_path = os.path.join(migration_directory, _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
+        if configuration.file_facade.does_file_exist(captured_file_store_root_path):
+            raise MigrationError(_CLEAR_MIGRATION_DIRECTORY_BEFORE_CAPTURING_ERROR)
         if not configuration.has_metadata_only_argument and configuration.is_s3_backend:
             raise MigrationError(_CANNOT_MIGRATE_S3_FILES_ERROR)
 
@@ -163,14 +176,12 @@ class FileMigrator(MigratorPlugin):
         argument_manager.add_argument(_CHANGE_FILE_STORE_ARGUMENT, help=_CHANGE_FILE_STORE_HELP, metavar='update')
 
     def update_root_file_path_in_metadata(self, configuration: _FileMigratorConfiguration):
-        mongo_configuration = configuration.mongo_configuration
-        old_path = configuration.data_directory
+        old_path = configuration.file_facade.read_file(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
         new_path = configuration.update_store_path
-        path_field_name = 'path'
         collection_name = self.name.lower()
-        does_path_field_start_with_old_path = self.does_field_start_with_prefix_predicate(path_field_name, old_path)
-        replace_old_path_with_new_path = self.replace_prefix_in_document_function(path_field_name, old_path, new_path)
-
+        does_path_field_start_with_old_path = self.does_path_start_with_prefix_predicate(old_path)
+        replace_old_path_with_new_path = self.replace_path_prefix_in_document_function(old_path, new_path)
+        mongo_configuration = configuration.mongo_configuration
         configuration.mongo_facade.update_documents_in_collection(
             mongo_configuration,
             collection_name,
@@ -178,16 +189,15 @@ class FileMigrator(MigratorPlugin):
             replace_old_path_with_new_path)
 
     @staticmethod
-    def does_field_start_with_prefix_predicate(field: str, prefix: str) -> Callable[[Dict[str, Any]], bool]:
-        return lambda document: document[field].startswith(prefix)
+    def does_path_start_with_prefix_predicate(prefix: str) -> Callable[[Dict[str, Any]], bool]:
+        return lambda document: document['path'].startswith(prefix)
 
-    def replace_prefix_in_document_function(
+    def replace_path_prefix_in_document_function(
             self,
-            field: str,
             old_prefix: str,
             new_prefix: str
     ) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
-        return lambda document: self.replace_prefix_of_field_in_document(field, old_prefix, new_prefix, document)
+        return lambda document: self.replace_prefix_of_field_in_document('path', old_prefix, new_prefix, document)
 
     @staticmethod
     def replace_prefix_of_field_in_document(
