@@ -1,3 +1,6 @@
+import os
+
+from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migrators.file_migrator import (
     FileMigrator,
@@ -7,6 +10,8 @@ from nislmigrate.migrators.file_migrator import (
     _NO_FILES_ERROR,
     S3_CONFIGURATION_KEY,
     _CANNOT_MIGRATE_S3_FILES_ERROR,
+    _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME,
+    _CHANGE_FILE_STORE_ARGUMENT,
 )
 import pytest
 from test.test_utilities import FakeFacadeFactory, FakeFileSystemFacade
@@ -63,7 +68,6 @@ def test_file_migrator_restores_to_configured_location():
 
 @pytest.mark.unit
 def test_file_migrator_does_not_capture_files_when_metadata_only_is_passed():
-
     facade_factory, file_system_facade = configure_facade_factory()
     migrator = FileMigrator()
 
@@ -74,13 +78,53 @@ def test_file_migrator_does_not_capture_files_when_metadata_only_is_passed():
 
 @pytest.mark.unit
 def test_file_migrator_does_not_restore_files_when_metadata_only_is_passed():
-
     facade_factory, file_system_facade = configure_facade_factory()
     migrator = FileMigrator()
 
     migrator.restore('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
 
     assert file_system_facade.last_to_directory is None
+
+
+@pytest.mark.unit
+def test_file_migrator_captures_the_old_file_store_root():
+    facade_factory, file_system_facade = configure_facade_factory()
+    migrator = FileMigrator()
+
+    migrator.capture('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
+
+    expected_stored_root_path = os.path.join('data_dir', _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
+    assert file_system_facade.written_files[expected_stored_root_path] == DEFAULT_DATA_DIRECTORY
+
+
+@pytest.mark.unit
+def test_file_migrator_restore_with_change_file_store_argument_updates_the_metadata_collection():
+    facade_factory, file_system_facade = configure_facade_factory()
+    mongo_facade = facade_factory.mongo_facade
+    file_system_facade.write_file(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME, 'old/path')
+    migrator = FileMigrator()
+    arguments = {_METADATA_ONLY_ARGUMENT: True, _CHANGE_FILE_STORE_ARGUMENT: 'new/path'}
+
+    migrator.restore('data_dir', facade_factory, arguments)
+
+    expected_mongo_configuration = MongoConfiguration(migrator.config(facade_factory))
+    modified_collection_name = migrator.name.lower()
+    assert mongo_facade.did_update_documents_in_collection(expected_mongo_configuration, modified_collection_name)
+
+
+@pytest.mark.unit
+def test_file_migrator_restore_without_change_file_store_argument_does_not_update_the_metadata_collection():
+    facade_factory, file_system_facade = configure_facade_factory()
+    mongo_facade = facade_factory.mongo_facade
+    file_system_facade.write_file(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME, 'old/path')
+    migrator = FileMigrator()
+    arguments = {_METADATA_ONLY_ARGUMENT: True}
+
+    migrator.restore('data_dir', facade_factory, arguments)
+
+    expected_mongo_configuration = MongoConfiguration(migrator.config(facade_factory))
+    modified_collection_name = migrator.name.lower()
+    assert not mongo_facade.did_update_documents_in_collection(expected_mongo_configuration, modified_collection_name)
 
 
 @pytest.mark.unit
@@ -101,7 +145,8 @@ def test_file_migrator_reports_error_if_no_files_to_restore_and_not_metdata_only
 
 @pytest.mark.unit
 def test_file_migrator_pre_capture_check_metadata_only_does_not_throw_when_s3_backend_is_enabled():
-    facade_factory, _ = configure_facade_factory(enable_s3_backend=True)
+    facade_factory, file_system_facade = configure_facade_factory(enable_s3_backend=True)
+    file_system_facade.missing_files.append(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
     migrator = FileMigrator()
 
     migrator.pre_capture_check('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
@@ -110,7 +155,8 @@ def test_file_migrator_pre_capture_check_metadata_only_does_not_throw_when_s3_ba
 @pytest.mark.unit
 @pytest.mark.parametrize('use_s3_backend', [(None), (False)])
 def test_file_migrator_pre_capture_check_metadata_does_not_throw_when_s3_backend_is_not_enabled(use_s3_backend):
-    facade_factory, _ = configure_facade_factory(enable_s3_backend=use_s3_backend)
+    facade_factory, file_system_facade = configure_facade_factory(enable_s3_backend=use_s3_backend)
+    file_system_facade.missing_files.append(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
     migrator = FileMigrator()
 
     migrator.pre_capture_check('data_dir', facade_factory, {})
@@ -118,7 +164,8 @@ def test_file_migrator_pre_capture_check_metadata_does_not_throw_when_s3_backend
 
 @pytest.mark.unit
 def test_file_migrator_pre_restore_check_metadata_only_does_not_throw_when_s3_backend_is_enabled():
-    facade_factory, _ = configure_facade_factory(enable_s3_backend=True)
+    facade_factory, file_system_facade = configure_facade_factory(enable_s3_backend=True)
+    file_system_facade.missing_files.append(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
     migrator = FileMigrator()
 
     migrator.pre_restore_check('data_dir', facade_factory, {_METADATA_ONLY_ARGUMENT: True})
@@ -126,7 +173,8 @@ def test_file_migrator_pre_restore_check_metadata_only_does_not_throw_when_s3_ba
 
 @pytest.mark.unit
 def test_file_migrator_pre_capture_check_reports_error_when_s3_backend_is_enabled_without_ignore_metadata_argument():
-    facade_factory, _ = configure_facade_factory(enable_s3_backend=True)
+    facade_factory, file_system_facade = configure_facade_factory(enable_s3_backend=True)
+    file_system_facade.missing_files.append(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
     migrator = FileMigrator()
 
     with pytest.raises(MigrationError) as e:

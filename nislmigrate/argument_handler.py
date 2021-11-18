@@ -161,6 +161,7 @@ class ArgumentHandler:
             and not argument == ALL_SERVICES_ARGUMENT
             and not argument == VERBOSITY_ARGUMENT
             and not argument == FORCE_ARGUMENT
+            and not argument == SECRET_ARGUMENT
             and not _is_migrator_arguments_key(argument)
         ]
 

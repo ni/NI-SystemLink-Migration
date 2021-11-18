@@ -2,7 +2,10 @@
 
 import os
 import logging
-from typing import List, Optional
+from typing import List, Optional, Callable, Any
+
+import bson
+from pymongo import MongoClient
 
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.facades.process_facade import ProcessFacade, BackgroundProcess, ProcessError
@@ -156,3 +159,18 @@ class MongoFacade:
             else:
                 log = logging.getLogger('MongoProcess')
                 log.info(f'{line}')
+
+    def update_documents_in_collection(
+            self,
+            configuration: MongoConfiguration,
+            collection_name: str,
+            predicate: Callable[[Any], bool],
+            update_function: Callable[[Any], Any]):
+        client = MongoClient(configuration.connection_string)
+        codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
+        database = client.get_database(name=configuration.database_name, codec_options=codec)
+        collection = database[collection_name]
+        for document in collection.find():
+            if predicate(document):
+                document = update_function(document)
+                collection.replace_one({'_id': document['_id']}, document)

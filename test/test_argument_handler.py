@@ -335,6 +335,28 @@ def test_all_argument_excludes_not_installed_migrators(operation: str):
     assert migrator1 in migrators
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize('operation', [
+    'capture',
+    'restore'
+])
+def test_secret_argument_with_one_service_does_not_think_secret_argument_is_a_service(operation: str):
+    migrator1 = FakeMigrator('one', 'mine', True)
+    loader = FakeMigratorPluginLoader([migrator1])
+    facade_factory = FakeFacadeFactory()
+    arguments = [operation, '--one', '--secret', 'password']
+    argument_handler = ArgumentHandler(
+        arguments,
+        facade_factory=facade_factory,
+        plugin_loader=loader
+    )
+
+    migrators = argument_handler.get_list_of_services_to_capture_or_restore()
+
+    assert len(migrators) == 1
+    assert migrator1 in migrators
+
+
 class FakeMigrator(MigratorPlugin):
     def __init__(self, name: str = 'Fake', extra_argument_name: str = 'extra', add_argument: bool = False):
         self._add_argument = add_argument
