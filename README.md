@@ -50,14 +50,14 @@ nislmigrate restore --all --secret <password>
 ```
 
 ### Migration
->:warning: Server A must be a clean SystemLink installation, any existing data will be deleted.
+>:warning: Server B must be a clean SystemLink installation, any existing data will be deleted.
 
 To migrate from one SystemLink server instance (`server A`) to a different instance (`server B`):
 1. Install the migration tool on `server A` and `server B`.
-1. Follow the backup instructions to backup the data from `server A`.
-1. Copy the data produced by the backup of `server A` on `server B`.
-1. **_Warning:_** Ensure `server B` is a clean SystemLink installation, any existing data will be deleted.
-1. Follow the restore instructions to restore the backed up data onto `server B`.
+2. Follow the backup instructions to backup the data from `server A`.
+3. Copy the data produced by the backup of `server A` on `server B`.
+4. **_Warning:_** Ensure `server B` is a clean SystemLink installation, any existing data will be deleted.
+5. Follow the restore instructions to restore the backed up data onto `server B`.
 
 # Development
 See `CONTRIBUTING.MD` for detailed instructions on developing, testing, and releasing the tool.
