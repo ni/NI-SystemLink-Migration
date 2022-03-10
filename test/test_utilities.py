@@ -134,11 +134,18 @@ class FakeMongoFacade(MongoFacade):
     ) -> None:
         pass
 
-    def update_documents_in_collection(
+    def conditionally_update_documents_in_collection(
             self,
             configuration: MongoConfiguration,
             collection_name: str,
             predicate: Callable[[Any], bool],
+            update_function: Callable[[Any], Any]):
+        self.updated_documents_in_collections[collection_name] = configuration
+
+    def update_documents_in_collection(
+            self,
+            configuration: MongoConfiguration,
+            collection_name: str,
             update_function: Callable[[Any], Any]):
         self.updated_documents_in_collections[collection_name] = configuration
 
