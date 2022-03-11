@@ -160,7 +160,7 @@ class MongoFacade:
                 log = logging.getLogger('MongoProcess')
                 log.info(f'{line}')
 
-    def update_documents_in_collection(
+    def conditionally_update_documents_in_collection(
             self,
             configuration: MongoConfiguration,
             collection_name: str,
@@ -174,3 +174,16 @@ class MongoFacade:
             if predicate(document):
                 document = update_function(document)
                 collection.replace_one({'_id': document['_id']}, document)
+
+    def update_documents_in_collection(
+            self,
+            configuration: MongoConfiguration,
+            collection_name: str,
+            update_function: Callable[[Any], Any]):
+        client = MongoClient(configuration.connection_string)
+        codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
+        database = client.get_database(name=configuration.database_name, codec_options=codec)
+        collection = database[collection_name]
+        for document in collection.find():
+            document = update_function(document)
+            collection.replace_one({'_id': document['_id']}, document)

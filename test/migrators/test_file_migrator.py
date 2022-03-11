@@ -12,6 +12,7 @@ from nislmigrate.migrators.file_migrator import (
     _CANNOT_MIGRATE_S3_FILES_ERROR,
     _SAVED_OLD_FILE_STORE_ROOT_FILE_NAME,
     _CHANGE_FILE_STORE_ARGUMENT,
+    _CHANGE_FILE_STORE_SLASHES_ARGUMENT,
 )
 import pytest
 from test.test_utilities import FakeFacadeFactory, FakeFileSystemFacade
@@ -104,6 +105,21 @@ def test_file_migrator_restore_with_change_file_store_argument_updates_the_metad
     file_system_facade.write_file(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME, 'old/path')
     migrator = FileMigrator()
     arguments = {_METADATA_ONLY_ARGUMENT: True, _CHANGE_FILE_STORE_ARGUMENT: 'new/path'}
+
+    migrator.restore('data_dir', facade_factory, arguments)
+
+    expected_mongo_configuration = MongoConfiguration(migrator.config(facade_factory))
+    modified_collection_name = migrator.name.lower()
+    assert mongo_facade.did_update_documents_in_collection(expected_mongo_configuration, modified_collection_name)
+
+
+@pytest.mark.unit
+def test_file_migrator_restore_with_switch_to_forward_slashes_argument_updates_the_metadata_collection():
+    facade_factory, file_system_facade = configure_facade_factory()
+    mongo_facade = facade_factory.mongo_facade
+    file_system_facade.write_file(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME, 'S3:\\a\\path')
+    migrator = FileMigrator()
+    arguments = {_METADATA_ONLY_ARGUMENT: True, _CHANGE_FILE_STORE_SLASHES_ARGUMENT: True}
 
     migrator.restore('data_dir', facade_factory, arguments)
 
