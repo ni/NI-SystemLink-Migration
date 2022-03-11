@@ -27,6 +27,9 @@ but not the files themselves. Otherwise ignored.'
 _CHANGE_FILE_STORE_ARGUMENT = 'change-file-store-root'
 _CHANGE_FILE_STORE_HELP = 'Change the file storage location path'
 
+_CHANGE_FILE_STORE_SLASHES_ARGUMENT = 'switch-to-forward-slashes'
+_CHANGE_FILE_STORE_SLASHES_HELP = 'Change the file storage location path from backward slashes to forward slashes'
+
 _NO_FILES_ERROR = """
 
 Files data was not found. If you intend to restore metadata only, pass
@@ -65,6 +68,7 @@ class _FileMigratorConfiguration:
         self.should_migrate_files: bool = not self.has_metadata_only_argument
         self.update_store_path: str = arguments.get(_CHANGE_FILE_STORE_ARGUMENT, '')
         self.should_update_store: bool = not self.update_store_path == ''
+        self.use_forward_slashes: bool = arguments.get(_CHANGE_FILE_STORE_SLASHES_ARGUMENT, False)
 
 
 class FileMigrator(MigratorPlugin):
@@ -118,6 +122,9 @@ class FileMigrator(MigratorPlugin):
         if configuration.should_update_store:
             self.update_root_file_path_in_metadata(configuration)
 
+        if configuration.use_forward_slashes:
+            self.update_file_path_slashes_in_metadata(configuration)
+
         if configuration.should_migrate_files:
             configuration.file_facade.copy_directory(
                 configuration.file_migration_directory,
@@ -164,6 +171,7 @@ class FileMigrator(MigratorPlugin):
     def add_additional_arguments(self, argument_manager: ArgumentManager):
         argument_manager.add_switch(_METADATA_ONLY_ARGUMENT, help=_METADATA_ONLY_HELP)
         argument_manager.add_argument(_CHANGE_FILE_STORE_ARGUMENT, help=_CHANGE_FILE_STORE_HELP, metavar='update')
+        argument_manager.add_switch(_CHANGE_FILE_STORE_SLASHES_ARGUMENT, help=_CHANGE_FILE_STORE_SLASHES_HELP)
 
     def update_root_file_path_in_metadata(self, configuration: _FileMigratorConfiguration):
         old_path = configuration.file_facade.read_file(_SAVED_OLD_FILE_STORE_ROOT_FILE_NAME)
@@ -172,11 +180,20 @@ class FileMigrator(MigratorPlugin):
         does_path_field_start_with_old_path = self.does_path_start_with_prefix_predicate(old_path)
         replace_old_path_with_new_path = self.replace_path_prefix_in_document_function(old_path, new_path)
         mongo_configuration = configuration.mongo_configuration
-        configuration.mongo_facade.update_documents_in_collection(
+        configuration.mongo_facade.conditionally_update_documents_in_collection(
             mongo_configuration,
             collection_name,
             does_path_field_start_with_old_path,
             replace_old_path_with_new_path)
+
+    def update_file_path_slashes_in_metadata(self, configuration: _FileMigratorConfiguration):
+        collection_name = self.name.lower()
+        replace_back_slashes_with_forward_slashes = self.replace_back_slashes_in_document_function()
+        mongo_configuration = configuration.mongo_configuration
+        configuration.mongo_facade.update_documents_in_collection(
+            mongo_configuration,
+            collection_name,
+            replace_back_slashes_with_forward_slashes)
 
     @staticmethod
     def does_path_start_with_prefix_predicate(prefix: str) -> Callable[[Dict[str, Any]], bool]:
@@ -198,4 +215,17 @@ class FileMigrator(MigratorPlugin):
     ) -> Dict[str, Any]:
         postfix = document[field][len(old_prefix):]
         document[field] = new_prefix + postfix
+        return document
+
+    def replace_back_slashes_in_document_function(self) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+        return lambda document: self.replace_back_slashes_with_forward_slashes('path', document)
+
+    @staticmethod
+    def replace_back_slashes_with_forward_slashes(
+            field: str,
+            document: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        field_value = document[field]
+        field_value = field_value.replace('\\', '/')
+        document[field] = field_value
         return document
