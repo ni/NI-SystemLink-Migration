@@ -128,6 +128,15 @@ class MigratorPlugin(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def modify(self, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
+        """
+        Modifies the service without capturing or restoring it.
+        :param facade_factory: Factory that produces objects capable of doing actual operations.
+        :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
+        """
+        pass
+
+    @abc.abstractmethod
     def pre_restore_check(
             self,
             migration_directory: str,

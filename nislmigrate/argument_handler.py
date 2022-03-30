@@ -10,10 +10,13 @@ from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.extensibility.migrator_plugin_loader import MigratorPluginLoader
 from nislmigrate.extensibility.migrator_plugin import MigratorPlugin, ArgumentManager
 
-ACTION_ARGUMENT = 'action'
 PROGRAM_NAME = 'nislmigrate'
+DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
+
+ACTION_ARGUMENT = 'action'
 CAPTURE_ARGUMENT = 'capture'
 RESTORE_ARGUMENT = 'restore'
+MODIFY_ARGUMENT = 'modify'
 ALL_SERVICES_ARGUMENT = 'all'
 VERBOSITY_ARGUMENT = 'verbosity'
 DEBUG_VERBOSITY_ARGUMENT = 'debug'
@@ -21,7 +24,6 @@ DEBUG_VERBOSITY_ARGUMENT_FLAG = 'd'
 SILENT_VERBOSITY_ARGUMENT = 'silent'
 SILENT_VERBOSITY_ARGUMENT_FLAG = 's'
 MIGRATION_DIRECTORY_ARGUMENT = 'dir'
-DEFAULT_MIGRATION_DIRECTORY = os.path.expanduser('~\\Documents\\migration')
 SECRET_ARGUMENT = 'secret'
 FORCE_ARGUMENT = 'force'
 FORCE_ARGUMENT_FLAG = 'f'
@@ -36,7 +38,7 @@ Must specify at least one service to migrate, or migrate all services with the `
 
 Run `nislmigrate capture/restore --help` to list all supported services."""
 
-CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = 'The "capture" or "restore" argument must be provided'
+CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = 'The "capture", "restore" or "modify" argument must be provided'
 SERVICE_NOT_INSTALLED_ERROR_TEXT_FORMAT = """
 
 Service '{service_name}' cannot be migrated because the specified service is not installed locally.
@@ -166,7 +168,7 @@ class ArgumentHandler:
         ]
 
     def get_migration_action(self) -> MigrationAction:
-        """Determines whether to capture or restore based on the arguments.
+        """Determines what migration action to perform based on the arguments.
 
         :return: MigrationAction.RESTORE or MigrationAction.CAPTURE.
         """
@@ -174,6 +176,8 @@ class ArgumentHandler:
             return MigrationAction.RESTORE
         elif self.parsed_arguments.action == CAPTURE_ARGUMENT:
             return MigrationAction.CAPTURE
+        elif self.parsed_arguments.action == MODIFY_ARGUMENT:
+            return MigrationAction.MODIFY
         elif self.parsed_arguments.action == LIST_INSTALLED_SERVICES_ARGUMENT:
             return MigrationAction.LIST
         else:

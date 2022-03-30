@@ -118,18 +118,24 @@ class FileMigrator(MigratorPlugin):
             configuration.mongo_configuration,
             migration_directory,
             self.name)
-
-        if configuration.should_update_store:
-            self.update_root_file_path_in_metadata(configuration)
-
-        if configuration.use_forward_slashes:
-            self.update_file_path_slashes_in_metadata(configuration)
-
+        self.modify(self, migration_directory, facade_factory, arguments)
         if configuration.should_migrate_files:
             configuration.file_facade.copy_directory(
                 configuration.file_migration_directory,
                 configuration.data_directory,
                 True)
+
+    def modify(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]):
+        configuration = _FileMigratorConfiguration(
+            migration_directory,
+            facade_factory,
+            arguments,
+            self.config(facade_factory)
+        )
+        if configuration.should_update_store:
+            self.update_root_file_path_in_metadata(configuration)
+        if configuration.use_forward_slashes:
+            self.update_file_path_slashes_in_metadata(configuration)
 
     def pre_capture_check(
             self,
