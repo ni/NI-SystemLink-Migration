@@ -80,9 +80,10 @@ class _FileMigratorConfiguration:
         self.has_metadata_only_argument: bool = arguments.get(_METADATA_ONLY_ARGUMENT, False)
         self.should_migrate_files: bool = not self.has_metadata_only_argument
         self.update_store_path: str = arguments.get(_CHANGE_FILE_STORE_ARGUMENT, '')
-        self.old_store_path = ''
         if action is MigrationAction.MODIFY:
             self.old_store_path: str = arguments.get(_FILE_STORE_ROOT_ARGUMENT, '')
+        else:
+            self.old_store_path = ''
         self.should_update_store: bool = not self.update_store_path == ''
         self.use_forward_slashes: bool = arguments.get(_CHANGE_FILE_STORE_SLASHES_ARGUMENT, False)
 

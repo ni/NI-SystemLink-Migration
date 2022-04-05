@@ -127,9 +127,10 @@ class MigratorPlugin(abc.ABC):
         """
         pass
 
-    def modify(self, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
+    def modify(self, migration_directory: str, facade_factory: FacadeFactory, arguments: Dict[str, Any]) -> None:
         """
         Modifies the service without capturing or restoring it.
+        :param migration_directory: the root path to perform the restore from.
         :param facade_factory: Factory that produces objects capable of doing actual operations.
         :param arguments: Dictionary containing any command line argument values defined in add_additional_arguments.
         """

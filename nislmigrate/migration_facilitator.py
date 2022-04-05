@@ -57,7 +57,7 @@ class MigrationFacilitator:
         elif self._action == MigrationAction.RESTORE:
             migrator.restore(migrator_directory, self.facade_factory, migrator_arguments)
         elif self._action == MigrationAction.MODIFY:
-            migrator.modify(self.facade_factory, migrator_arguments)
+            migrator.modify(migrator_directory, self.facade_factory, migrator_arguments)
         else:
             raise ValueError('Migration action is not the correct type.')
 
