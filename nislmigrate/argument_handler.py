@@ -36,9 +36,9 @@ NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 
 Must specify at least one service to migrate, or migrate all services with the `--all` flag.
 
-Run `nislmigrate capture/restore --help` to list all supported services."""
+Run `nislmigrate capture/restore/modify --help` to list all supported services."""
 
-CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT = 'The "capture", "restore" or "modify" argument must be provided'
+MIGRATION_OPERATION_NOT_PROVIDED_ERROR_TEXT = 'The "capture", "restore" or "modify" argument must be provided'
 SERVICE_NOT_INSTALLED_ERROR_TEXT_FORMAT = """
 
 Service '{service_name}' cannot be migrated because the specified service is not installed locally.
@@ -48,6 +48,7 @@ that are currently installed."""
 
 CAPTURE_COMMAND_HELP = 'use capture to pull data and settings off of a SystemLink server'
 RESTORE_COMMAND_HELP = 'use restore to push captured data and settings to a clean SystemLink server'
+MODIFY_COMMAND_HELP = 'use modify to update existing data or settings of a SystemLink server in-place'
 DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (defaults to documents)'
 ALL_SERVICES_ARGUMENT_HELP = 'use all provided migrator plugins during a capture or restore operation'
 FORCE_ARGUMENT_HELP = 'allows capture to delete existing data on the SystemLink server prior to restore'
@@ -170,7 +171,7 @@ class ArgumentHandler:
     def get_migration_action(self) -> MigrationAction:
         """Determines what migration action to perform based on the arguments.
 
-        :return: MigrationAction.RESTORE or MigrationAction.CAPTURE.
+        :return: MigrationAction corresponding to the argument string
         """
         if self.parsed_arguments.action == RESTORE_ARGUMENT:
             return MigrationAction.RESTORE
@@ -181,7 +182,7 @@ class ArgumentHandler:
         elif self.parsed_arguments.action == LIST_INSTALLED_SERVICES_ARGUMENT:
             return MigrationAction.LIST
         else:
-            raise MigrationError(CAPTURE_OR_RESTORE_NOT_PROVIDED_ERROR_TEXT)
+            raise MigrationError(MIGRATION_OPERATION_NOT_PROVIDED_ERROR_TEXT)
 
     def get_migration_directory(self) -> str:
         """Gets the migration directory path based on the parsed arguments.
@@ -228,6 +229,7 @@ class ArgumentHandler:
             f'--{FORCE_ARGUMENT}',
             help=FORCE_ARGUMENT_HELP,
             action='store_true')
+        sub_parser.add_parser(MODIFY_ARGUMENT, help=MODIFY_COMMAND_HELP, parents=[parent_parser])
         sub_parser.add_parser(LIST_INSTALLED_SERVICES_ARGUMENT, help=LIST_INSTALLED_SERVICES_ARGUMENT_HELP)
 
     @staticmethod

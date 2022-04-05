@@ -3,6 +3,8 @@ import os
 from nislmigrate.facades.mongo_configuration import MongoConfiguration
 from nislmigrate.logs.migration_error import MigrationError
 from nislmigrate.migrators.file_migrator import (
+    _FILE_STORE_ROOT_ARGUMENT,
+    _FILE_STORE_ROOT_NOT_SET_FOR_MODIFY_CHANGE_FILE_STORE_ERROR,
     FileMigrator,
     DEFAULT_DATA_DIRECTORY,
     PATH_CONFIGURATION_KEY,
@@ -114,6 +116,24 @@ def test_file_migrator_restore_with_change_file_store_argument_updates_the_metad
 
 
 @pytest.mark.unit
+def test_file_migrator_modify_with_change_file_store_argument_updates_the_metadata_collection():
+    facade_factory, _ = configure_facade_factory()
+    mongo_facade = facade_factory.mongo_facade
+    migrator = FileMigrator()
+    arguments = {
+        _METADATA_ONLY_ARGUMENT: True,
+        _FILE_STORE_ROOT_ARGUMENT: 'old/path',
+        _CHANGE_FILE_STORE_ARGUMENT: 'new/path'
+    }
+
+    migrator.modify('data_dir', facade_factory, arguments)
+
+    expected_mongo_configuration = MongoConfiguration(migrator.config(facade_factory))
+    modified_collection_name = migrator.name.lower()
+    assert mongo_facade.did_update_documents_in_collection(expected_mongo_configuration, modified_collection_name)
+
+
+@pytest.mark.unit
 def test_file_migrator_restore_with_switch_to_forward_slashes_argument_updates_the_metadata_collection():
     facade_factory, file_system_facade = configure_facade_factory()
     mongo_facade = facade_factory.mongo_facade
@@ -208,6 +228,17 @@ def test_file_migrator_pre_restore_check_reports_error_when_s3_backend_is_enable
         migrator.pre_restore_check('data_dir', facade_factory, {})
 
     assert _CANNOT_MIGRATE_S3_FILES_ERROR in str(e.value)
+
+
+@pytest.mark.unit
+def test_file_migrator_pre_modify_check_reports_error_when_old_store_root_is_unset_when_change_root_is_sett():
+    facade_factory, _ = configure_facade_factory(enable_s3_backend=True)
+    migrator = FileMigrator()
+
+    with pytest.raises(MigrationError) as e:
+        migrator.pre_modify_check('data_dir', facade_factory, {_CHANGE_FILE_STORE_ARGUMENT: '/etc/new/data/store'})
+
+    assert _FILE_STORE_ROOT_NOT_SET_FOR_MODIFY_CHANGE_FILE_STORE_ERROR in str(e.value)
 
 
 def configure_facade_factory(
