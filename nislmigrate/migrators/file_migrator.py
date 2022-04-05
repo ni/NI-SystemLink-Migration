@@ -32,8 +32,9 @@ _CHANGE_FILE_STORE_SLASHES_ARGUMENT = 'switch-to-forward-slashes'
 _CHANGE_FILE_STORE_SLASHES_HELP = 'Change the file storage location path from backward slashes to forward slashes'
 
 _FILE_STORE_ROOT_ARGUMENT = 'file-store-root'
-_FILE_STORE_ROOT_HELP = 'The file store root directory. Required when "--files-change-file-store-root" is specified \
-with the "modify" operation, ignored otherwise.'
+_FILE_STORE_ROOT_HELP = 'The file store root directory for file storage locations to be updated by \
+"--files-change-file-store-root" when run with the "modify" operation. For "restore" operations this \
+value is inferred from the database and this argument is ignored.'
 
 _NO_FILES_ERROR = """
 
