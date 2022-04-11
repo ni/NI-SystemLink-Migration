@@ -49,6 +49,28 @@ To restore the data for all supported services at once, the `--all` flag can be 
 nislmigrate restore --all --secret <password>
 ```
 
+### Modify
+
+To modify entries in the database in-place without doing a restore run the tool with elevated permissions and use the `modify` option. `modify` currently only works to modify the files' service database entries.
+
+#### Updating after moving files
+
+After moving the storage location of the files uploaded to the Files service the database will need to be updated to reflect the new location. The `--files-change-file-store-root` argument can be used for this, either as part of a `restore` operation or in-place as part of a `modify` operation. When used with `restore` the old root location is inferred from the database. When used with `modify` the old root location must be specified with the `--files-file-store-root` argument.
+
+> :warning: `modify` will modify the database directly. A backup of the database should be taken before any modifiations using `nislmigrate capture --files --files-metadata-only`
+
+To modify the files root location after moving the files to a new drive:
+```bash
+cp -r -f C:\old\file\store X:\new\file\store
+nislmigrate modify --files --files-change-file-store-root X:\new\file\store --files-file-store-root C:\old\file\store
+```
+
+To modify the files root location after moving the files to an S3 bucket:
+```bash
+aws s3 sync C:\old\file\store s3://my-systemlink-bucket/my-files
+nislmigrate modify --files --files-change-file-store-root s3://my-systemlink-bucket/my-files --files-file-store-root C:\old\file\store --files-switch-to-forward-slashes
+```
+
 ### Migration
 >:warning: Server B must be a clean SystemLink installation, any existing data will be deleted.
 
