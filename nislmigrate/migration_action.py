@@ -7,4 +7,5 @@ class MigrationAction(Enum):
     """
     CAPTURE = 0
     RESTORE = 1
-    LIST = 2
+    MODIFY = 2
+    LIST = 3

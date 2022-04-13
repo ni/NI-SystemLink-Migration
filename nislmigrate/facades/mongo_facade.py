@@ -166,6 +166,7 @@ class MongoFacade:
             collection_name: str,
             predicate: Callable[[Any], bool],
             update_function: Callable[[Any], Any]):
+        self.__start_mongo()
         client = MongoClient(configuration.connection_string)
         codec = bson.codec_options.CodecOptions(uuid_representation=bson.binary.UUID_SUBTYPE)
         database = client.get_database(name=configuration.database_name, codec_options=codec)
