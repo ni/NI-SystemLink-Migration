@@ -29,8 +29,9 @@ FORCE_ARGUMENT = 'force'
 FORCE_ARGUMENT_FLAG = 'f'
 LIST_INSTALLED_SERVICES_ARGUMENT = 'list'
 
-SECRET_ARGUMENT_HELP = 'Some migrators require this --secret to encrypt sensitive data during migration \
-otherwise it is ignored. You will need to provide the same password when restoring and capturing data.'
+SECRET_ARGUMENT_HELP = ('Some migrators require this --secret to encrypt sensitive data during migration '
+                        'otherwise it is ignored. You will need to provide the same '
+                        'password when restoring and capturing data.')
 
 NO_SERVICES_SPECIFIED_ERROR_TEXT = """
 
@@ -48,14 +49,15 @@ that are currently installed."""
 
 CAPTURE_COMMAND_HELP = 'use capture to pull data and settings off of a SystemLink server'
 RESTORE_COMMAND_HELP = 'use restore to push captured data and settings to a clean SystemLink server'
-MODIFY_COMMAND_HELP = 'use modify to update existing data or settings of a SystemLink server in-place (only works with --files).'
+MODIFY_COMMAND_HELP = ('use modify to update existing data or settings of a SystemLink server in-place '
+                       '(only works with --files).')
 DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (defaults to documents)'
 ALL_SERVICES_ARGUMENT_HELP = 'use all provided migrator plugins during a capture or restore operation'
 FORCE_ARGUMENT_HELP = 'allows capture to delete existing data on the SystemLink server prior to restore'
 DEBUG_VERBOSITY_ARGUMENT_HELP = 'print all logged information and stack trace information in case an error occurs'
 SILENT_VERBOSITY_ARGUMENT_HELP = 'print all logged information except debugging information'
-LIST_INSTALLED_SERVICES_ARGUMENT_HELP = 'list the SystemLink services this tool recognises as installed on the ' \
-                                        'current machine'
+LIST_INSTALLED_SERVICES_ARGUMENT_HELP = ('list the SystemLink services this tool recognises as installed on the '
+                                         'current machine')
 
 
 def _get_migrator_arguments_key(migrator: MigratorPlugin):
