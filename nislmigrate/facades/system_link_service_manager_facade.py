@@ -1,5 +1,6 @@
 import subprocess
 import logging
+from typing import List
 from nislmigrate.logs.migration_error import MigrationError
 
 STOP_SERVICE_MANAGER_COMMAND = 'net.exe stop "NI Skyline Service Manager" /y'
