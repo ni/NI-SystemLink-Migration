@@ -51,7 +51,9 @@ nislmigrate restore --all --secret <password>
 
 ### Modify
 
-To modify entries in the database in-place without doing a restore run the tool with elevated permissions and use the `modify` option. `modify` currently only works to modify the files' service database entries.
+To modify entries in the database in-place without doing a restore run the tool with elevated permissions and use the `modify` option. `modify` currently only works to modify the `--files` service database entries.
+
+Using `modify` with any other migrators (i.e. `--tags`) will no do anything.
 
 #### Updating after moving files
 

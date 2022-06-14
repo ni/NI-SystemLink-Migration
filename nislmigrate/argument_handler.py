@@ -48,7 +48,7 @@ that are currently installed."""
 
 CAPTURE_COMMAND_HELP = 'use capture to pull data and settings off of a SystemLink server'
 RESTORE_COMMAND_HELP = 'use restore to push captured data and settings to a clean SystemLink server'
-MODIFY_COMMAND_HELP = 'use modify to update existing data or settings of a SystemLink server in-place'
+MODIFY_COMMAND_HELP = 'use modify to update existing data or settings of a SystemLink server in-place (only works with --files).'
 DIRECTORY_ARGUMENT_HELP = 'specify the directory used for migrated data (defaults to documents)'
 ALL_SERVICES_ARGUMENT_HELP = 'use all provided migrator plugins during a capture or restore operation'
 FORCE_ARGUMENT_HELP = 'allows capture to delete existing data on the SystemLink server prior to restore'
