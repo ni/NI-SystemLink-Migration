@@ -3,7 +3,7 @@
 
 ### Prerequisites
 #### 1. SystemLink
-- This tool offically supports migration between SystemLink versions 21.0, 21.1, 21.3, & 21.5. Other versions have not been tested.
+- This tool officially supports migration between SystemLink versions 21.0, 21.1, 21.3, & 21.5. Other versions have not been tested.
 - **We assume the server you are migrating to is clean with no data. Migrating to a server with existing data will result in data loss.**
 - Services that are supported with any caveats and exceptions are detailed in the **Supported Services** section below.
 - This tool assumes a single-box SystemLink installation.
@@ -51,13 +51,15 @@ nislmigrate restore --all --secret <password>
 
 ### Modify
 
-To modify entries in the database in-place without doing a restore run the tool with elevated permissions and use the `modify` option. `modify` currently only works to modify the files' service database entries.
+To modify entries in the database in-place without doing a restore run the tool with elevated permissions and use the `modify` option. `modify` currently only works to modify the `--files` service database entries.
+
+Using `modify` with any other migrators (i.e. `--tags`) will no do anything.
 
 #### Updating after moving files
 
 After moving the storage location of the files uploaded to the Files service the database will need to be updated to reflect the new location. The `--files-change-file-store-root` argument can be used for this, either as part of a `restore` operation or in-place as part of a `modify` operation. When used with `restore` the old root location is inferred from the database. When used with `modify` the old root location must be specified with the `--files-file-store-root` argument.
 
-> :warning: `modify` will modify the database directly. A backup of the database should be taken before any modifiations using `nislmigrate capture --files --files-metadata-only`
+> :warning: `modify` will modify the database directly. A backup of the database should be taken before any modifications using `nislmigrate capture --files --files-metadata-only`
 
 To modify the files root location after moving the files to a new drive:
 ```bash
