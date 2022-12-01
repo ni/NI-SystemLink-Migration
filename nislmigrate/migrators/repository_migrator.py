@@ -21,7 +21,7 @@ class RepositoryMigrator(MigratorPlugin):
 
     @property
     def name(self):
-        return 'PackageRepository'
+        return 'Repository'
 
     @property
     def argument(self):
