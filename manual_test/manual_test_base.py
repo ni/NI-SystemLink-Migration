@@ -19,7 +19,7 @@ class ManualTestBase:
 
     disable_warnings(exceptions.InsecureRequestWarning)
 
-    def __init__(self, server: str, username: str, password: str, relax_validation: bool) -> None:
+    def __init__(self, server: str, username: str, password: str, relax_validation: bool, token: str = None) -> None:
         """
         Constructs the manual test base class.
 
@@ -32,6 +32,7 @@ class ManualTestBase:
 
         self._server = server
         self._auth = HTTPBasicAuth(username, password)
+        self._token = token
         self._relax_validation = relax_validation
 
     def populate_data(self) -> None:
@@ -71,7 +72,12 @@ class ManualTestBase:
         with requests.Session() as session:
             if retries:
                 session.mount(self._server, HTTPAdapter(max_retries=retries))
-
+            if self._token:
+                return session.request(
+                    method,
+                    urljoin(self._server, route),
+                    headers={'x-ni-api-key': self._token},
+                    **kwargs)
             return session.request(
                     method,
                     urljoin(self._server, route),
@@ -350,8 +356,9 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--server', '-s', required=True, help='systemlink server url. eg https://server')
-    parser.add_argument('--username', '-u', required=True, help='server username')
-    parser.add_argument('--password', '-p', required=True, help='server password.')
+    parser.add_argument('--username', '-u', help='server username', default=None)
+    parser.add_argument('--password', '-p', help='server password.', default=None)
+    parser.add_argument('--token', '-t', help='API token.', default=None)
     parser.add_argument(
         '--relax-validation',
         required=False,
@@ -367,12 +374,15 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
     subparsers.add_parser('validate', help='validate the data on the server matches the test data')
 
     options = parser.parse_args()
+    if not any([options.password, options.token]):
+        raise ValueError("You have to specify either a username/password combo or a token")
     server = options.server
     username = options.username
     password = options.password
     relax_validation = options.relax_validation
+    token = options.token
 
-    test = test_class(server, username, password, relax_validation)
+    test = test_class(server, username, password, relax_validation, token)
 
     if 'populate' == options.command:
         test.populate_data()
