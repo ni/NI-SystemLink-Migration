@@ -19,7 +19,7 @@ class ManualTestBase:
 
     disable_warnings(exceptions.InsecureRequestWarning)
 
-    def __init__(self, server: str, username: str, password: str, relax_validation: bool) -> None:
+    def __init__(self, server: str, relax_validation: bool, username: str = None, password: str = None, sle_token: str = None) -> None:
         """
         Constructs the manual test base class.
 
@@ -29,9 +29,14 @@ class ManualTestBase:
         :param relax_validation: Relax validation for tests that cannot easily validate extra data.
         :return: None.
         """
+        self._token = None
+        self._auth = None
 
         self._server = server
-        self._auth = HTTPBasicAuth(username, password)
+        if sle_token:
+            self._token = sle_token
+        else:
+            self._auth = HTTPBasicAuth(username, password)
         self._relax_validation = relax_validation
 
     def populate_data(self) -> None:
@@ -72,10 +77,18 @@ class ManualTestBase:
             if retries:
                 session.mount(self._server, HTTPAdapter(max_retries=retries))
 
-            return session.request(
+            if self._auth:
+                return session.request(
                     method,
                     urljoin(self._server, route),
                     auth=kwargs.pop('auth', self._auth),
+                    verify=kwargs.pop('verify', False),
+                    **kwargs)
+            else:
+                session.headers.update({'x-ni-api-key': self._token})
+                return session.request(
+                    method,
+                    urljoin(self._server, route),
                     verify=kwargs.pop('verify', False),
                     **kwargs)
 
@@ -350,8 +363,9 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--server', '-s', required=True, help='systemlink server url. eg https://server')
-    parser.add_argument('--username', '-u', required=True, help='server username')
-    parser.add_argument('--password', '-p', required=True, help='server password.')
+    parser.add_argument('--username', '-u', required=False, help='server username')
+    parser.add_argument('--password', '-p', required=False, help='server password.')
+    parser.add_argument('--sle-token', '-t', required=False, help='SLE API Token.')
     parser.add_argument(
         '--relax-validation',
         required=False,
@@ -368,11 +382,17 @@ def handle_command_line(test_class: Type[ManualTestBase]) -> None:
 
     options = parser.parse_args()
     server = options.server
+    if options.sle_token:
+        if options.username or options.password:
+            raise ValueError(
+                "Please set either the SLE API Token (--sle-token or -r) or the username/password arguments but not both."
+            )
     username = options.username
     password = options.password
+    sle_token = options.sle_token
     relax_validation = options.relax_validation
 
-    test = test_class(server, username, password, relax_validation)
+    test = test_class(server, relax_validation, username, password, sle_token)
 
     if 'populate' == options.command:
         test.populate_data()
